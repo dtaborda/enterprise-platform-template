@@ -41,29 +41,41 @@ If you publish a fork, plan to define product-specific features and operations f
 
 - Node.js `>=20`
 - pnpm `>=9`
-- A Supabase project (or local Supabase stack) with valid API keys
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (required for Supabase local)
+- [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started) (`brew install supabase/tap/supabase`)
 
 ### 2) Install and configure
 
 ```bash
 pnpm install
 cp .env.example .env.local
-```
-
-Then set at least the required environment variables in `.env.local`:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-Next.js loads `.env.local` from its own project directory (`ui/`). Create a symlink so it reads the monorepo root file:
-
-```bash
 ln -s ../.env.local ui/.env.local
 ```
 
-Optional/conditional variables are documented in [docs/onboarding-checklist.md](./docs/onboarding-checklist.md).
+The `.env.example` comes pre-configured with Supabase local defaults — no changes needed for local dev.
 
-### 3) Run development
+Next.js loads `.env.local` from `ui/`. The symlink makes it read the monorepo root file.
+
+### 3) Start Supabase local
+
+```bash
+supabase start
+```
+
+This starts a full Supabase stack in Docker (Postgres, Auth, Storage, Studio), applies all migrations from `supabase/migrations/`, and seeds a test user from `supabase/seed.sql`.
+
+| Service | URL |
+|---------|-----|
+| API | http://127.0.0.1:54331 |
+| Studio (DB admin) | http://127.0.0.1:54333 |
+| Mailpit (email capture) | http://127.0.0.1:54334 |
+| Postgres | `postgresql://postgres:postgres@127.0.0.1:54332/postgres` |
+
+Test user credentials (from seed):
+- Email: `admin@enterprise.dev`
+- Password: `password123`
+
+### 4) Run development
 
 ```bash
 pnpm dev
@@ -72,6 +84,15 @@ pnpm dev
 App routes:
 - Auth: `http://localhost:3000/sign-in`
 - Dashboard: `http://localhost:3000/dashboard`
+
+### Useful Supabase commands
+
+```bash
+supabase start              # Start local stack (migrations + seed)
+supabase stop               # Stop (data persisted in Docker volumes)
+supabase db reset           # Re-apply all migrations + seed from scratch
+supabase status             # Show running services and URLs
+```
 
 ## Required configuration notes
 
