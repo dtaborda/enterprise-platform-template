@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockGetUser, mockSingle, mockUpdateSession } = vi.hoisted(() => ({
   mockGetUser: vi.fn(),
@@ -42,6 +42,12 @@ describe("middleware auth flow", () => {
 
   it("keeps recovery completion route accessible after callback session", async () => {
     const result = await middleware(createRequest("/reset-password"));
+
+    expect(result.headers.get("location")).toBeNull();
+  });
+
+  it("keeps auth callback route accessible for authenticated users", async () => {
+    const result = await middleware(createRequest("/auth/callback"));
 
     expect(result.headers.get("location")).toBeNull();
   });
