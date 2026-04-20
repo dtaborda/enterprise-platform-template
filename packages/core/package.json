@@ -1,0 +1,41 @@
+{
+  "name": "@enterprise/core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./supabase/client": "./src/supabase/client.ts",
+    "./supabase/server": "./src/supabase/server.ts",
+    "./supabase/middleware": "./src/supabase/middleware.ts",
+    "./supabase/admin": "./src/supabase/admin.ts",
+    "./supabase/contracts": "./src/supabase/contracts.ts",
+    "./supabase/storage-paths": "./src/supabase/storage-paths.ts",
+    "./utils/env": "./src/utils/env.ts",
+    "./services": "./src/services/index.ts",
+    "./services/auth-service": "./src/services/auth-service.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "cd ../.. && vitest run --project core",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@enterprise/contracts": "workspace:*",
+    "@enterprise/db": "workspace:*",
+    "@supabase/ssr": "^0.10.0",
+    "@supabase/supabase-js": "^2.50.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "enterprise-platform",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "test:e2e": "playwright test",
+    "clean": "turbo run clean",
+    "db:generate": "pnpm --filter @enterprise/db db:generate",
+    "instantiate": "node scripts/instantiate.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.4",
+    "@playwright/test": "^1.52.0",
+    "@vitest/coverage-v8": "^3.2.0",
+    "happy-dom": "^18.0.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "next": "15.5.14"
+    },
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "@babel/core",
+        "@opentelemetry/api"
+      ]
+    }
+  }
+}

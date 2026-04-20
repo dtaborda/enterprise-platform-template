@@ -1,0 +1,28 @@
+name: Security Review
+
+permissions:
+  pull-requests: write  # Needed for leaving PR comments
+  contents: read
+
+on:
+  pull_request:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+      
+      # Optional: Add more security checks as needed
+      # - name: Run security audits
+      #   run: pnpm audit
+      
+      # This is a placeholder for security review automation
+      # You can add tools like: npm audit, trivy, sonarqube, etc.
+      - name: Dependency check
+        run: |
+          echo "Security checks placeholder"
+          echo "Add tools like: npm audit, trivy, snyk, etc."

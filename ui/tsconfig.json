@@ -1,0 +1,53 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "composite": false,
+    "jsx": "preserve",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@enterprise/ui": [
+        "../packages/ui/src"
+      ],
+      "@enterprise/ui/*": [
+        "../packages/ui/src/*"
+      ],
+      "@enterprise/contracts": [
+        "../packages/contracts/src"
+      ],
+      "@enterprise/core": [
+        "../packages/core/src"
+      ],
+      "@enterprise/core/*": [
+        "../packages/core/src/*"
+      ],
+      "@enterprise/db": [
+        "../packages/db/src"
+      ],
+      "@enterprise/db/*": [
+        "../packages/db/src/*"
+      ]
+    },
+    "noEmit": true,
+    "incremental": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next"
+  ]
+}

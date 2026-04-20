@@ -1,0 +1,41 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Tech stack: TypeScript, pnpm workspaces, Turborepo, Next.js 15, Tailwind CSS 4, shadcn/ui
+  Architecture: Screaming Architecture monorepo — packages/contracts (DTOs, Zod schemas), packages/db (Drizzle ORM, multi-tenant RLS), packages/core (Supabase SSR, services), ui/ (Next.js 15 App Router)
+  Auth & DB: Supabase (auth, RLS, SSR), Drizzle ORM v1, PostgreSQL — multi-tenant via tenant_id in JWT + RLS policies
+  Testing: Vitest (unit — contracts 80%, core 70%, db 60%), Playwright (E2E), happy-dom
+  Style: Biome v2 — 2-space indent, double quotes, 100 char line width, trailing commas
+  Package naming: @enterprise/{contracts,db,core} — all ESM (type:module)
+
+rules:
+  proposal:
+    - Identify which packages are affected (@enterprise/contracts, db, core, ui)
+    - Include rollback plan for DB schema or RLS policy changes
+    - Flag multi-tenant impact — any change touching tenantId or RLS MUST be reviewed
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - For DB changes: include RLS scenario (authenticated vs anon, role hierarchy)
+  design:
+    - Include sequence diagrams for auth and service flows
+    - Document Drizzle schema changes with RLS implications
+    - Architecture decisions MUST note which layer owns the logic (contract/db/core/ui)
+  tasks:
+    - Group tasks by package phase: contracts → db → core → ui
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Load angular skill for Angular-related work, nextjs-15 for Next.js, typescript for type patterns
+    - Follow Biome formatting rules — no eslint, no prettier
+    - New service logic MUST live in packages/core/src/services
+    - Zod schemas MUST live in packages/contracts/src/schemas
+  verify:
+    - Run `pnpm typecheck` — zero errors required
+    - Run `pnpm test` — coverage thresholds must pass
+    - Run `pnpm lint` — zero errors (warnings allowed)
+    - For E2E: run `pnpm e2e`
+  archive:
+    - Warn before merging RLS policy deltas — destructive changes affect all tenants
+    - Sync Drizzle migrations to supabase/ before archiving DB changes

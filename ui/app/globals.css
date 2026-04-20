@@ -1,0 +1,8 @@
+@import "@enterprise/ui/globals.css";
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Scan workspace packages for Tailwind classes (outside ui/ directory) */
+@source "../../packages/ui/src";
+@source "../features";
+@source "../components";

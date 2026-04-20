@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "composite": true,
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmitOnError": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@enterprise/contracts": ["packages/contracts/src"],
+      "@enterprise/contracts/*": ["packages/contracts/src/*"],
+      "@enterprise/core": ["packages/core/src"],
+      "@enterprise/core/*": ["packages/core/src/*"],
+      "@enterprise/db": ["packages/db/src"],
+      "@enterprise/db/*": ["packages/db/src/*"],
+      "@enterprise/ui": ["packages/ui/src"],
+      "@enterprise/ui/*": ["packages/ui/src/*"],
+      "@/*": ["ui/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next", ".turbo"]
+}
