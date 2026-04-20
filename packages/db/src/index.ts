@@ -5,5 +5,4 @@ export * from "./schema/platform.js";
 
 // Re-export drizzle utilities
 export { drizzle } from "drizzle-orm/postgres-js";
-export type { PgDriver, PgTable } from "drizzle-orm/pg-core";
-export type { PgTransaction } from "drizzle-orm/pg-core/transaction";
+export type { PgTable } from "drizzle-orm/pg-core";
