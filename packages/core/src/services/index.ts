@@ -143,14 +143,14 @@ export class AuditService {
     metadata?: Record<string, unknown>,
   ) {
     const entry: NewAuditLogEntry = {
-      tenant_id: this.ctx.auth.tenantId,
-      user_id: this.ctx.auth.userId,
+      tenantId: this.ctx.auth.tenantId,
+      userId: this.ctx.auth.userId,
       action: action as NewAuditLogEntry["action"],
       resource,
-      resource_id: resourceId ?? null,
+      resourceId: resourceId ?? null,
       metadata: metadata ? JSON.stringify(metadata) : null,
-      ip_address: null,
-      user_agent: null,
+      ipAddress: null,
+      userAgent: null,
     };
 
     const { error } = await this.ctx.db.from("audit_log").insert(entry);
