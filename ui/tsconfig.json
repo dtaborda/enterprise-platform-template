@@ -12,42 +12,18 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@enterprise/ui": [
-        "../packages/ui/src"
-      ],
-      "@enterprise/ui/*": [
-        "../packages/ui/src/*"
-      ],
-      "@enterprise/contracts": [
-        "../packages/contracts/src"
-      ],
-      "@enterprise/core": [
-        "../packages/core/src"
-      ],
-      "@enterprise/core/*": [
-        "../packages/core/src/*"
-      ],
-      "@enterprise/db": [
-        "../packages/db/src"
-      ],
-      "@enterprise/db/*": [
-        "../packages/db/src/*"
-      ]
+      "@/*": ["./*"],
+      "@enterprise/ui": ["../packages/ui/src"],
+      "@enterprise/ui/*": ["../packages/ui/src/*"],
+      "@enterprise/contracts": ["../packages/contracts/src"],
+      "@enterprise/core": ["../packages/core/src"],
+      "@enterprise/core/*": ["../packages/core/src/*"],
+      "@enterprise/db": ["../packages/db/src"],
+      "@enterprise/db/*": ["../packages/db/src/*"]
     },
     "noEmit": true,
     "incremental": true
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".next"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
 }

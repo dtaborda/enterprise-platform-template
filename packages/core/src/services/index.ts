@@ -1,15 +1,8 @@
 // Platform service layer - base services for multi-tenant operations
 // These are meant to be extended by domain-specific services
 
+import type { NewAuditLogEntry } from "@enterprise/db/schema/platform";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  auditLog,
-  profiles,
-  tenants,
-  userRoles,
-  type NewAuditLogEntry,
-  type NewProfile,
-} from "@enterprise/db/schema/platform";
 
 /** Auth context - extracted from Supabase auth */
 export interface AuthContext {

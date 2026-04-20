@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@enterprise/ui", "@enterprise/core", "@enterprise/contracts", "@enterprise/db"],
+  transpilePackages: [
+    "@enterprise/ui",
+    "@enterprise/core",
+    "@enterprise/contracts",
+    "@enterprise/db",
+  ],
   images: {
     remotePatterns: [
       {
