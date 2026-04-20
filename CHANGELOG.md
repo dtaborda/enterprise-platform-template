@@ -21,9 +21,7 @@
 
 ### Tests
 
-* **web:** add auth callback middleware coverage ([b0ad4ca](https://github.com/dtaborda/enterprise-platform-template/commit/b0ad4ca08f84d98ff065f5749c7caa679dced04e))
-* **web:** add auth callback middleware coverage ([52ea756](https://github.com/dtaborda/enterprise-platform-template/commit/52ea7560eff7a6b41e91c3751afeae4a8dd8b631))
-* **web:** add auth callback middleware coverage ([3f71961](https://github.com/dtaborda/enterprise-platform-template/commit/3f71961c9f19915c527dddf5d8fcef484beb5ceb))
+* **web:** add auth callback middleware coverage ([b0ad4ca](https://github.com/dtaborda/enterprise-platform-template/commit/b0ad4ca08f84d98ff065f5749c7caa679dced04e), [52ea756](https://github.com/dtaborda/enterprise-platform-template/commit/52ea7560eff7a6b41e91c3751afeae4a8dd8b631), [3f71961](https://github.com/dtaborda/enterprise-platform-template/commit/3f71961c9f19915c527dddf5d8fcef484beb5ceb))
 
 
 ### Documentation
