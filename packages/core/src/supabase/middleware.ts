@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 /**
  * Refreshes the Supabase auth session for every middleware request.
@@ -7,8 +7,8 @@ import { NextRequest, NextResponse } from "next/server";
  * This MUST call getUser() to validate and refresh tokens server-side.
  */
 export async function updateSession(request: NextRequest) {
-  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
-  const supabaseAnonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
@@ -49,8 +49,8 @@ export async function updateSession(request: NextRequest) {
  * Use when middleware needs to perform additional queries after updateSession().
  */
 export function createMiddlewareClient(request: NextRequest) {
-  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
-  const supabaseAnonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");

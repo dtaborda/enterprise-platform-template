@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  paginatedSchema,
-  paginationParamsSchema,
-  slugField,
-  userRoleSchema,
-} from "./platform";
+import { paginatedSchema, paginationParamsSchema, slugField, userRoleSchema } from "./platform";
 
 describe("platform schemas", () => {
   it("accepts a valid slug and rejects invalid format", () => {

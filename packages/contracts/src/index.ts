@@ -1,44 +1,41 @@
 // @enterprise/contracts - Generic DTOs, types, and Zod schemas
 // Reusable across any enterprise application built on this platform
 
-// Types
-export * from "./types/platform";
-
-// Schemas
-export {
-  uuidSchema,
-  timestampSchema,
-  entitySchema,
-  softDeletableSchema,
-  userRoleSchema,
-  platformUserSchema,
-  authSessionSchema,
-  registrationMetadataSchema,
-  invitationMetadataSchema,
-  tenantStatusSchema,
-  tenantSchema,
-  auditActionSchema,
-  auditEntrySchema,
-  pageInfoSchema,
-  paginatedSchema,
-  actionErrorSchema,
-  actionResultSchema,
-  emailField,
-  nameField,
-  slugField,
-  paginationParamsSchema,
-} from "./schemas/platform";
-
-export type {
-  Tenant,
-  TenantStatus,
-  PaginationParams,
-  RegistrationMetadata,
-  InvitationMetadata,
-} from "./schemas/platform";
-
+// Re-export Zod for convenience
+export { z } from "zod";
 // DTOs
 export * from "./dto/platform";
 
-// Re-export Zod for convenience
-export { z } from "zod";
+export type {
+  InvitationMetadata,
+  PaginationParams,
+  RegistrationMetadata,
+  Tenant,
+  TenantStatus,
+} from "./schemas/platform";
+// Schemas
+export {
+  actionErrorSchema,
+  actionResultSchema,
+  auditActionSchema,
+  auditEntrySchema,
+  authSessionSchema,
+  emailField,
+  entitySchema,
+  invitationMetadataSchema,
+  nameField,
+  pageInfoSchema,
+  paginatedSchema,
+  paginationParamsSchema,
+  platformUserSchema,
+  registrationMetadataSchema,
+  slugField,
+  softDeletableSchema,
+  tenantSchema,
+  tenantStatusSchema,
+  timestampSchema,
+  userRoleSchema,
+  uuidSchema,
+} from "./schemas/platform";
+// Types
+export * from "./types/platform";

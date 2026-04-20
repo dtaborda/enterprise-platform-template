@@ -10,8 +10,8 @@ let adminClient: ReturnType<typeof createClient> | null = null;
 /** Get admin client (bypasses RLS - USE WITH CAUTION) */
 export function getAdminClient() {
   if (!adminClient) {
-    const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
-    const supabaseServiceKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
@@ -31,7 +31,7 @@ export function getAdminClient() {
 /** Create a scoped admin client for a specific tenant
  * Useful for background jobs that need to operate across tenants
  */
-export function getTenantAdminClient(tenantId: string) {
+export function getTenantAdminClient(_tenantId: string) {
   const client = getAdminClient();
   // Note: This doesn't actually scope the client - you'd implement
   // tenant-specific logic in queries or use RLS with custom claims

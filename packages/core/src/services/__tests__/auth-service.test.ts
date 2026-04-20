@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { describe, expect, it, vi } from "vitest";
 import {
-  requestPasswordResetService,
-  signUpService,
   type PasswordResetServiceInput,
+  requestPasswordResetService,
   type SignUpServiceInput,
+  signUpService,
   updatePasswordService,
 } from "../auth-service";
 

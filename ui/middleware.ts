@@ -50,7 +50,11 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
   const role = (profile?.role as UserRole | undefined) ?? "guest";
   const roleHome = ROLE_REDIRECTS[role] ?? "/dashboard";
 

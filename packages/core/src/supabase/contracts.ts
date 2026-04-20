@@ -130,8 +130,8 @@ export interface Database {
         };
       };
     };
-    Views: {};
-    Functions: {};
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
     Enums: {
       tenant_status: "active" | "inactive" | "suspended";
       user_role: "owner" | "admin" | "member" | "guest";
