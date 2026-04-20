@@ -1,8 +1,8 @@
 "use client";
 
 import type { UserRole } from "@enterprise/contracts";
-import { Button } from "@enterprise/ui/components/button";
 import { Avatar, AvatarFallback } from "@enterprise/ui/components/avatar";
+import { Button } from "@enterprise/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@enterprise/ui/components/dropdown-menu";
-import { signOut } from "@/features/auth/actions";
 import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "@/features/auth/actions";
 import { MobileNav } from "./mobile-nav";
 
 interface HeaderProps {
@@ -50,8 +50,8 @@ export function Header({ userRole, userLabel }: HeaderProps) {
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/dashboard/settings">
-              <Settings className="mr-2 size-4" />
-              Settings
+                <Settings className="mr-2 size-4" />
+                Settings
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

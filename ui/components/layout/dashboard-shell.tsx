@@ -1,8 +1,8 @@
 "use client";
 
 import type { UserRole } from "@enterprise/contracts";
-import { Sidebar } from "./sidebar";
 import { Header } from "./header";
+import { Sidebar } from "./sidebar";
 
 interface DashboardShellProps {
   children: React.ReactNode;

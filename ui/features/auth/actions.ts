@@ -5,8 +5,8 @@ import {
   registrationMetadataSchema,
   resetPasswordDto,
   signUpDto,
-  updatePasswordDto,
   type UserRole,
+  updatePasswordDto,
 } from "@enterprise/contracts";
 import {
   requestPasswordResetService,
@@ -68,7 +68,9 @@ export async function signInAction(formData: FormData) {
   const result = await signIn(email, password, redirectTo);
 
   if (result?.error) {
-    const fallbackPath = redirectTo ? `/sign-in?redirectTo=${encodeURIComponent(redirectTo)}` : "/sign-in";
+    const fallbackPath = redirectTo
+      ? `/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`
+      : "/sign-in";
     redirect(fallbackPath);
   }
 }

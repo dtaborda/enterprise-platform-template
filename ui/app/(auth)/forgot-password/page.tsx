@@ -1,9 +1,15 @@
 import { Button } from "@enterprise/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@enterprise/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@enterprise/ui/components/card";
 import { Input } from "@enterprise/ui/components/input";
 import { Label } from "@enterprise/ui/components/label";
-import { forgotPasswordAction } from "@/features/auth/actions";
 import Link from "next/link";
+import { forgotPasswordAction } from "@/features/auth/actions";
 
 export const metadata = { title: "Forgot Password" };
 

@@ -1,9 +1,15 @@
 import { Button } from "@enterprise/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@enterprise/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@enterprise/ui/components/card";
 import { Input } from "@enterprise/ui/components/input";
 import { Label } from "@enterprise/ui/components/label";
-import { updatePasswordAction } from "@/features/auth/actions";
 import Link from "next/link";
+import { updatePasswordAction } from "@/features/auth/actions";
 
 export const metadata = { title: "Reset Password" };
 
@@ -35,7 +41,13 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="confirmPassword">Confirm password</Label>
-            <Input id="confirmPassword" name="confirmPassword" type="password" minLength={8} required />
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              minLength={8}
+              required
+            />
           </div>
 
           <Button type="submit" className="w-full">

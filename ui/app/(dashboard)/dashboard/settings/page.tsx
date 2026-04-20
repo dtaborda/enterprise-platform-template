@@ -1,6 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@enterprise/ui/components/card";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { getAppUrl } from "@enterprise/core/utils/env";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@enterprise/ui/components/card";
 import { requireAuth } from "@/features/auth/queries";
 
 export const metadata = { title: "Settings" };
@@ -11,11 +17,7 @@ export default async function SettingsPage() {
 
   const [{ data: tenant }, { data: profile }] = await Promise.all([
     supabase.from("tenants").select("name, slug, status").eq("id", user.tenantId).single(),
-    supabase
-      .from("profiles")
-      .select("name, email, role, updated_at")
-      .eq("id", user.id)
-      .single(),
+    supabase.from("profiles").select("name, email, role, updated_at").eq("id", user.id).single(),
   ]);
 
   return (
@@ -56,7 +58,9 @@ export default async function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Environment</CardTitle>
-          <CardDescription>Useful starter metadata for local setup and deployment checks</CardDescription>
+          <CardDescription>
+            Useful starter metadata for local setup and deployment checks
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>Runtime: {process.env.NODE_ENV ?? "unknown"}</p>

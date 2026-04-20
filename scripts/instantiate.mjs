@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Enterprise Platform Template Instantiation CLI
  *
@@ -9,10 +10,18 @@
  * This script instantiates a new enterprise application from the platform template.
  */
 
-import { parseArgs } from "util";
-import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, cpSync, rmSync } from "fs";
-import { join, dirname, basename } from "path";
-import { fileURLToPath } from "url";
+import {
+  cpSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = join(__dirname, "..");
@@ -64,7 +73,7 @@ function validateDomain(domain) {
 function derivePackagePrefix(domain) {
   const parts = domain.split(".");
   // Take first part, remove hyphens, make it camelCase-ish
-  let prefix = parts[0].replace(/-/g, "");
+  const prefix = parts[0].replace(/-/g, "");
   // Convert to lowercase for npm package name
   return prefix.toLowerCase();
 }
@@ -106,7 +115,7 @@ function processFile(filePath, replacements) {
       const content = readFileSync(filePath, "utf-8");
       const replaced = replacePlaceholders(content, replacements);
       writeFileSync(filePath, replaced, "utf-8");
-    } catch (e) {
+    } catch (_e) {
       // Binary file or error - skip
     }
   }
@@ -160,7 +169,7 @@ function renamePackageReferences(dirPath, oldPrefix, newPrefix) {
         const content = JSON.parse(readFileSync(fullPath, "utf-8"));
 
         // Rename name field
-        if (content.name && content.name.startsWith(oldPrefix)) {
+        if (content.name?.startsWith(oldPrefix)) {
           content.name = content.name.replace(oldPrefix, newPrefix);
         }
 
@@ -183,8 +192,8 @@ function renamePackageReferences(dirPath, oldPrefix, newPrefix) {
           }
         }
 
-        writeFileSync(fullPath, JSON.stringify(content, null, 2) + "\n", "utf-8");
-      } catch (e) {
+        writeFileSync(fullPath, `${JSON.stringify(content, null, 2)}\n`, "utf-8");
+      } catch (_e) {
         // Not a valid JSON or other error - skip
       }
     }
@@ -276,13 +285,13 @@ async function instantiate(opts) {
   try {
     rmSync(scriptPath);
     console.log("  ✓ Instantiation script removed");
-  } catch (e) {
+  } catch (_e) {
     // Script might not exist
   }
 
   // Validate package.json files
   console.log("\n✅ Validating...");
-  const { execSync } = await import("child_process");
+  const { execSync } = await import("node:child_process");
   try {
     execSync("pnpm install --ignore-scripts", { cwd: outputDir, stdio: "pipe" });
     console.log("  ✓ Dependencies installed");
@@ -290,7 +299,7 @@ async function instantiate(opts) {
     console.log(`  ⚠️  Warning: Could not install dependencies: ${e.message}`);
   }
 
-  console.log("\n" + "=".repeat(60));
+  console.log(`\n${"=".repeat(60)}`);
   console.log("✨ Instantiation complete!");
   console.log("=".repeat(60));
   console.log(`\nNext steps:`);

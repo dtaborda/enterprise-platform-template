@@ -1,8 +1,8 @@
 // UI utilities - classname merging and other utilities
 
-import {type ClassValue, clsx} from "clsx";
-import {twMerge} from "tailwind-merge";
-import {createElement, type ComponentType, type ElementType, type ReactNode} from "react";
+import { type ClassValue, clsx } from "clsx";
+import { type ComponentType, createElement, type ElementType, type ReactNode } from "react";
+import { twMerge } from "tailwind-merge";
 
 /** Merge class names with tailwind-merge */
 export function cn(...inputs: ClassValue[]): string {
@@ -10,9 +10,7 @@ export function cn(...inputs: ClassValue[]): string {
 }
 
 /** Create a variant function for component variants */
-export function createVariant<T extends string>(
-  variants: Record<T, ClassValue[]>
-) {
+export function createVariant<T extends string>(variants: Record<T, ClassValue[]>) {
   return (...variantKeys: T[]): string => {
     return cn(...variantKeys.flatMap((key) => variants[key] ?? []));
   };
@@ -27,16 +25,14 @@ export function cva(
     compoundVariants?: Array<{
       [key: string]: string;
     }>;
-  }
+  },
 ) {
   return (variantProps?: Record<string, string>): string => {
     const classes: ClassValue[] = [base];
 
     // Apply variants
     if (config?.variants && variantProps) {
-      for (const [variantName, variantValues] of Object.entries(
-        config.variants
-      )) {
+      for (const [variantName, variantValues] of Object.entries(config.variants)) {
         const selectedValue = variantProps[variantName];
         if (selectedValue && variantValues[selectedValue]) {
           classes.push(variantValues[selectedValue]);
@@ -46,9 +42,7 @@ export function cva(
 
     // Apply default variants
     if (config?.defaultVariants) {
-      for (const [variantName, defaultValue] of Object.entries(
-        config.defaultVariants
-      )) {
+      for (const [variantName, defaultValue] of Object.entries(config.defaultVariants)) {
         const value = variantProps?.[variantName] ?? defaultValue;
         if (value && config.variants?.[variantName]?.[value]) {
           classes.push(config.variants[variantName][value]);
@@ -60,7 +54,7 @@ export function cva(
     if (config?.compoundVariants && variantProps) {
       for (const compound of config.compoundVariants) {
         const matches = Object.entries(compound).every(
-          ([key, value]) => variantProps[key] === value
+          ([key, value]) => variantProps[key] === value,
         );
         const compoundClass = compound["class"];
         if (matches && compoundClass) {
@@ -77,7 +71,7 @@ export function cva(
 export function slot<P extends object>(
   Component: ComponentType<P> | ElementType | null | undefined,
   props: P,
-  fallback?: ReactNode
+  fallback?: ReactNode,
 ) {
   if (!Component) {
     return fallback ?? null;
