@@ -55,6 +55,12 @@ Then set at least the required environment variables in `.env.local`:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
+Next.js loads `.env.local` from its own project directory (`ui/`). Create a symlink so it reads the monorepo root file:
+
+```bash
+ln -s ../.env.local ui/.env.local
+```
+
 Optional/conditional variables are documented in [docs/onboarding-checklist.md](./docs/onboarding-checklist.md).
 
 ### 3) Run development

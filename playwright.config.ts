@@ -1,10 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const { CI, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY } = process.env;
-
-const isCI = !!CI;
+const isCI = !!process.env["CI"];
 
 export default defineConfig({
+  // Load .env.local before any tests run (needed for seed scripts in E2E helpers)
   globalSetup: "./ui/e2e/global-setup.ts",
   testDir: "./ui/e2e",
   timeout: 60_000,
@@ -14,8 +13,8 @@ export default defineConfig({
   workers: isCI ? 1 : undefined,
   reporter: isCI ? [["html"], ["github"]] : "html",
   use: {
-    baseURL: "http://localhost:3100",
-    trace: "on",
+    baseURL: "http://localhost:3000",
+    trace: isCI ? "retain-on-failure" : "on",
     screenshot: "on",
   },
   projects: [
@@ -25,14 +24,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm --filter @enterprise/web dev --port 3100",
-    env: {
-      ...process.env,
-      NEXT_PUBLIC_SUPABASE_URL: NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: NEXT_PUBLIC_SUPABASE_ANON_KEY || "test-anon-key",
-    },
-    url: "http://localhost:3100",
-    reuseExistingServer: false,
+    // Always use production build for stable, fast E2E tests.
+    // Run `pnpm build` before `pnpm e2e` if you haven't already.
+    command: "pnpm --filter @enterprise/web start",
+    url: "http://localhost:3000",
+    reuseExistingServer: !isCI,
     timeout: 120_000,
   },
 });
