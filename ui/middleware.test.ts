@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockGetUser, mockSingle, mockUpdateSession } = vi.hoisted(() => ({
   mockGetUser: vi.fn(),
