@@ -33,10 +33,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-      <html
-        lang="en"
-        className={`${inter.variable} ${jetbrainsMono.variable} ${plusJakartaSans.variable} ${spaceGrotesk.variable}`}
-      >
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetbrainsMono.variable} ${plusJakartaSans.variable} ${spaceGrotesk.variable}`}
+    >
       <body className="min-h-screen bg-background font-sans antialiased">
         {children}
         <Toaster richColors position="top-right" />

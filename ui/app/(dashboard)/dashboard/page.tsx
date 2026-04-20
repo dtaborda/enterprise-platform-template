@@ -1,6 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@enterprise/ui/components/card";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { getAppUrl } from "@enterprise/core/utils/env";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@enterprise/ui/components/card";
 import { requireAuth } from "@/features/auth/queries";
 
 export const metadata = { title: "Dashboard" };
@@ -43,7 +49,9 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-headline text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Starter data from your authenticated platform context</p>
+        <p className="text-muted-foreground">
+          Starter data from your authenticated platform context
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,6 +1,6 @@
 import { getServerClient } from "@enterprise/core/supabase/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { normalizeSafeRedirectPath } from "@/features/auth/redirects";
-import { NextResponse, type NextRequest } from "next/server";
 
 const EMAIL_OTP_TYPE = {
   SIGNUP: "signup",

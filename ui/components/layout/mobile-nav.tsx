@@ -2,7 +2,13 @@
 
 import type { UserRole } from "@enterprise/contracts";
 import { Button } from "@enterprise/ui/components/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@enterprise/ui/components/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@enterprise/ui/components/sheet";
 import { cn } from "@enterprise/ui/lib/utils";
 import { Menu } from "lucide-react";
 import Link from "next/link";

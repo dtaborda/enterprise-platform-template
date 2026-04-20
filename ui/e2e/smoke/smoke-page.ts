@@ -24,7 +24,9 @@ export class SmokePage {
   }
 
   async expectSignInFormVisible(): Promise<void> {
-    await expect(this.page.getByText("Enter your credentials to access the platform")).toBeVisible();
+    await expect(
+      this.page.getByText("Enter your credentials to access the platform"),
+    ).toBeVisible();
     await expect(this.page.getByLabel("Email")).toBeVisible();
     await expect(this.page.getByLabel("Password")).toBeVisible();
     await expect(this.page.getByRole("button", { name: "Sign In" })).toBeVisible();
@@ -35,7 +37,9 @@ export class SmokePage {
   }
 
   async expectSignUpFormVisible(): Promise<void> {
-    await expect(this.page.getByText("Get started with the platform starter in minutes")).toBeVisible();
+    await expect(
+      this.page.getByText("Get started with the platform starter in minutes"),
+    ).toBeVisible();
     await expect(this.page.getByLabel("Full name")).toBeVisible();
     await expect(this.page.getByLabel("Email")).toBeVisible();
     await expect(this.page.getByLabel("Password")).toBeVisible();
@@ -43,7 +47,9 @@ export class SmokePage {
   }
 
   async expectForgotPasswordFormVisible(): Promise<void> {
-    await expect(this.page.getByText("Request a password reset link for your account")).toBeVisible();
+    await expect(
+      this.page.getByText("Request a password reset link for your account"),
+    ).toBeVisible();
     await expect(this.page.getByLabel("Email")).toBeVisible();
     await expect(this.page.getByRole("button", { name: "Send reset link" })).toBeVisible();
   }
