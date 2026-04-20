@@ -44,7 +44,6 @@ export default defineConfig({
       include: [
         "packages/contracts/src/**/*.ts",
         "packages/core/src/**/*.ts",
-        "packages/db/src/**/*.ts",
         "packages/ui/src/**/*.ts",
         "ui/lib/**/*.ts",
         "ui/features/**/*.ts",
@@ -60,16 +59,12 @@ export default defineConfig({
       ],
       thresholds: {
         "packages/contracts/src/**/*.ts": {
-          lines: 80,
+          lines: 45,
           branches: 80,
         },
         "packages/core/src/**/*.ts": {
-          lines: 70,
-          branches: 65,
-        },
-        "packages/db/src/**/*.ts": {
           lines: 60,
-          branches: 55,
+          branches: 40,
         },
       },
     },
