@@ -1,28 +1,33 @@
 import type { Page } from "@playwright/test";
 
-/**
- * Sign in via the sign-in page with explicit credentials.
- */
-export async function login(page: Page, email: string, password: string) {
-  const { NEXT_PUBLIC_BASE_URL: baseUrlEnv } = process.env;
-  const baseUrl = baseUrlEnv ?? "http://localhost:3000";
+/** Default test credentials from seed.sql */
+const DEFAULT_EMAIL = "admin@enterprise.dev";
+const DEFAULT_PASSWORD = "password123";
 
-  await page.goto(`${baseUrl}/sign-in`);
+/**
+ * Login to the app via the UI sign-in form.
+ * Uses E2E_EMAIL/E2E_PASSWORD env vars, or falls back to seed.sql defaults.
+ *
+ * Waits for React hydration before interacting to avoid the browser performing
+ * a native GET submit (which leaks credentials into the URL query string and
+ * never actually authenticates).
+ */
+export async function login(
+  page: Page,
+  email = process.env["E2E_EMAIL"] ?? DEFAULT_EMAIL,
+  password = process.env["E2E_PASSWORD"] ?? DEFAULT_PASSWORD,
+) {
+  await page.goto("/sign-in");
+
+  // Wait for the form to be interactive (React hydration complete)
+  await page
+    .getByRole("button", { name: "Sign In" })
+    .waitFor({ state: "visible", timeout: 15_000 });
+
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign In" }).click();
-  await page.waitForURL("**/dashboard**");
-}
 
-/**
- * Convenience helper that reads credentials from environment variables.
- */
-export async function signIn(page: Page) {
-  const { E2E_USER_EMAIL: email, E2E_USER_PASSWORD: password } = process.env;
-
-  if (!email || !password) {
-    throw new Error("E2E_USER_EMAIL and E2E_USER_PASSWORD must be set in .env.local");
-  }
-
-  await login(page, email, password);
+  // Wait for redirect — generous timeout for Server Action roundtrip
+  await page.waitForURL(/\/dashboard/, { timeout: 30_000 });
 }

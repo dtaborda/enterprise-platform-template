@@ -1,18 +1,26 @@
-import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { loadEnvFile } from "node:process";
+import { fileURLToPath } from "node:url";
 
 /**
- * Global setup for Playwright E2E tests.
- * Loads .env.local from the ui/ directory when available.
+ * Playwright global setup — runs once before all tests.
+ *
+ * Loads .env.local from the repository root so that E2E helpers (seed scripts,
+ * auth helpers) can access Supabase credentials and other local env vars.
+ *
+ * In CI, these vars are set directly in the environment (no .env.local needed).
+ * The `override: false` flag means existing env vars take precedence.
  */
 export default async function globalSetup() {
-  const envPath = resolve(import.meta.dirname, "../.env.local");
-
-  if (!existsSync(envPath)) {
-    console.warn(`[playwright] Optional env file not found: ${envPath}`);
-    return;
+  // process.loadEnvFile is available in Node 20.12+ / 22+
+  // In older Node versions this is a no-op (env vars must be pre-set).
+  if (typeof process.loadEnvFile === "function") {
+    // ESM-compatible path resolution (no __dirname)
+    const dir = fileURLToPath(new URL(".", import.meta.url));
+    const envPath = resolve(dir, "../../.env.local");
+    try {
+      process.loadEnvFile(envPath);
+    } catch {
+      // .env.local may not exist in CI — that's fine, vars come from environment
+    }
   }
-
-  loadEnvFile(envPath);
 }

@@ -20,9 +20,21 @@ const ROLE_REDIRECTS: Record<UserRole, string> = {
   guest: "/",
 };
 
+const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+const supabaseAnonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+}
+
+const middlewareSupabaseConfig = {
+  supabaseUrl,
+  supabaseAnonKey,
+};
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const response = await updateSession(request);
+  const response = await updateSession(request, middlewareSupabaseConfig);
 
   const isPublicRoute = PUBLIC_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -34,7 +46,7 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
 
-  const supabase = createMiddlewareClient(request);
+  const supabase = createMiddlewareClient(request, middlewareSupabaseConfig);
 
   const {
     data: { user },
