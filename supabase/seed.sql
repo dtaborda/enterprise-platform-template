@@ -5,25 +5,10 @@
 --   Email:    admin@enterprise.dev
 --   Password: password123
 --
--- We disable the on_auth_user_created trigger to avoid conflicts
--- (the trigger auto-creates tenant + profile, but we want explicit control
--- over IDs and roles for deterministic E2E tests).
+-- The INSERT into auth.users triggers handle_new_user() which
+-- auto-creates the tenant ("Enterprise Demo") and profile (owner role).
 
--- Disable the auto-onboarding trigger during seeding
-ALTER TABLE auth.users DISABLE TRIGGER on_auth_user_created;
-
--- 1. Create the test tenant
-INSERT INTO tenants (id, name, slug, status, created_at, updated_at)
-VALUES (
-  '00000000-0000-0000-0000-000000000001',
-  'Enterprise Demo',
-  'enterprise-demo',
-  'active',
-  NOW(),
-  NOW()
-);
-
--- 2. Create test user in auth.users with ALL fields GoTrue expects
+-- Create test user with ALL fields GoTrue expects (avoid NULL scan errors)
 INSERT INTO auth.users (
   instance_id,
   id,
@@ -59,7 +44,7 @@ INSERT INTO auth.users (
   NOW(),
   NOW(),
   '{"provider":"email","providers":["email"]}',
-  '{"full_name":"Admin Demo","tenant_id":"00000000-0000-0000-0000-000000000001"}',
+  '{"full_name":"Admin Demo","company_name":"Enterprise Demo","slug":"enterprise-demo"}',
   NOW(),
   NOW(),
   '',
@@ -76,7 +61,7 @@ INSERT INTO auth.users (
   FALSE
 );
 
--- 3. Create identity (required for GoTrue email/password auth)
+-- Create identity (required for GoTrue email/password auth)
 INSERT INTO auth.identities (
   id,
   user_id,
@@ -96,18 +81,3 @@ INSERT INTO auth.identities (
   NOW(),
   NOW()
 );
-
--- 4. Create profile for the test user
-INSERT INTO profiles (id, tenant_id, email, name, role, created_at, updated_at)
-VALUES (
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-  '00000000-0000-0000-0000-000000000001',
-  'admin@enterprise.dev',
-  'Admin Demo',
-  'owner',
-  NOW(),
-  NOW()
-);
-
--- Re-enable the trigger for normal operation
-ALTER TABLE auth.users ENABLE TRIGGER on_auth_user_created;
