@@ -11,8 +11,7 @@
 ### Bug Fixes
 
 * align public coverage baseline ([aa7c088](https://github.com/dtaborda/enterprise-platform-template/commit/aa7c088f67da00b77900666adbb5d660a8226d0a))
-* configure Supabase local, CI env vars, and E2E infrastructure ([e2fe14c](https://github.com/dtaborda/enterprise-platform-template/commit/e2fe14c75806d825d92c2c40e4aa4a7c0452043c))
-* configure Supabase local, CI env vars, and E2E infrastructure ([c2fd28a](https://github.com/dtaborda/enterprise-platform-template/commit/c2fd28a736359a022870cda6fe4ca02346e9e3ce))
+* configure Supabase local, CI env vars, and E2E infrastructure ([e2fe14c](https://github.com/dtaborda/enterprise-platform-template/commit/e2fe14c75806d825d92c2c40e4aa4a7c0452043c), [c2fd28a](https://github.com/dtaborda/enterprise-platform-template/commit/c2fd28a736359a022870cda6fe4ca02346e9e3ce))
 * finalize public ci stability ([fb69faa](https://github.com/dtaborda/enterprise-platform-template/commit/fb69faa536d04269b468de70a93235d3a3d767e7))
 * finalize public repo health ([fc9017b](https://github.com/dtaborda/enterprise-platform-template/commit/fc9017b7f6e9fead503af54d8f6d839f09a7bd6a))
 * remove ALTER TABLE auth.users from seed — let trigger handle onboarding ([5952db6](https://github.com/dtaborda/enterprise-platform-template/commit/5952db696d6b99cb9c74f9dc8dec08a817897a63))
