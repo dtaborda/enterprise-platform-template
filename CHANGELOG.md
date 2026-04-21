@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/dtaborda/enterprise-platform-template/compare/v1.1.1...v1.1.2) (2026-04-21)
+
+
+### Bug Fixes
+
+* **ci:** grant issues write permission to release workflow ([e26a6fd](https://github.com/dtaborda/enterprise-platform-template/commit/e26a6fda3f75bd4ff46a2dc745c2fd7077781e04))
+* **ci:** grant issues write permission to release workflow ([1345e24](https://github.com/dtaborda/enterprise-platform-template/commit/1345e2449bfd97eb0369a5864845817c1fc6aadf))
+
 ## [1.1.1](https://github.com/dtaborda/enterprise-platform-template/compare/v1.1.0...v1.1.1) (2026-04-21)
 
 
