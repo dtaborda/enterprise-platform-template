@@ -106,6 +106,34 @@ See:
 - [Supabase setup](./docs/supabase-setup.md)
 - [Onboarding checklist](./docs/onboarding-checklist.md)
 
+## AI Skills Setup
+
+This template ships repo-local skills in `skills/`, but AI runtimes discover them through runtime-specific directories such as `.agents/skills/`.
+
+Use the setup script to wire the repo skills into your editor/runtime:
+
+```bash
+# OpenCode runtime only
+pnpm skills:setup
+
+# Configure all supported runtimes (Claude, OpenCode, Gemini, Codex, Copilot)
+pnpm skills:setup:all
+
+# Regenerate AGENTS auto-invoke tables from skill metadata
+pnpm skills:sync
+```
+
+What the setup script does:
+- creates `.agents/skills -> skills/` for OpenCode
+- can also create `.claude/skills`, `.gemini/skills`, and `.codex/skills`
+- copies `AGENTS.md` into runtime-specific instruction files where needed
+
+If you add or modify a local skill:
+1. edit `skills/{name}/SKILL.md`
+2. add/update `metadata.scope` and `metadata.auto_invoke`
+3. run `pnpm skills:sync`
+4. rerun `pnpm skills:setup` for your runtime if needed
+
 ## Architecture summary
 
 ```text

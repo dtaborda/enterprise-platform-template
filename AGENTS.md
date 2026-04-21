@@ -64,8 +64,8 @@ Server Action (thin wrapper)              Service (business logic)
 1. Zod validation                        1. Receive typed data + SupabaseClient
 2. Get authenticated Supabase client     2. Execute business logic
 3. Call service function                 3. Return ServiceResult<T>
-4. captureActionError on failure
-5. revalidatePath on success
+4. Return ActionResult<T> on failure
+5. revalidatePath on success when needed
 6. Return ActionResult<T>
 ```
 
@@ -77,17 +77,16 @@ Server Action (thin wrapper)              Service (business logic)
 - Tests live in `packages/core/src/services/__tests__/{module}-service.test.ts`
 
 ### Existing Services:
-| Service | Functions | What it covers |
+| Service | API shape | What it covers |
 |---------|-----------|---------------|
-| `auth-service.ts` | login, signOut, acceptInvitation | Auth flows |
-| `team-service.ts` | inviteMember (dual-client pattern) | Team management |
-| `audit-service.ts` | writeAuditLog (fire-and-forget) | Audit trail |
+| `auth-service.ts` | function-based services returning `ServiceResult<T>` | Sign in, sign out, sign up, password reset |
+| `services/index.ts` | class-based platform services (`TenantService`, `ProfileService`, `AuditService`, `RoleService`) | Tenant, profile, audit, and role operations |
 
 ### When adding a new feature:
 1. Create `packages/core/src/services/{feature}-service.ts`
 2. Write unit tests in `packages/core/src/services/__tests__/{feature}-service.test.ts`
 3. Create thin Server Actions in `ui/features/{feature}/actions.ts`
-4. Call `writeAuditLog()` for create/update/delete operations
+4. Use `AuditService.log()` or an equivalent platform logging abstraction for create/update/delete operations
 
 ## Supabase Contracts (ENFORCED)
 
@@ -103,17 +102,12 @@ Server Action (thin wrapper)              Service (business logic)
 
 ### Environment Variables
 - ALWAYS use `getAppUrl()` from `@enterprise/core/utils/env` for the application URL
-- NEVER use `getRequiredEnv("NEXT_PUBLIC_SITE_URL")` directly — `getAppUrl()` handles the fallback
+- Use `getEnv()` and the typed helpers in `@enterprise/core/utils/env` instead of ad-hoc `process.env` access in shared code
 
 ### Audit Logging
-- Call `writeAuditLog(client, tenantId, actorId, { action, entityType, entityId })` for all CUD operations
-- Audit logging is fire-and-forget — it NEVER blocks the main operation
+- Use `AuditService.log()` (or a thin wrapper around it) for CUD operations that need audit entries
+- Audit logging is fire-and-forget — it MUST NOT block the main operation
 - NEVER log PII (email, name, phone) in audit metadata
-
-### Sentry Tags
-- Use `buildSentryTags({ tenantId, userRole, actionName })` from `@enterprise/core/observability/sentry-tags`
-- All tags use `enterprise.*` prefix (e.g., `enterprise.tenant_id`, `enterprise.user_role`)
-- See `docs/adr/004-sentry-tag-taxonomy.md` for the full taxonomy
 
 ## Skill Auto-Invoke Table
 
@@ -125,7 +119,7 @@ Load these skills BEFORE writing any code when the context matches:
 | Next.js routing, Server Actions, data fetching | nextjs-15 |
 | TypeScript types, interfaces, generics | typescript |
 | Tailwind styling, cn(), theme variables | tailwind-4 |
-| Zod schemas, validation | zod-4 |
+| Zod schemas, validation | typescript |
 | Zustand stores, state management | zustand-5 |
 | E2E tests, Page Objects | playwright |
 | Creating GitHub issues | issue-creation |
@@ -140,26 +134,28 @@ Load these skills BEFORE writing any code when the context matches:
 | Postgres query optimization, schema performance, connection management | supabase-postgres-best-practices |
 | Creating new AI agent skills, documenting patterns for AI | skill-creator |
 
+Repo-local skills require runtime wiring. Run `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so OpenCode can discover `.agents/skills` before relying on local skills such as `drizzle`, `supabase`, `sentry`, and the design-system skills.
+
 ## Design Reference
 
 Before implementing ANY UI component or page, follow this workflow:
 
-### Step 1: Load design skills
-Load `design-tokens`, `design-rules`, and `design-components` BEFORE writing any UI code.
+### Step 1: Check existing UI primitives and tokens
+Inspect `packages/ui/src/components/` and `packages/ui/src/styles/globals.css` before creating new UI.
 
 ### Step 2: Check existing screens or generate a reference
 If a Stitch project exists for this application, query its MCP to find relevant reference screens.
-If no Stitch project is configured, implement using the skills + existing component patterns in the codebase.
+If no Stitch project is configured, implement using the existing component patterns in the codebase.
 
 ### Step 3: Implement following the design
 When writing the component code:
 - Use the **tokens** from `globals.css` (surface-container-*, primary-fixed-dim, etc.)
-- Follow the **rules** (No-Line Rule, Glass Rule, gradient CTAs, tonal layering)
+- Follow the existing tonal layering and spacing patterns already used in `packages/ui` and `ui/`
 - Match the **layout and hierarchy** from any available reference screen
-- Use shadcn/ui primitives composed per `design-components` patterns
+- Use `@enterprise/ui` primitives and compose them consistently
 
 ### Key principle
-Design references are DIRECTION, not pixel-perfect. The skills (tokens, rules, components) are the SOURCE OF TRUTH for implementation.
+Design references are DIRECTION, not pixel-perfect. The source of truth is the existing `@enterprise/ui` package plus the local CSS token definitions.
 
 ## Language Policy (ENFORCED)
 
@@ -188,7 +184,7 @@ Design references are DIRECTION, not pixel-perfect. The skills (tokens, rules, c
 - **Naming**: kebab-case for files, PascalCase for components, camelCase for functions/variables
 - **Exports**: Named exports only. No default exports except Next.js pages/layouts
 - **Imports**: Use workspace aliases (`@enterprise/ui`, `@enterprise/core`, `@enterprise/contracts`), path aliases (`@/` in ui)
-- **Actions**: Return `ActionResult<T>` type from `@enterprise/contracts/common`
+- **Actions**: Return `ActionResult<T>` type from `@enterprise/contracts`
 - **Schemas**: Suffix with `Schema` (e.g., `createResourceSchema`). Colocate in `@enterprise/contracts`
 - **DB Schema**: Drizzle tables in `@enterprise/db`, types exported via `$inferSelect`/`$inferInsert`
 - **Components**: shadcn/ui base from `@enterprise/ui`, feature components in `ui/features/`
@@ -229,7 +225,7 @@ When `sdd-tasks` generates a task breakdown for a feature with UI pages, it MUST
 - [ ] Business logic lives in service layer, NOT in Server Actions
 - [ ] Storage paths use `buildStoragePath()`, NOT string concatenation
 - [ ] Auth metadata uses typed schemas from `@enterprise/contracts`
-- [ ] CUD operations call `writeAuditLog()` in the service
+- [ ] CUD operations use `AuditService.log()` or an equivalent audit abstraction
 - [ ] App URL uses `getAppUrl()`, NOT direct env var access
 
 ## Commit Conventions
