@@ -1,6 +1,37 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+interface WaitForHttpOptions {
+  timeoutMs?: number;
+  intervalMs?: number;
+}
+
+async function waitForHttp(url: string, options?: WaitForHttpOptions): Promise<void> {
+  const timeoutMs = options?.timeoutMs ?? 30_000;
+  const intervalMs = options?.intervalMs ?? 1_000;
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt <= timeoutMs) {
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      // Ignore and retry until timeout.
+    }
+
+    await new Promise((resolvePromise) => {
+      setTimeout(resolvePromise, intervalMs);
+    });
+  }
+
+  throw new Error(`Timed out waiting for HTTP readiness: ${url} (${timeoutMs}ms)`);
+}
+
 /**
  * Playwright global setup — runs once before all tests.
  *
@@ -23,4 +54,10 @@ export default async function globalSetup() {
       // .env.local may not exist in CI — that's fine, vars come from environment
     }
   }
+
+  const inbucketBaseUrl = process.env["INBUCKET_URL"] ?? "http://localhost:54334";
+  await waitForHttp(inbucketBaseUrl, {
+    timeoutMs: 30_000,
+    intervalMs: 1_000,
+  });
 }

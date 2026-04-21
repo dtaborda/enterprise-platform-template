@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isCI = !!process.env["CI"];
+const e2eAppUrl = process.env["E2E_APP_URL"] ?? "http://localhost:3000";
 
 export default defineConfig({
   // Load .env.local before any tests run (needed for seed scripts in E2E helpers)
@@ -24,11 +25,18 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // Always use production build for stable, fast E2E tests.
-    // Run `pnpm build` before `pnpm e2e` if you haven't already.
-    command: "pnpm --filter @enterprise/web start",
+    // Local runs use `next dev` so E2E validates latest code without manual rebuilds.
+    // CI keeps `next start` for production-like verification.
+    command: isCI ? "pnpm --filter @enterprise/web start" : "pnpm --filter @enterprise/web dev",
     url: "http://localhost:3000",
     reuseExistingServer: !isCI,
     timeout: 120_000,
+    env: {
+      ...process.env,
+      NEXT_PUBLIC_APP_URL: e2eAppUrl,
+      NEXT_PUBLIC_SITE_URL: e2eAppUrl,
+      APP_URL: e2eAppUrl,
+      ALLOW_LOCALHOST_APP_URL_IN_PRODUCTION: "true",
+    },
   },
 });

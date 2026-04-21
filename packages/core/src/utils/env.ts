@@ -108,6 +108,8 @@ export function getServiceRoleKey(): string | undefined {
  */
 export function getAppUrl(): string {
   const env = getEnv();
+  const allowLocalhostInProduction =
+    process.env["ALLOW_LOCALHOST_APP_URL_IN_PRODUCTION"] === "true";
   const canonicalUrl =
     env.NEXT_PUBLIC_APP_URL ?? env.NEXT_PUBLIC_SITE_URL ?? env.APP_URL ?? "http://localhost:3000";
 
@@ -131,7 +133,7 @@ export function getAppUrl(): string {
     normalizedHostname === "::1" ||
     normalizedHostname.endsWith(".localhost");
 
-  if (isLocalhostLike) {
+  if (isLocalhostLike && !allowLocalhostInProduction) {
     throw new Error(
       "Invalid canonical application URL in production. Localhost-style URLs are not allowed.",
     );
