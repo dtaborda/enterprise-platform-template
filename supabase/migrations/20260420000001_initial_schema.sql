@@ -58,13 +58,13 @@ CREATE INDEX "profiles_email_idx" ON "profiles" USING btree ("email");--> statem
 CREATE INDEX "tenants_slug_idx" ON "tenants" USING btree ("slug");--> statement-breakpoint
 CREATE INDEX "tenants_status_idx" ON "tenants" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "user_roles_user_tenant_idx" ON "user_roles" USING btree ("user_id","tenant_id");--> statement-breakpoint
-CREATE POLICY "audit_log_select" ON "audit_log" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((((auth.jwt()->>'tenant_id')::uuid = tenant_id) AND (auth.jwt()->>'role' IN ('owner', 'admin'))));--> statement-breakpoint
-CREATE POLICY "audit_log_insert" ON "audit_log" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((((auth.jwt()->>'tenant_id')::uuid = tenant_id) AND auth.uid() = user_id));--> statement-breakpoint
-CREATE POLICY "profiles_select" ON "profiles" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((auth.jwt()->>'tenant_id')::uuid = tenant_id));--> statement-breakpoint
-CREATE POLICY "profiles_insert" ON "profiles" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((auth.uid() = id AND ((auth.jwt()->>'tenant_id')::uuid = tenant_id)));--> statement-breakpoint
-CREATE POLICY "profiles_update" ON "profiles" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ((((auth.jwt()->>'tenant_id')::uuid = tenant_id) AND (auth.jwt()->>'role' IN ('owner', 'admin')))) WITH CHECK ((((auth.jwt()->>'tenant_id')::uuid = tenant_id) AND (auth.jwt()->>'role' IN ('owner', 'admin'))));--> statement-breakpoint
-CREATE POLICY "tenants_select" ON "tenants" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((auth.jwt()->>'tenant_id')::uuid = id));--> statement-breakpoint
+CREATE POLICY "audit_log_select" ON "audit_log" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id) AND (auth.jwt()->'app_metadata'->>'role' IN ('owner', 'admin'))));--> statement-breakpoint
+CREATE POLICY "audit_log_insert" ON "audit_log" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id) AND auth.uid() = user_id));--> statement-breakpoint
+CREATE POLICY "profiles_select" ON "profiles" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id));--> statement-breakpoint
+CREATE POLICY "profiles_insert" ON "profiles" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((auth.uid() = id AND ((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id)));--> statement-breakpoint
+CREATE POLICY "profiles_update" ON "profiles" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ((((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id) AND (auth.jwt()->'app_metadata'->>'role' IN ('owner', 'admin')))) WITH CHECK ((((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id) AND (auth.jwt()->'app_metadata'->>'role' IN ('owner', 'admin'))));--> statement-breakpoint
+CREATE POLICY "tenants_select" ON "tenants" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = id));--> statement-breakpoint
 CREATE POLICY "tenants_insert" ON "tenants" AS PERMISSIVE FOR INSERT TO "service_role" WITH CHECK (true);--> statement-breakpoint
 CREATE POLICY "tenants_update" ON "tenants" AS PERMISSIVE FOR UPDATE TO "service_role" USING (true) WITH CHECK (true);--> statement-breakpoint
-CREATE POLICY "user_roles_select" ON "user_roles" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((auth.jwt()->>'tenant_id')::uuid = tenant_id));--> statement-breakpoint
-CREATE POLICY "user_roles_insert" ON "user_roles" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((((auth.jwt()->>'tenant_id')::uuid = tenant_id) AND (auth.jwt()->>'role' IN ('owner', 'admin'))));
+CREATE POLICY "user_roles_select" ON "user_roles" AS PERMISSIVE FOR SELECT TO "authenticated" USING (((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id));--> statement-breakpoint
+CREATE POLICY "user_roles_insert" ON "user_roles" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id) AND (auth.jwt()->'app_metadata'->>'role' IN ('owner', 'admin'))));

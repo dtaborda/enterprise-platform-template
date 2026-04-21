@@ -1,6 +1,6 @@
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
-import { normalizeSafeRedirectPath } from "@/features/auth/redirects";
+import { normalizeSafeRedirectPath } from "../../../features/auth/redirects";
 
 const EMAIL_OTP_TYPE = {
   SIGNUP: "signup",
@@ -19,17 +19,38 @@ function isEmailOtpType(value: string): value is EmailOtpType {
 }
 
 export async function GET(request: NextRequest) {
+  const code = request.nextUrl.searchParams.get("code");
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const type = request.nextUrl.searchParams.get("type");
   const next = request.nextUrl.searchParams.get("next");
   const fallbackPath = type === EMAIL_OTP_TYPE.RECOVERY ? "/reset-password" : "/dashboard";
   const successPath = normalizeSafeRedirectPath(next, fallbackPath);
+  const supabase = await getServerClient();
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error) {
+      return NextResponse.redirect(new URL("/sign-in?error=callbackFailed", request.url));
+    }
+
+    return NextResponse.redirect(new URL(normalizeSafeRedirectPath(next), request.url));
+  }
 
   if (!tokenHash || !type || !isEmailOtpType(type)) {
+    if (!tokenHash && !type && next) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        return NextResponse.redirect(new URL(normalizeSafeRedirectPath(next), request.url));
+      }
+    }
+
     return NextResponse.redirect(new URL("/sign-in?error=invalidCallback", request.url));
   }
 
-  const supabase = await getServerClient();
   const { error } = await supabase.auth.verifyOtp({
     type: type as EmailOtpType,
     token_hash: tokenHash,

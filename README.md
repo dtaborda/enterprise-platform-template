@@ -68,12 +68,13 @@ This starts a full Supabase stack in Docker (Postgres, Auth, Storage, Studio), a
 |---------|-----|
 | API | http://127.0.0.1:54331 |
 | Studio (DB admin) | http://127.0.0.1:54333 |
-| Mailpit (email capture) | http://127.0.0.1:54334 |
+| Inbucket (email capture) | http://127.0.0.1:54334 |
 | Postgres | `postgresql://postgres:postgres@127.0.0.1:54332/postgres` |
 
 Test user credentials (from seed):
 - Email: `admin@enterprise.dev`
 - Password: `password123`
+- Additional seeded users: `member@enterprise.dev`, `guest@enterprise.dev`, `reset@enterprise.dev`, `reset2@enterprise.dev` (all with `password123`)
 
 ### 4) Run development
 
@@ -132,7 +133,7 @@ pnpm e2e
 
 Notes:
 - `pnpm test` runs Vitest projects across workspaces
-- `pnpm e2e` runs Playwright smoke coverage for starter routes and auth entry points
+- `pnpm e2e` runs Playwright auth + smoke coverage using `/sign-in` as canonical route (`/login` is compatibility redirect)
 
 ## Instantiation
 
@@ -167,6 +168,7 @@ After instantiation, review package names, environment variables, and external s
 - [Onboarding checklist](./docs/onboarding-checklist.md)
 - [Extension patterns](./docs/extension-patterns.md)
 - [Code conventions](./docs/code-conventions.md)
+- [Testing architecture](./docs/testing-architecture.md)
 
 ### External services
 - [Supabase setup](./docs/supabase-setup.md)

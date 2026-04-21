@@ -103,6 +103,8 @@ export async function signUpAction(formData: FormData) {
     redirect("/sign-up?error=failed");
   }
 
+  await signOutService(supabase);
+
   redirect("/sign-in?registered=1");
 }
 

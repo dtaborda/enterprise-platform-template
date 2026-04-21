@@ -102,3 +102,41 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54331
 # Anon key from `supabase status`
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
+
+## Local auth testing setup
+
+Use this setup to run deterministic auth unit/E2E tests locally.
+
+### Required local services
+
+- Supabase local stack (`supabase start`)
+- Inbucket email capture (`http://localhost:54334` from `supabase/config.toml`)
+
+### Local auth assumptions
+
+- `supabase/config.toml` uses `[auth.email] enable_confirmations = false` for local development.
+- Seeded users are pre-confirmed (`email_confirmed_at` set), so local login is available immediately.
+
+### Deterministic test credentials
+
+- `admin@enterprise.dev` / `password123` → owner
+- `member@enterprise.dev` / `password123` → member
+- `guest@enterprise.dev` / `password123` → guest
+- `reset@enterprise.dev` / `password123` → member (password reset flow)
+- `reset2@enterprise.dev` / `password123` → member (retry backup)
+
+### Inbucket endpoints used by E2E
+
+Auth reset tests use:
+- `GET /api/v1/mailbox/{mailbox}`
+- `GET /api/v1/mailbox/{mailbox}/{id}`
+- `DELETE /api/v1/mailbox/{mailbox}`
+
+Default base URL:
+- `http://localhost:54334`
+
+Override with:
+
+```bash
+INBUCKET_URL=http://localhost:54334
+```

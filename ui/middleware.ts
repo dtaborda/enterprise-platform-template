@@ -34,6 +34,7 @@ const middlewareSupabaseConfig = {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isServerActionRequest = request.method === "POST" && request.headers.has("next-action");
   const response = await updateSession(request, middlewareSupabaseConfig);
 
   const isPublicRoute = PUBLIC_ROUTES.some(
@@ -69,6 +70,10 @@ export async function middleware(request: NextRequest) {
     .single();
   const role = (profile?.role as UserRole | undefined) ?? "guest";
   const roleHome = ROLE_REDIRECTS[role] ?? "/dashboard";
+
+  if (isServerActionRequest) {
+    return response;
+  }
 
   if (pathname === "/" || (isPublicRoute && !isAuthCompletionRoute)) {
     return NextResponse.redirect(new URL(roleHome, request.url));
