@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.1](https://github.com/dtaborda/enterprise-platform-template/compare/v1.1.0...v1.1.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* **release:** restore parseable release-please configuration ([30772f3](https://github.com/dtaborda/enterprise-platform-template/commit/30772f3105d9aacc4f1c74d5a09dac8f4607a709))
+* **release:** restore parseable release-please configuration ([56c110a](https://github.com/dtaborda/enterprise-platform-template/commit/56c110afa4efc68440219b3094b671d30ada0aa7))
+
+
+### Tests
+
+* **auth:** add comprehensive auth and starter coverage ([6436a4b](https://github.com/dtaborda/enterprise-platform-template/commit/6436a4b3ec8e6ba7a8447c640d950ab0f9548703))
+* **auth:** add comprehensive auth and starter coverage ([1d12e6c](https://github.com/dtaborda/enterprise-platform-template/commit/1d12e6ccc0570d57a8a41b0ba2355c882bb3c808))
+* **tooling:** include web tests in pnpm test ([26a15c5](https://github.com/dtaborda/enterprise-platform-template/commit/26a15c56928e43d243559d6732177d7e644ffa9b))
+
 ## [1.1.0](https://github.com/dtaborda/enterprise-platform-template/compare/v1.0.0...v1.1.0) (2026-04-20)
 
 
