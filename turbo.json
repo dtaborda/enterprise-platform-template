@@ -29,7 +29,7 @@
     "test": {
       "dependsOn": ["^build"],
       "inputs": ["$tsconfig", "vitest.config.ts", "**/*.test.ts"],
-      "outputs": ["coverage/**"]
+      "outputs": []
     },
     "clean": {
       "cache": false
