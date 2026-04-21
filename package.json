@@ -19,7 +19,11 @@
     "test:e2e": "playwright test",
     "clean": "turbo run clean",
     "db:generate": "pnpm --filter @enterprise/db db:generate",
-    "instantiate": "node scripts/instantiate.mjs"
+    "instantiate": "node scripts/instantiate.mjs",
+    "skills:setup": "bash ./skills/setup.sh --opencode",
+    "skills:setup:all": "bash ./skills/setup.sh --all",
+    "skills:sync": "bash ./skills/skill-sync/assets/sync.sh",
+    "skills:sync:dry-run": "bash ./skills/skill-sync/assets/sync.sh --dry-run"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",

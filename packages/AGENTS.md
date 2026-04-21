@@ -2,7 +2,7 @@
 
 ### Auto-invoke Skills
 
-When performing these actions, ALWAYS invoke the corresponding skill FIRST:
+When performing these actions, invoke the corresponding available skill FIRST. Repo-local skills require `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so the runtime can see `.agents/skills`.
 
 | Action | Skill |
 |--------|-------|
@@ -14,6 +14,10 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Running migrations | `drizzle` |
 | Working with Supabase auth | `drizzle` |
 | Writing database queries | `drizzle` |
+| TypeScript types, exports, interfaces, strict-mode fixes | `typescript` |
+| React package UI work | `react-19` |
+| Tailwind styling in shared UI packages | `tailwind-4` |
+| Playwright E2E work | `playwright` |
 
 ## Package Boundary Rules
 
