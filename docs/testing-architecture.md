@@ -87,7 +87,7 @@ sequenceDiagram
   - Confirm users exist in Auth and `profiles` rows have expected roles.
 
 - **Password reset E2E times out waiting for email**
-  - Verify Inbucket is running on `http://localhost:54334`.
+  - Verify Inbucket is running on `http://localhost:55334`.
   - Optionally set `INBUCKET_URL` when using a non-default local endpoint.
   - Ensure mailbox is not rate-limited; tests rotate between `reset@enterprise.dev` and `reset2@enterprise.dev` on retries.
 

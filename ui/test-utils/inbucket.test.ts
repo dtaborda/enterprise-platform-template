@@ -29,7 +29,7 @@ describe("inbucket helper", () => {
 
     await getMailboxMessages("reset@enterprise.dev");
 
-    expect(fetchMock).toHaveBeenCalledWith("http://localhost:54334/api/v1/mailbox/reset");
+    expect(fetchMock).toHaveBeenCalledWith("http://localhost:55334/api/v1/mailbox/reset");
   });
 
   it("clearMailbox issues DELETE request to mailbox endpoint", async () => {
@@ -39,7 +39,7 @@ describe("inbucket helper", () => {
 
     await clearMailbox("reset@enterprise.dev");
 
-    expect(fetchMock).toHaveBeenCalledWith("http://localhost:54334/api/v1/mailbox/reset", {
+    expect(fetchMock).toHaveBeenCalledWith("http://localhost:55334/api/v1/mailbox/reset", {
       method: "DELETE",
     });
   });
@@ -80,7 +80,7 @@ describe("inbucket helper", () => {
       );
 
     const message = await getLatestEmail("reset@enterprise.dev", {
-      baseUrl: "http://localhost:54334",
+      baseUrl: "http://localhost:55334",
       timeoutMs: 2_000,
       pollIntervalMs: 10,
     });
@@ -88,7 +88,7 @@ describe("inbucket helper", () => {
     expect(message.id).toBe("newer-message");
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      "http://localhost:54334/api/v1/mailbox/reset/newer-message",
+      "http://localhost:55334/api/v1/mailbox/reset/newer-message",
     );
   });
 

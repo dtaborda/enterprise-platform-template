@@ -55,7 +55,9 @@ export default async function globalSetup() {
     }
   }
 
-  const inbucketBaseUrl = process.env["INBUCKET_URL"] ?? "http://localhost:54334";
+  // Default matches the inbucket port in supabase/config.toml (55334).
+  // Override with INBUCKET_URL env var if using a different port.
+  const inbucketBaseUrl = process.env["INBUCKET_URL"] ?? "http://localhost:55334";
   await waitForHttp(inbucketBaseUrl, {
     timeoutMs: 30_000,
     intervalMs: 1_000,
