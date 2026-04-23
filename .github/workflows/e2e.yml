@@ -17,7 +17,8 @@ jobs:
     env:
       # Supabase local dev defaults (deterministic keys from `supabase start`)
       # These are NOT secrets — they are the same for every local Supabase instance.
-      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54331
+      # Ports must match supabase/config.toml (55331+)
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:55331
       NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
       SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
       NEXT_PUBLIC_APP_URL: http://localhost:3000
@@ -59,7 +60,7 @@ jobs:
         run: |
           echo "Waiting for Supabase..."
           for i in $(seq 1 30); do
-            if curl -s http://127.0.0.1:54331/auth/v1/health > /dev/null 2>&1; then
+            if curl -s http://127.0.0.1:55331/auth/v1/health > /dev/null 2>&1; then
               echo "Supabase Auth is ready!"
               break
             fi

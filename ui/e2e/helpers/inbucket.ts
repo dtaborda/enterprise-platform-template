@@ -1,4 +1,5 @@
-const DEFAULT_INBUCKET_BASE_URL = process.env["INBUCKET_URL"] ?? "http://localhost:54334";
+// Default matches the inbucket port in supabase/config.toml (55334).
+const DEFAULT_INBUCKET_BASE_URL = process.env["INBUCKET_URL"] ?? "http://localhost:55334";
 
 const INBUCKET_POLLING = {
   DEFAULT_TIMEOUT_MS: 10_000,

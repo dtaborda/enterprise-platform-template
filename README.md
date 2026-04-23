@@ -66,10 +66,10 @@ This starts a full Supabase stack in Docker (Postgres, Auth, Storage, Studio), a
 
 | Service | URL |
 |---------|-----|
-| API | http://127.0.0.1:54331 |
-| Studio (DB admin) | http://127.0.0.1:54333 |
-| Inbucket (email capture) | http://127.0.0.1:54334 |
-| Postgres | `postgresql://postgres:postgres@127.0.0.1:54332/postgres` |
+| API | http://127.0.0.1:55331 |
+| Studio (DB admin) | http://127.0.0.1:55333 |
+| Inbucket (email capture) | http://127.0.0.1:55334 |
+| Postgres | `postgresql://postgres:postgres@127.0.0.1:55332/postgres` |
 
 Test user credentials (from seed):
 - Email: `admin@enterprise.dev`

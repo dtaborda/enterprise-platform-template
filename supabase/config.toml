@@ -1,11 +1,11 @@
 # For detailed configuration reference documentation, visit:
 # https://supabase.com/docs/guides/local-development/cli/config
-project_id = "enterprise-platform-template"
+project_id = "enterprise-platform-template-local"
 
 [api]
 enabled = true
 # Port to use for the API URL.
-port = 54331
+port = 55331
 # Schemas to expose in your API.
 schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
@@ -16,14 +16,14 @@ enabled = false
 
 [db]
 # Port to use for the local database URL.
-port = 54332
-shadow_port = 54330
+port = 55332
+shadow_port = 55330
 health_timeout = "2m"
 major_version = 17
 
 [db.pooler]
 enabled = false
-port = 54339
+port = 55339
 pool_mode = "transaction"
 default_pool_size = 20
 max_client_conn = 100
@@ -46,14 +46,14 @@ enabled = true
 
 [studio]
 enabled = true
-port = 54333
+port = 55333
 api_url = "http://127.0.0.1"
 openai_api_key = "env(OPENAI_API_KEY)"
 
 # Email testing server — emails are captured locally, not sent.
 [inbucket]
 enabled = true
-port = 54334
+port = 55334
 
 [storage]
 enabled = true
@@ -175,7 +175,7 @@ deno_version = 2
 
 [analytics]
 enabled = true
-port = 54337
+port = 55337
 backend = "postgres"
 
 [experimental]

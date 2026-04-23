@@ -98,7 +98,7 @@ npx supabase db push
 supabase start
 
 # Use local URL in .env.local
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54331
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55331
 # Anon key from `supabase status`
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
@@ -110,7 +110,7 @@ Use this setup to run deterministic auth unit/E2E tests locally.
 ### Required local services
 
 - Supabase local stack (`supabase start`)
-- Inbucket email capture (`http://localhost:54334` from `supabase/config.toml`)
+- Inbucket email capture (`http://localhost:55334` from `supabase/config.toml`)
 
 ### Local auth assumptions
 
@@ -133,10 +133,10 @@ Auth reset tests use:
 - `DELETE /api/v1/mailbox/{mailbox}`
 
 Default base URL:
-- `http://localhost:54334`
+- `http://localhost:55334`
 
 Override with:
 
 ```bash
-INBUCKET_URL=http://localhost:54334
+INBUCKET_URL=http://localhost:55334
 ```
