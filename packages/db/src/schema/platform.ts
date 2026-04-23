@@ -26,8 +26,11 @@ export const auditActionEnum = pgEnum("audit_action", [
   "custom",
 ]);
 
-const tenantClaimMatchesColumn = sql`((auth.jwt()->>'tenant_id')::uuid = tenant_id)`;
-const adminRoleClaim = sql`(auth.jwt()->>'role' IN ('owner', 'admin'))`;
+/** Matches the tenant_id column against the JWT app_metadata tenant_id claim */
+const tenantClaimMatchesColumn = sql`((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id)`;
+
+/** Restricts mutations to owner and admin roles via app_metadata */
+const adminRoleClaim = sql`(auth.jwt()->'app_metadata'->>'role' IN ('owner', 'admin'))`;
 
 // ============================================================================
 // Tenants Table
@@ -52,7 +55,7 @@ export const tenants = pgTable(
       as: "permissive",
       for: "select",
       to: authenticatedRole,
-      using: sql`((auth.jwt()->>'tenant_id')::uuid = id)`,
+      using: sql`((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = id)`,
     }),
     pgPolicy("tenants_insert", {
       as: "permissive",
