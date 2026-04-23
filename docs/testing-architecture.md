@@ -80,6 +80,28 @@ sequenceDiagram
 5. Run browser tests:
    - `pnpm e2e`
 
+## E2E Anti-Patterns
+
+### Don't test skeleton/loading states
+
+Skeleton components are transient — they appear briefly during SSR streaming and disappear
+when the real content loads. Testing for skeleton visibility is inherently flaky because:
+
+- In fast environments (CI with warm cache), skeletons may never render visibly
+- In slow environments, they may persist longer than expected
+- Race conditions between assertion and render completion are common
+
+**Instead**: Test the end state after navigation completes. Assert on the real content,
+not the loading placeholder.
+
+```diff
+- // BAD: testing transient state
+- await expect(page.locator('.skeleton')).toBeVisible();
+- await expect(page.locator('.skeleton')).not.toBeVisible();
++ // GOOD: test the end state directly
++ await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+```
+
 ## Troubleshooting
 
 - **Cannot sign in with seeded users**

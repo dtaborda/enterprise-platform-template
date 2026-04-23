@@ -21,7 +21,13 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Deny all device permissions by default.
+        // Features that need camera/mic/location should create a separate project
+        // with explicit grants (e.g., for QR scanner tests).
+        permissions: [],
+      },
     },
   ],
   webServer: {

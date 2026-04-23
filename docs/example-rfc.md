@@ -1,235 +1,182 @@
-# RFC — Example CRM Architecture
+# RFC — Resource Management Platform Architecture (Example)
+
+> **Note:** This is an example RFC included with the template. Replace the content with your own technical architecture when starting a new project. The structure and sections below illustrate what a good RFC looks like.
 
 ## 1. Summary
 
-This document defines how the InmoAutos CRM system will be built from a technical perspective.
+This document defines how the Resource Management Platform will be built from a technical perspective.
 
-The system is based on a modern, modular, and scalable architecture, focused on:
+The system uses a modern, modular architecture focused on:
 
-- WhatsApp integration
-- AI agent processing
-- Centralized database
-- Realtime experience
+- Multi-tenant data isolation
+- Server-side rendering with selective client interactivity
+- Type-safe contracts shared across the stack
+- Row Level Security at the database level
 
 ## 2. Technical Objective
 
 Design an architecture that enables:
 
-- Capturing messages from WhatsApp
-- Structuring commercial context
-- Managing opportunities
-- Administering inventory
-- Automating follow-up
-- Scaling to multiple companies (SaaS)
+- Managing resources with full CRUD operations
+- Isolating data per tenant using RLS
+- Enforcing role-based access (owner, admin, member)
+- Scaling to multiple organizations without code changes
 
 ## 3. General Architecture
 
 ### Main Flow
 
 ```
-WhatsApp → Webhook → Backend → AI Agent → Database → Frontend
+Browser → Next.js (Server Components / Actions) → Service Layer → Supabase (RLS) → PostgreSQL
 ```
 
 ```
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│ WhatsApp │───▶│ Webhook  │───▶│ Backend  │───▶│ AI Agent │
-│ (YCloud) │    │ Endpoint │    │ (API)    │    │ Service  │
-└──────────┘    └──────────┘    └──────────┘    └────┬─────┘
-                                                     │
-                                                     ▼
-┌──────────┐    ┌──────────┐    ┌──────────────────────────┐
-│ Frontend │◀───│ Realtime │◀───│   Supabase (PostgreSQL)  │
-│ (Next.js)│    │ Updates  │    │   Multi-tenant DB        │
-└──────────┘    └──────────┘    └──────────────────────────┘
+┌──────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────────────────┐
+│ Browser  │───▶│ Next.js App  │───▶│ Service      │───▶│   Supabase (PostgreSQL)  │
+│          │    │ Server/Client│    │ Layer        │    │   Multi-tenant + RLS     │
+└──────────┘    └──────────────┘    └──────────────┘    └──────────────────────────┘
 ```
 
 ## 4. Components
 
 ### Frontend
 
-- **Next.js** (App Router)
-- Mobile-first design
-- Realtime data consumption
-- shadcn/ui component library
+- **Next.js 15+** (App Router)
+- Server Components by default, Client Components for interactivity
+- **shadcn/ui** component library
+- **Tailwind CSS 4** for styling
 
-### Backend
+### Service Layer
 
-- Lightweight API (Node.js / Next.js Server Actions)
-- Webhook handling
-- Business logic in service layer
+- Function-based services in `packages/core/src/services/`
+- Receives `SupabaseClient` as first argument (dependency injection)
+- Returns `ServiceResult<T>` — never throws for expected failures
+- No framework-specific code (no `"use server"`, no `revalidatePath`)
+
+### Server Actions
+
+- Thin wrappers in `ui/features/{module}/actions.ts`
+- Pattern: Zod validate → get auth client → call service → revalidate → return `ActionResult<T>`
 
 ### Database
 
 - **Supabase** (PostgreSQL)
-- Multi-tenant by workspace
-- Realtime subscriptions
-- Row Level Security (RLS)
+- Multi-tenant via `tenant_id` column + RLS policies
+- Auth via Supabase Auth with JWT claims in `app_metadata`
+- Schema defined with **Drizzle ORM**
 
-### AI Agent
+### Contracts
 
-- Independent service
-- Message processing
-- Context generation
+- **Zod schemas** in `packages/contracts/`
+- Single source of truth for all DTOs and validation
+- TypeScript types derived from schemas via `z.infer<>`
 
-### WhatsApp Integration
-
-- **YCloud** as WhatsApp Business API provider
-- Event reception via webhooks
-
-## 5. Data Flow
-
-### Incoming Message
-
-1. WhatsApp sends webhook event
-2. Backend receives event
-3. Contact is identified (or created)
-4. Context is constructed
-5. Message is sent to AI agent
-6. Agent processes and generates summary
-7. Result is saved to database
-8. Frontend updates in realtime
-
-## 6. Data Model
+## 5. Data Model
 
 ### Core Entities
 
 | Entity | Description |
 |--------|-------------|
-| `workspaces` | Tenant isolation unit (one per company) |
-| `users` | System users with roles (owner, admin, seller) |
-| `contacts` | Leads and clients captured from WhatsApp |
-| `opportunities` | Commercial deals linked to contacts and properties |
-| `properties` | Real estate inventory items |
-| `conversation_summaries` | AI-generated summaries of WhatsApp conversations |
-| `tasks` | Follow-up actions (manual and automated) |
-
-> **Central entity: `opportunities`** — everything connects through deals.
+| `tenants` | Organization isolation unit |
+| `profiles` | User profiles linked to Supabase Auth |
+| `user_roles` | Role assignments per tenant |
+| `resources` | Domain entities managed by the platform |
+| `audit_log` | CUD operation audit trail |
 
 ### Entity Relationships
 
 ```
-workspaces
-  ├── users
-  ├── contacts
-  │     └── opportunities
-  │           ├── properties (linked)
-  │           ├── tasks
-  │           └── conversation_summaries
-  └── properties
+tenants
+  ├── profiles (users belong to a tenant)
+  ├── user_roles (role assignments)
+  ├── resources (domain data, tenant-scoped)
+  └── audit_log (action history)
 ```
 
-## 7. Multi-Tenant Strategy
+## 6. Multi-Tenant Strategy
 
-- Each company has its own **workspace**
-- All data is isolated by `workspace_id`
-- Access controlled by **roles** (owner, admin, seller)
-- RLS policies enforce tenant isolation at the database level
+- Each organization has its own **tenant**
+- All data is isolated by `tenant_id`
+- `tenant_id` and `role` are stored in JWT `app_metadata`
+- RLS policies enforce isolation at the database level
+- No tenant bypass in frontend code
 
-## 8. Realtime
+## 7. Security Model
 
-Used for:
+### Authentication
 
-- **Kanban board** — opportunity stage changes
-- **Tasks** — creation and status updates
-- **Activity feed** — recent actions
+- Supabase Auth with email/password
+- JWT tokens with `tenant_id` and `role` in `app_metadata`
+- `getUser()` (not `getSession()`) for server-side auth checks
 
-Technology: **Supabase Realtime** (PostgreSQL changes broadcast)
+### Authorization
 
-## 9. AI Agent
+- RLS policies on every table
+- SELECT: all authenticated tenant members
+- INSERT/UPDATE/DELETE: restricted to `owner` and `admin` roles
+- UI guards hide mutation controls from unauthorized roles
 
-### Functions
+### Audit
 
-- Summarize conversations
-- Extract structured data (name, intent, property interest)
-- Classify lead intention
-- Suggest next actions
+- CUD operations logged via `AuditService.log()` (fire-and-forget)
+- No PII in audit metadata
 
-### Boundaries
-
-- Does NOT replace WhatsApp
-- Does NOT make critical decisions without human control
-- Operates as a **suggestion engine**, not an autonomous actor
-
-## 10. Integrations
-
-### Critical (MVP)
-
-| Integration | Provider | Purpose |
-|-------------|----------|---------|
-| WhatsApp | YCloud | Message capture and webhook events |
-
-### Future
-
-| Integration | Purpose |
-|-------------|---------|
-| Google Drive | Property list import |
-| Google Calendar | Visit scheduling |
-
-> **Note:** WordPress/Houzez integration is explicitly excluded — WordPress will be deprecated.
-
-## 11. Technical Decisions
+## 8. Technical Decisions
 
 | Decision | Rationale |
 |----------|-----------|
-| Monorepo | Shared types, contracts, and UI across packages |
-| Supabase as primary backend | PostgreSQL + Auth + Realtime + RLS in one platform |
-| AI agent as separate service | Decoupled processing, independent scaling |
-| No WhatsApp rebuild | CRM augments WhatsApp, does not replace it |
-| Next.js App Router | Server Components, Server Actions, streaming |
-| Mobile-first | Primary users (sellers) work from phones |
+| Monorepo (pnpm + Turborepo) | Shared types, contracts, and UI across packages |
+| Supabase | PostgreSQL + Auth + RLS + Realtime in one platform |
+| Drizzle ORM | Type-safe schema definition, migration generation |
+| Function-based services | Testable, composable, no class overhead |
+| Server Components default | Minimal client JS, better performance |
+| Zod contracts package | Single source of truth for validation and types |
 
-## 12. Trade-offs
+## 9. Trade-offs
 
 ### Prioritized
 
-- Speed of delivery
-- Simplicity
-- Focus on core value
+- Simplicity and clarity
+- Type safety across the stack
+- Convention over configuration
 
 ### Sacrificed
 
-- Advanced initial features
-- Complex customization
-- Comprehensive reporting (deferred to V2)
+- Advanced features in MVP (deferred to V2+)
+- Complex state management (Zustand only where needed)
+- Realtime subscriptions (not needed for resource CRUD)
 
-## 13. Risks
+## 10. Risks
 
 | Risk | Mitigation |
 |------|------------|
-| Poor WhatsApp integration | Use proven provider (YCloud), test webhook flow early |
-| AI agent errors | Agent suggests only, human confirms actions |
-| Inconsistent data | Strong validation at contracts layer, RLS enforcement |
-| Low adoption | Mobile-first, minimal friction, augment existing workflow |
+| RLS misconfiguration | Use `app_metadata` claims (not user-editable), test policies |
+| Drizzle migration drift | Review generated SQL, use `db:generate` workflow |
+| Over-engineering | Strict MVP scope, defer features explicitly |
+| Multi-tenant data leak | RLS enforced at DB level, never bypass in app code |
 
-## 14. Scalability
-
-- Multi-tenant architecture prepared from day one
-- Modular architecture (packages isolate concerns)
-- AI agent decoupled (can scale independently)
-- Supabase handles connection pooling and realtime at scale
-
-## 15. Implementation Plan
+## 11. Implementation Plan
 
 ### Phase 1 — MVP
 
-- [ ] WhatsApp webhook integration (YCloud)
-- [ ] Contact management (auto-creation from messages)
-- [ ] Opportunity pipeline (kanban)
-- [ ] Basic property inventory
-- [ ] Simple AI agent (summarize + suggest)
+- [x] Multi-tenant foundation (tenants, profiles, RLS)
+- [x] Auth flows (sign-in, sign-up, password reset)
+- [x] Resource CRUD (create, list, detail, edit, archive)
+- [x] Role-based access control
+- [x] Unit and E2E test coverage
 
 ### Phase 2
 
-- [ ] Automations (task creation, reminders)
-- [ ] AI improvements (better classification, richer context)
+- [ ] File attachments (Supabase Storage)
+- [ ] Activity feed (Supabase Realtime)
 - [ ] Dashboard with metrics
 
 ### Phase 3
 
-- [ ] Full SaaS (onboarding, self-service)
-- [ ] Billing and subscription management
-- [ ] Advanced reporting
+- [ ] API integrations
+- [ ] Notification system
+- [ ] Advanced search and reporting
 
-## 16. In One Sentence
+## 12. In One Sentence
 
-> The RFC defines how to build a system that converts WhatsApp messages into structured commercial context through AI and centralizes it in an operational, scalable CRM.
+> The RFC defines a multi-tenant, RLS-secured platform architecture using Next.js, Supabase, and Drizzle ORM — designed to be cloned and adapted for any domain.

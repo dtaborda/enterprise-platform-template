@@ -13,13 +13,24 @@ export class ResourcesPage {
   constructor(private readonly page: Page) {}
 
   async gotoList(): Promise<void> {
+    // Use page.waitForURL() for App Router SPA navigation.
+    // NEVER use page.waitForFunction(() => window.location...) — it's unreliable
+    // with Next.js prefetching in production builds.
     await this.page.goto("/dashboard/resources");
     await this.page.waitForURL(/\/dashboard\/resources/);
   }
 
   async gotoNew(): Promise<void> {
+    // Use page.waitForURL() for App Router SPA navigation.
+    // NEVER use page.waitForFunction(() => window.location...) — it's unreliable
+    // with Next.js prefetching in production builds.
     await this.page.goto("/dashboard/resources/new");
     await this.page.waitForURL(/\/dashboard\/resources\/new/);
+  }
+
+  async navigateToList(): Promise<void> {
+    await this.page.getByRole("link", { name: "Resources" }).click();
+    await this.page.waitForURL(/\/dashboard\/resources/, { timeout: 10_000 });
   }
 
   async fillForm(data: ResourceFormData): Promise<void> {
