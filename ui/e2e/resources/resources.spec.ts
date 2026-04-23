@@ -85,9 +85,9 @@ test.describe("Resources", () => {
 
       await firstRow.getByRole("link", { name: "View" }).click();
       await expect(page).toHaveURL(/\/dashboard\/resources\/[0-9a-f-]+$/);
-      // Use heading role to avoid strict mode violation — title appears in both
-      // the detail card heading and the table/breadcrumb, so getByText matches 2 elements.
-      await expect(page.getByRole("heading", { name: title })).toBeVisible();
+      // CardTitle renders a <div>, not a semantic heading, so use getByText
+      // with .first() to avoid strict mode violation (title also appears in breadcrumb).
+      await expect(page.getByText(title).first()).toBeVisible();
     });
 
     test("edit resource: change title and save → updated title appears in list", async ({
