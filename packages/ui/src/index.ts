@@ -1,3 +1,5 @@
+// Theme
+
 // UI Components
 export * from "./components/avatar";
 export * from "./components/badge";
@@ -18,3 +20,8 @@ export * from "./components/tabs";
 export * from "./components/textarea";
 export * from "./components/tooltip";
 export { cn } from "./lib/utils";
+export type { ThemeContextValue } from "./theme/context";
+export { ThemeContext } from "./theme/context";
+export type { ThemeProviderProps } from "./theme/provider";
+export { ThemeProvider, useTheme } from "./theme/provider";
+export { ThemeToggle } from "./theme/toggle";

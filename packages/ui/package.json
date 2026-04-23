@@ -7,13 +7,18 @@
     ".": "./src/index.ts",
     "./globals.css": "./src/styles/globals.css",
     "./components/*": "./src/components/*.tsx",
-    "./lib/*": "./src/lib/*.ts"
+    "./lib/*": "./src/lib/*.ts",
+    "./theme/context": "./src/theme/context.ts",
+    "./theme/provider": "./src/theme/provider.tsx",
+    "./theme/toggle": "./src/theme/toggle.tsx"
   },
   "scripts": {
+    "build:theme": "tsx scripts/build-theme.ts",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@enterprise/contracts": "workspace:*",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "tailwind-merge": "^2.6.0",
@@ -23,7 +28,9 @@
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.0"
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "zod": "^3.25.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",

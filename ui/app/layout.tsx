@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@enterprise/ui";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { Toaster } from "sonner";
@@ -35,10 +36,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
       className={`${inter.variable} ${jetbrainsMono.variable} ${plusJakartaSans.variable} ${spaceGrotesk.variable}`}
     >
       <body className="min-h-screen bg-background font-sans antialiased">
-        {children}
+        <ThemeProvider defaultMode="dark">{children}</ThemeProvider>
         <Toaster richColors position="top-right" />
       </body>
     </html>
