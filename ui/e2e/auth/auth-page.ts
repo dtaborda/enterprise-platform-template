@@ -3,6 +3,45 @@ import { expect, type Page } from "@playwright/test";
 export class AuthPage {
   constructor(private readonly page: Page) {}
 
+  private async waitForHydratedForm(submitLabel: string): Promise<void> {
+    const submitButton = this.page.getByRole("button", { name: submitLabel });
+
+    await this.page.locator("form").first().waitFor({ state: "visible", timeout: 15_000 });
+    await submitButton.waitFor({
+      state: "visible",
+      timeout: 15_000,
+    });
+
+    await submitButton.evaluate((button) => {
+      return new Promise<void>((resolve, reject) => {
+        const deadline = Date.now() + 15_000;
+
+        const isHydrated = () => {
+          const keys = Object.keys(button as object);
+          return keys.some(
+            (key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$"),
+          );
+        };
+
+        const check = () => {
+          if (isHydrated()) {
+            resolve();
+            return;
+          }
+
+          if (Date.now() > deadline) {
+            reject(new Error("Auth form did not hydrate within timeout"));
+            return;
+          }
+
+          requestAnimationFrame(check);
+        };
+
+        check();
+      });
+    });
+  }
+
   async gotoSignIn(redirectTo?: string): Promise<void> {
     const suffix = redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : "";
     await this.page.goto(`/sign-in${suffix}`);
@@ -17,9 +56,23 @@ export class AuthPage {
   }
 
   async signIn(email: string, password: string): Promise<void> {
-    await this.page.getByLabel("Email").fill(email);
-    await this.page.getByLabel("Password").fill(password);
-    await this.page.getByRole("button", { name: "Sign In" }).click();
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await this.waitForHydratedForm("Sign In");
+
+      await this.page.getByLabel("Email").fill(email);
+      await this.page.getByLabel("Password").fill(password);
+      await this.page.getByRole("button", { name: "Sign In" }).click();
+
+      try {
+        await this.page.waitForURL(/\/dashboard/, { timeout: 4_000 });
+        return;
+      } catch {
+        // Retry if the page is still on sign-in (native submit race before hydration).
+        if (!this.page.url().includes("/sign-in")) {
+          return;
+        }
+      }
+    }
   }
 
   async signUp(name: string, email: string, password: string): Promise<void> {

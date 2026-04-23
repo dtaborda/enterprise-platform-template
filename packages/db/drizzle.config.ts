@@ -3,7 +3,7 @@ import { defineConfig } from "drizzle-kit";
 const { DATABASE_URL } = process.env;
 
 export default defineConfig({
-  schema: "./src/schema/platform.ts",
+  schema: "./src/schema/*.ts",
   out: "../../supabase/migrations",
   dialect: "postgresql",
   dbCredentials: {

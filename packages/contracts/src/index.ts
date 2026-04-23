@@ -5,7 +5,7 @@
 export { z } from "zod";
 // DTOs
 export * from "./dto/platform";
-
+export * from "./dto/resources";
 export type {
   InvitationMetadata,
   PaginationParams,
@@ -37,5 +37,8 @@ export {
   userRoleSchema,
   uuidSchema,
 } from "./schemas/platform";
+// Resources domain — schemas, DTOs, and types
+export * from "./schemas/resources";
 // Types
 export * from "./types/platform";
+export * from "./types/resources";

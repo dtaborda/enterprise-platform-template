@@ -19,15 +19,56 @@ export async function login(
 ) {
   await page.goto("/sign-in");
 
-  // Wait for the form to be interactive (React hydration complete)
-  await page
-    .getByRole("button", { name: "Sign In" })
-    .waitFor({ state: "visible", timeout: 15_000 });
+  const signInForm = page.locator("form").first();
+  const submitButton = page.getByRole("button", { name: "Sign In" });
 
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign In" }).click();
+  // Wait for hydration: clicking too early can trigger native action="" submit.
+  await signInForm.waitFor({ state: "visible", timeout: 15_000 });
+  await submitButton.waitFor({ state: "visible", timeout: 15_000 });
+  await submitButton.evaluate((button) => {
+    return new Promise<void>((resolve, reject) => {
+      const deadline = Date.now() + 15_000;
 
-  // Wait for redirect — generous timeout for Server Action roundtrip
-  await page.waitForURL(/\/dashboard/, { timeout: 30_000 });
+      const isHydrated = () => {
+        const keys = Object.keys(button as object);
+        return keys.some(
+          (key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$"),
+        );
+      };
+
+      const check = () => {
+        if (isHydrated()) {
+          resolve();
+          return;
+        }
+
+        if (Date.now() > deadline) {
+          reject(new Error("Sign-in form did not hydrate within timeout"));
+          return;
+        }
+
+        requestAnimationFrame(check);
+      };
+
+      check();
+    });
+  });
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await submitButton.click();
+
+    try {
+      // Keep strict behavior: auth must redirect into dashboard route.
+      await page.waitForURL(/\/dashboard/, { timeout: 10_000 });
+      return;
+    } catch {
+      if (!page.url().includes("/sign-in")) {
+        throw new Error("Login did not reach dashboard route after submit");
+      }
+    }
+  }
+
+  throw new Error("Login failed after hydration retries");
 }

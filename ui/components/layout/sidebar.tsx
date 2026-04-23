@@ -3,7 +3,7 @@
 import type { UserRole } from "@enterprise/contracts";
 import { cn } from "@enterprise/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Settings } from "lucide-react";
+import { LayoutDashboard, Package, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -16,6 +16,7 @@ interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Resources", href: "/dashboard/resources", icon: Package },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
