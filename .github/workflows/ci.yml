@@ -22,6 +22,8 @@ jobs:
       NEXT_PUBLIC_APP_ENV: ${{ secrets.NEXT_PUBLIC_APP_ENV }}
       NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
     steps:
       - name: Checkout
@@ -50,3 +52,12 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Deploy Migrations
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          npx supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+          npx supabase db push
