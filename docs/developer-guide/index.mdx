@@ -1,0 +1,67 @@
+---
+title: "Developer Guide"
+description: "Entry point for engineering documentation — setup, architecture, deployment, and operational workflows."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+import { Callout, CommandPanel } from "./_components.mdx";
+
+# Developer Guide
+
+## Purpose
+
+Single, reliable starting point for developers working in the Enterprise Platform monorepo.
+
+## Scope
+
+- Included: local setup, cloud setup, production deployment, architecture model, conventions, testing, theme system, environment management.
+- Excluded: product requirements (see [PRD examples](../example-prd.md)), technical specifications (see [RFC examples](../example-rfc.md)).
+
+## Reading Order
+
+1. [Getting Started](./getting-started.mdx) — Prerequisites, install, first run (local + cloud)
+2. [Supabase Setup](./supabase-setup.mdx) — Local and cloud Supabase, deploy DB to cloud
+3. [Environment Guide](./environment-guide.mdx) — All environment variables per environment
+4. [Architecture](./architecture.mdx) — Monorepo, packages, dependency graph, service layer
+5. [Conventions](./conventions.mdx) — Code style, TypeScript, Zod, Drizzle, Git commits
+6. [Testing Strategy](./testing-strategy.mdx) — Vitest + Playwright, coverage matrix
+7. [Theme System](./theme-system.mdx) — JSON-configurable themes, light/dark mode
+8. [Production Deployment](./production-deployment.mdx) — Supabase cloud + Vercel + Sentry + Resend
+9. [Onboarding Checklist](./onboarding-checklist.mdx) — New developer checklist
+
+<Callout title="Start here" tone="success">
+If you just cloned the template and want to run it locally, go directly to [Getting Started](./getting-started.mdx).
+</Callout>
+
+<Callout title="MDX Rendering" tone="info">
+These MDX files are readable as repo documentation (GitHub, VS Code). An MDX rendering pipeline (e.g., Fumadocs, next-mdx-remote) can be added to serve them as a docs site. The Callout and CommandPanel components will render correctly once that pipeline is in place.
+</Callout>
+
+## Quick Start
+
+<CommandPanel
+  title="First Run (Local Supabase)"
+  commands={[
+    "pnpm install",
+    "cp .env.example .env.local",
+    "ln -s ../.env.local ui/.env.local",
+    "supabase start          # Requires Docker",
+    "pnpm dev                # http://localhost:3000",
+  ]}
+/>
+
+## Related Documents
+
+| Document | Location | Purpose |
+|----------|----------|---------|
+| Architecture deep-dives | `docs/architecture/` | Multi-tenant, RLS, request flow, service layer |
+| ADRs | `docs/adr/` | Architecture Decision Records |
+| Example PRD | `docs/example-prd.md` | Product requirements template |
+| Example RFC | `docs/example-rfc.md` | Technical spec template |
+| Agent Instructions | `AGENTS.md` (+ nested) | AI agent rules per monorepo level |
+| Extension Patterns | `docs/architecture/extension-patterns.md` | How to add new packages and modules |
+
+---
+
+*Last updated: 2026-04-24*

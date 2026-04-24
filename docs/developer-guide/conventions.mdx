@@ -1,0 +1,341 @@
+---
+title: "Code Conventions"
+description: "TypeScript, Zod, Drizzle, React/Next.js, testing, Git, and file organization conventions for the Enterprise Platform."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+import { Callout, CommandPanel } from "./_components.mdx";
+
+# Code Conventions
+
+## Purpose
+
+This document defines the coding conventions for the Enterprise Platform. All contributors must follow these patterns to keep the codebase consistent and maintainable.
+
+## Scope
+
+- **Included**: TypeScript patterns, Zod validation, Drizzle schema, React/Next.js patterns, testing, Git commits, file organization
+- **Excluded**: Design system conventions (see [Theme System](./theme-system.mdx)), architecture patterns (see [Architecture](./architecture.mdx))
+
+---
+
+## TypeScript
+
+### Always Use Const Types
+
+Prefer `as const` objects over raw union types. This gives you a single source of truth for values AND types.
+
+```typescript
+// ✅ Correct — const object first, then extract type
+const STATUS = {
+  ACTIVE: "active",
+  INACTIVE: "inactive",
+} as const;
+
+type Status = (typeof STATUS)[keyof typeof STATUS];
+
+// ❌ Wrong — raw union types lose the value map
+type Status = "active" | "inactive";
+```
+
+### Flat Interfaces
+
+Keep interfaces one level deep. Nest objects as dedicated interfaces.
+
+```typescript
+// ✅ Correct — one level depth, nested objects → dedicated interface
+interface UserAddress {
+  street: string;
+  city: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  address: UserAddress;
+}
+
+// ❌ Wrong — inline nested objects
+interface User {
+  address: { street: string; city: string };
+}
+```
+
+### Never Use `any`
+
+<Callout title="No any types" tone="danger">
+  `any` disables TypeScript's type checker entirely. Use `unknown` for truly unknown inputs and generics for flexible types. The project target is zero `any` occurrences.
+</Callout>
+
+```typescript
+// ✅ Use unknown for truly unknown types
+function parse(input: unknown): User {
+  if (isUser(input)) return input;
+  throw new Error("Invalid input");
+}
+
+// ✅ Use generics for flexible types
+function first<T>(arr: T[]): T | undefined {
+  return arr[0];
+}
+
+// ❌ Never
+function parse(input: any): any {}
+```
+
+---
+
+## Zod (Validation)
+
+<Callout title="Project uses Zod 3" tone="warning">
+  This project uses **Zod 3**, not Zod 4. Use `z.string().email()`, `z.string().uuid()`, and `z.string().min(1)` — NOT the Zod 4 shorthand `z.email()` or `z.uuid()`.
+</Callout>
+
+### Zod 3 Syntax
+
+```typescript
+// ✅ Zod 3 — correct syntax for this project
+z.string().email()
+z.string().uuid()
+z.string().min(1)
+z.string().min(1).max(255)
+
+// ❌ Zod 4 syntax — NOT used in this project
+z.email()
+z.uuid()
+z.string().nonempty()
+```
+
+### Schema Organization
+
+All shared schemas belong in `@enterprise/contracts`. Never define input/output schemas inside feature files unless they are UI-only concerns.
+
+```typescript
+// packages/contracts/src/schemas/entity.ts
+import { z } from "zod";
+
+export const entitySchema = z.object({
+  id: z.string().uuid(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const createEntitySchema = z.object({
+  name: z.string().min(1).max(255),
+});
+
+export type CreateEntityInput = z.infer<typeof createEntitySchema>;
+export type Entity = z.infer<typeof entitySchema>;
+```
+
+All schemas must be suffixed with `Schema` (e.g., `createResourceSchema`). Exported types are inferred from schemas via `z.infer<typeof ...>`.
+
+---
+
+## Drizzle (Database)
+
+### Schema Conventions
+
+```typescript
+// ✅ Always use UUID for primary keys
+id: uuid("id").primaryKey().defaultRandom()
+
+// ✅ Use snake_case in DB, Drizzle converts to camelCase in TypeScript
+avatar_url: text("avatar_url")
+
+// ✅ Both timestamps with timezone
+createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+
+// ✅ Export inferred types
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+```
+
+### RLS Policies
+
+Every tenant-scoped table must have RLS enabled. Use the helper pattern from the existing schema files:
+
+```typescript
+// ✅ Enable RLS on every table
+export const users = pgTable.withRLS("users", { ... });
+
+// ✅ Use helper functions for tenant isolation
+pgPolicy("users_select", users, {
+  for: "select",
+  using: isTenantMember,
+});
+```
+
+All DB schema files live in `packages/db/src/schema/`. Tables, relations, and policies are co-located per domain entity.
+
+---
+
+## React / Next.js
+
+### Server Actions
+
+Server Actions are thin wrappers: validate input → get auth context → call service → return result.
+
+```typescript
+// ✅ Thin wrapper — validate → call service → return result
+"use server";
+
+import { createResourceSchema } from "@enterprise/contracts";
+import { createResourceService } from "@enterprise/core";
+import { getServerClient } from "@enterprise/core/supabase/server";
+import { getAuthContext } from "@enterprise/core/auth";
+import { revalidatePath } from "next/cache";
+
+export async function createResourceAction(input: Record<string, unknown>) {
+  const parsed = createResourceSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid input" } };
+  }
+
+  const supabase = await getServerClient();
+  const auth = await getAuthContext(supabase);
+  if (!auth?.tenantId) {
+    return { success: false, error: { code: "UNAUTHORIZED", message: "Authentication required" } };
+  }
+
+  const result = await createResourceService(supabase, auth.tenantId, auth.userId, parsed.data);
+  if (!result.success) {
+    return { success: false, error: { code: result.code ?? "CREATE_FAILED", message: result.error } };
+  }
+
+  revalidatePath("/dashboard/resources");
+  return { success: true, data: result.data };
+}
+```
+
+<Callout title="Business logic does NOT go in Server Actions" tone="danger">
+  Server Actions must never contain business rules, database queries, or multi-step orchestration. All of that belongs in `packages/core/src/services/`. If your action is more than ~20 lines, you are doing too much in it.
+</Callout>
+
+### Client Components
+
+Use `"use client"` only when strictly necessary — for state, browser APIs, or event handlers.
+
+```typescript
+// ✅ Use 'use client' only when needed
+"use client";
+
+import { useState } from "react";
+
+export function MyComponent() {
+  const [state, setState] = useState("");
+
+  return <div>{state}</div>;
+}
+```
+
+Prefer Server Components for data display. Client Components are for interactivity only.
+
+### Naming and Exports
+
+- **File names**: kebab-case (`resource-card.tsx`, `use-resource-form.ts`)
+- **Component names**: PascalCase (`ResourceCard`, `TenantForm`)
+- **Functions/variables**: camelCase (`createResource`, `itemCount`)
+- **Exports**: Named exports only. No default exports except Next.js pages, layouts, and route handlers.
+- **Imports**: Use workspace aliases (`@enterprise/ui`, `@enterprise/core`) and path aliases (`@/` in `ui/`)
+
+---
+
+## Testing
+
+### Unit Tests (Vitest)
+
+```typescript
+import { describe, it, expect, vi } from "vitest";
+
+describe("myService", () => {
+  it("should return success result with data", async () => {
+    const mockClient = createMockSupabaseClient();
+    const result = await myService(mockClient, input);
+    expect(result.success).toBe(true);
+  });
+
+  it("should return failure result on DB error", async () => {
+    const mockClient = createMockSupabaseClientWithError("DB_ERROR");
+    const result = await myService(mockClient, input);
+    expect(result.success).toBe(false);
+    expect(result.code).toBe("DB_ERROR");
+  });
+});
+```
+
+Unit tests are colocated with source files or in `__tests__/` subdirectories. Test file convention: `{name}.test.ts`.
+
+### E2E Tests (Playwright)
+
+```typescript
+import { test, expect } from "@playwright/test";
+
+test("user can create a resource", async ({ page }) => {
+  await page.goto("/sign-in");
+  await page.fill('[name="email"]', "admin@enterprise.dev");
+  await page.fill('[name="password"]', "password123");
+  await page.click('button[type="submit"]');
+  await expect(page).toHaveURL("/dashboard");
+  // continue with feature flow...
+});
+```
+
+E2E tests live in `ui/e2e/{feature}/{feature}.spec.ts`. Use Page Object Model — see the `playwright` skill for patterns. Every feature that adds dashboard pages must include E2E tests.
+
+---
+
+## Git Commits
+
+Use Conventional Commits. Do not include AI attribution headers.
+
+```
+feat: add resource creation endpoint
+fix: correct tenant_id check in RLS policy
+refactor: extract auth context helper from actions
+docs: add service layer examples to architecture doc
+test: add E2E tests for resource CRUD flow
+chore: upgrade @sentry/nextjs to 8.x
+```
+
+Commit message format: `{type}: {short description in present tense, lowercase}`
+
+---
+
+## File Organization
+
+```
+packages/
+├── contracts/          # Types, Zod schemas, DTOs
+│   └── src/
+│       ├── types/      # TypeScript types
+│       ├── schemas/    # Zod schemas (suffixed with Schema)
+│       └── dto/        # DTO types inferred from schemas
+├── db/                 # Drizzle schema, migrations
+│   └── src/
+│       └── schema/     # One file per domain entity
+├── core/               # Supabase clients, services
+│   └── src/
+│       ├── supabase/   # Client factories, auth helpers, storage-paths
+│       └── services/   # Business logic (one file per feature)
+└── ui/                 # Design tokens, shadcn/ui components
+    └── src/
+        ├── tokens/     # Generated TS tokens
+        ├── styles/     # globals.css, theme-generated.css
+        └── components/ # UI primitives
+
+ui/                     # Next.js application
+└── features/
+    └── {module}/
+        ├── actions.ts
+        ├── queries.ts
+        ├── schemas.ts
+        ├── types.ts
+        ├── components/
+        └── hooks/
+```
+
+---
+
+*Last updated: 2026-04-24*

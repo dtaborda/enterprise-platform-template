@@ -1,0 +1,274 @@
+---
+title: "Architecture Overview"
+description: "Monorepo structure, package responsibilities, dependency rules, service layer pattern, and security model for the Enterprise Platform."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+import { Callout, CommandPanel } from "./_components.mdx";
+
+# Architecture Overview
+
+## Purpose
+
+This document describes the overall architecture of the Enterprise Platform template — how it is structured, what each package owns, and the core patterns that all features must follow.
+
+## Scope
+
+- **Included**: Monorepo structure, package graph, dependency rules, layer ownership, service layer pattern, contracts model, RLS model, multi-tenant summary, security model summary, reference module
+- **Excluded**: Per-feature implementation details, deep-dive architecture docs (linked at the bottom)
+
+---
+
+## What This Template Is
+
+Enterprise Platform is a **foundation repository** for teams that want to start with strong defaults:
+
+- Monorepo boundaries already in place
+- Multi-tenant data model with tenant-scoped access
+- Auth + role model integrated with Supabase
+- Service layer pattern for business logic
+- Shared contracts as the single source of truth for inputs/outputs
+
+It is intentionally a template, not a complete product. You extend it with domain modules.
+
+---
+
+## Monorepo Structure
+
+```
+enterprise-platform-template/
+├── ui/                   → @enterprise/web       Next.js 15 application
+├── packages/
+│   ├── contracts/        → @enterprise/contracts  Zod schemas, DTOs, shared types
+│   ├── core/             → @enterprise/core       Supabase clients, auth helpers, services
+│   ├── db/               → @enterprise/db         Drizzle ORM schema, migrations, RLS
+│   └── ui/               → @enterprise/ui         shadcn/ui components, design tokens
+├── supabase/             → Migrations, seed, config
+└── docs/                 → Product docs, architecture, developer guides
+```
+
+### Package Responsibilities
+
+| Package | Owns | Does NOT own |
+|---------|------|--------------|
+| `@enterprise/contracts` | DTO schemas, Zod validation, shared types | Database queries, UI components |
+| `@enterprise/db` | Table schemas, enums, indexes, RLS declarations | Feature business logic |
+| `@enterprise/core` | Business services, auth helpers, Supabase clients | Page components, route rendering |
+| `@enterprise/web` | Routes, Server Components, Server Actions, feature composition | Core business rules |
+| `@enterprise/ui` | Primitive components, styling tokens, UI utilities | Authentication, persistence logic |
+
+---
+
+## Package Graph
+
+```
+@enterprise/web (ui/)
+ ├─ depends on @enterprise/contracts
+ ├─ depends on @enterprise/core
+ ├─ depends on @enterprise/db
+ └─ depends on @enterprise/ui
+
+@enterprise/core
+ ├─ depends on @enterprise/contracts
+ └─ depends on @enterprise/db
+
+@enterprise/contracts
+ └─ depends on zod only
+
+@enterprise/db
+ └─ depends on drizzle-orm only
+
+@enterprise/ui
+ └─ UI-only dependencies (no business logic)
+```
+
+---
+
+## Dependency Direction Rules
+
+<Callout title="Enforced dependency direction" tone="danger">
+  Circular dependencies and upward dependencies are NEVER allowed. If you find yourself importing `@enterprise/web` from a package, stop — you have the layers inverted.
+</Callout>
+
+```
+Allowed:
+  web       → contracts, core, db, ui
+  core      → contracts, db
+  contracts → zod
+  db        → drizzle-orm
+  ui        → UI libs only (clsx, tailwind-merge, CVA, lucide-react, radix-ui)
+
+Forbidden:
+  core      → web
+  contracts → core, db, web
+  db        → core, contracts, web
+  ui        → core, db, web
+```
+
+Why this matters:
+
+1. **Contracts stay reusable** — they work with any runtime (CLI tools, jobs, APIs) because they depend only on Zod.
+2. **No hidden coupling** — UI can't accidentally pull in database internals.
+3. **Testing is straightforward** — each package can be tested in isolation.
+
+---
+
+## Service Layer Pattern
+
+All business logic lives in `packages/core/src/services/`. Server Actions in `ui/features/*/actions.ts` are **thin wrappers only**.
+
+```
+Server Action (thin wrapper)              Service (business logic)
+─────────────────────────                ────────────────────────
+"use server"                             NO "use server"
+1. Zod validation                        1. Receive typed data + SupabaseClient
+2. Get authenticated Supabase client     2. Execute business logic
+3. Call service function                 3. Return ServiceResult<T>
+4. Return ActionResult<T> on failure
+5. revalidatePath on success (if needed)
+6. Return ActionResult<T>
+```
+
+### ServiceResult Contract
+
+```typescript
+export type ServiceResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string; code?: string };
+```
+
+### Service Design Rules
+
+- Services receive `SupabaseClient` as the first argument (dependency injection — testable with mocks)
+- Services return `ServiceResult<T>` — never Next.js response types
+- Services have NO `"use server"`, NO `revalidatePath`, NO `redirect`, NO Sentry calls
+- Services live in `packages/core/src/services/{feature}-service.ts`
+- Tests live in `packages/core/src/services/__tests__/{feature}-service.test.ts`
+
+For a full example, see [docs/architecture/service-layer.md](../architecture/service-layer.md).
+
+---
+
+## Contracts as Source of Truth
+
+Every shared input/output schema is defined in `@enterprise/contracts` and imported by services, actions, forms, and tests.
+
+```typescript
+// packages/contracts/src/schemas/resource.ts
+import { z } from "zod";
+
+export const createResourceSchema = z.object({
+  title: z.string().min(1).max(255),
+  type: z.string().min(1),
+});
+
+export type CreateResourceInput = z.infer<typeof createResourceSchema>;
+```
+
+This prevents shape drift between UI, server, and persistence layers. When the schema changes, TypeScript errors surface everywhere that uses it.
+
+<Callout title="Auth metadata shapes" tone="info">
+  Use `RegistrationMetadata` and `InvitationMetadata` from `@enterprise/contracts` when passing metadata to `supabase.auth.signUp()`. Never send raw untyped metadata objects.
+</Callout>
+
+---
+
+## RLS Everywhere
+
+Every tenant-scoped table uses `tenant_id` + RLS policies based on JWT claims:
+
+```sql
+-- Read policy: same tenant
+(auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id
+
+-- Write policy: same tenant + elevated role
+(
+  (auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id
+  AND auth.jwt()->'app_metadata'->>'role' IN ('owner', 'admin')
+)
+```
+
+Authorization is enforced in PostgreSQL — not only in application code. UI role checks are for UX clarity only; RLS is the actual security gate.
+
+---
+
+## Feature Structure
+
+Each feature follows a vertical slice under `ui/features/{module}/`:
+
+```
+ui/features/resources/
+├── actions.ts          → Server Actions (thin wrappers)
+├── queries.ts          → Server-side data fetching
+├── schemas.ts          → Local schema re-exports or UI-specific schemas
+├── types.ts            → Feature-local TypeScript types
+├── components/         → Feature UI components
+└── hooks/              → Client-side React hooks
+```
+
+---
+
+## Multi-Tenant Summary
+
+All tenants share the same database. Isolation is achieved through:
+
+- `tenant_id` column on every tenant-scoped table
+- JWT claims (`tenant_id`, `role`) in `app_metadata`
+- RLS policies that compare row `tenant_id` with the claim value
+
+On sign-up, the `handle_new_user()` trigger automatically creates a `tenants` row and a `profiles` row with `role = owner`. The first user to sign up becomes the tenant owner.
+
+→ Deep dive: [docs/architecture/multi-tenant.md](../architecture/multi-tenant.md)
+
+---
+
+## Security Model Summary
+
+The template uses a four-role model: `owner`, `admin`, `member`, `guest`.
+
+| Role | Read | Write domain records | Manage users | View audit log |
+|------|------|---------------------|-------------|----------------|
+| `owner` | ✅ | ✅ | ✅ | ✅ |
+| `admin` | ✅ | ✅ | ✅ | ✅ |
+| `member` | ✅ | ❌ (default) | ❌ | ❌ |
+| `guest` | ✅ (scoped) | ❌ | ❌ | ❌ |
+
+Roles are stored in both `public.profiles.role` (relational source) and `auth.users.raw_app_meta_data.role` (JWT claim for RLS).
+
+→ Deep dive: [docs/architecture/users-and-roles.md](../architecture/users-and-roles.md)
+
+---
+
+## Reference Module: Resources
+
+`resources` is the canonical feature module and demonstrates the full vertical slice:
+
+1. DB schema + RLS policies (`packages/db/src/schema/resources.ts`)
+2. Contracts (DTOs in `@enterprise/contracts`)
+3. Service methods (`packages/core/src/services/resources-service.ts`)
+4. Server Actions (`ui/features/resources/actions.ts`)
+5. App routes and components (`ui/app/(dashboard)/resources/`)
+6. Unit tests + E2E tests
+
+When building a new feature, copy this structure as your blueprint.
+
+→ Details: [docs/architecture/resources-module.md](../architecture/resources-module.md)
+
+---
+
+## Related Deep-Dive Docs
+
+| Document | What it covers |
+|----------|----------------|
+| [Architecture Overview](../architecture/overview.md) | Original architecture overview |
+| [Multi-Tenant Model](../architecture/multi-tenant.md) | Tenant isolation, RLS patterns, adding tenant-scoped tables |
+| [Users and Roles](../architecture/users-and-roles.md) | Role model, signup flow, JWT claims, seed users |
+| [Service Layer](../architecture/service-layer.md) | Service contracts, action wrapper pattern, testing strategy |
+| [Request Flow](../architecture/request-flow.md) | End-to-end request lifecycle from browser to DB |
+| [Resources Module](../architecture/resources-module.md) | Complete map of the reference feature module |
+| [Theme System](./theme-system.mdx) | Token architecture, build pipeline, light/dark switching |
+
+---
+
+*Last updated: 2026-04-24*
