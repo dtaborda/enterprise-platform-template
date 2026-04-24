@@ -39,6 +39,25 @@ export {
 } from "./schemas/platform";
 // Resources domain — schemas, DTOs, and types
 export * from "./schemas/resources";
+export type {
+  ThemeConfig,
+  ThemeFoundations,
+  ThemeLayout,
+  ThemeMetadata,
+  ThemeMode,
+} from "./schemas/theme";
+// Theme system — schemas and types
+export {
+  colorsSchema,
+  primitiveColorSchema,
+  semanticColorSchema,
+  themeFoundationsSchema,
+  themeLayoutSchema,
+  themeMetadataSchema,
+  themeSchema,
+  typographySchema,
+} from "./schemas/theme";
 // Types
 export * from "./types/platform";
 export * from "./types/resources";
+export * from "./types/theme";

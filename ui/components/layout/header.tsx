@@ -1,6 +1,7 @@
 "use client";
 
 import type { UserRole } from "@enterprise/contracts";
+import { ThemeToggle } from "@enterprise/ui";
 import { Avatar, AvatarFallback } from "@enterprise/ui/components/avatar";
 import { Button } from "@enterprise/ui/components/button";
 import {
@@ -35,6 +36,7 @@ export function Header({ userRole, userLabel }: HeaderProps) {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">

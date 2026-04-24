@@ -52,9 +52,41 @@ If you use the shadcn CLI for scaffolding:
 
 ## Design Tokens
 
-Tokens are defined in `src/styles/globals.css` under `@theme`.
+Theme tokens are generated from JSON source files and imported into `globals.css`.
+
+### Theme Workflow
+
+The theme system is **schema-driven** — never edit generated files directly.
+
+**To modify tokens:**
+1. Edit `src/themes/light.json` (light mode defaults) and/or `src/themes/dark.json` (dark overrides)
+2. Run `pnpm build:theme` to regenerate
+3. Commit the generated `src/styles/theme-generated.css` and `src/tokens/index.ts`
+
+**Where things live:**
+| What | Where |
+|------|-------|
+| Zod schemas (ThemeConfig, ThemeMode, etc.) | `packages/contracts/src/schemas/theme.ts` |
+| Source theme JSON | `src/themes/light.json`, `src/themes/dark.json` |
+| Generated CSS (@theme + dark overrides) | `src/styles/theme-generated.css` ← **do not edit** |
+| Generated TS tokens | `src/tokens/index.ts` ← **do not edit** |
+| Global selectors (body, scrollbar, @keyframes) | `src/styles/globals.css` |
+| ThemeProvider + useTheme hook | `src/theme/provider.tsx` |
+| ThemeToggle button component | `src/theme/toggle.tsx` |
+| Build pipeline script | `scripts/build-theme.ts` |
+
+**Generated file rules:**
+- `theme-generated.css` and `tokens/index.ts` are committed to git (no .gitignore)
+- They are owned by `pnpm build:theme` — do NOT manually edit them
+- CI will detect changes if the JSONs change but regeneration was not committed
+
+**Structure of theme-generated.css:**
+- `@theme { ... }` — all light mode token values (colors, typography, radius, spacing, layout)
+- `[data-theme="dark"] { ... }` — dark mode color overrides ONLY
+- No `--animate-*` tokens — those stay in `globals.css` (reference @keyframes)
 
 Before changing tokens or components, inspect:
+- `packages/ui/src/themes/light.json` and `dark.json`
 - `packages/ui/src/styles/globals.css`
 - `packages/ui/src/components/`
 - `packages/ui/src/lib/utils.ts`

@@ -38,7 +38,10 @@ export function MobileNav({ userRole }: MobileNavProps) {
         </SheetHeader>
         <nav className="flex flex-col gap-1 p-2">
           {items.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}

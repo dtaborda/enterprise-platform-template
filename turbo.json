@@ -15,6 +15,14 @@
       "inputs": ["$tsconfig"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
+    "build:theme": {
+      "inputs": ["src/themes/*.json", "src/theme/**/*.ts"],
+      "outputs": [
+        "src/styles/theme-generated.css",
+        "src/tokens/index.ts",
+        "src/themes/resolved/*.json"
+      ]
+    },
     "dev": {
       "cache": false,
       "persistent": true
@@ -23,7 +31,7 @@
       "dependsOn": ["^build"]
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "build:theme"],
       "outputs": []
     },
     "test": {

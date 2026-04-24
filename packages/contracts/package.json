@@ -9,6 +9,8 @@
     ".": "./src/index.ts",
     "./types": "./src/types/platform.ts",
     "./schemas": "./src/schemas/platform.ts",
+    "./schemas/theme": "./src/schemas/theme.ts",
+    "./types/theme": "./src/types/theme.ts",
     "./dto": "./src/dto/platform.ts"
   },
   "scripts": {
