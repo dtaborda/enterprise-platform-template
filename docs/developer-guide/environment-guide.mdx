@@ -1,0 +1,185 @@
+---
+title: "Environment Variables Guide"
+description: "All environment variables for the Enterprise Platform, organized by category with configuration instructions."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+import { Callout, CommandPanel } from "./_components.mdx";
+
+# Environment Variables Guide
+
+## Purpose
+
+This guide documents every environment variable used by the Enterprise Platform, explains where to find the values, and describes how to configure them per environment.
+
+## Scope
+
+- **Included**: All variables by category, per-environment configuration, secrets management rules, how to add new variables
+- **Excluded**: CI/CD pipeline configuration, Vercel-specific UI steps (see [Production Deployment](./production-deployment.mdx))
+
+---
+
+## Variables by Category
+
+### Supabase
+
+| Variable | Public | Required | Description |
+|----------|--------|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | ✅ | Supabase project URL. Browser + server client initialization. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | ✅ | Anon (public) key for browser-safe auth and data access. |
+| `SUPABASE_SERVICE_ROLE_KEY` | ❌ | Conditional | Service role key for server-only admin operations. Bypasses RLS. |
+| `DATABASE_URL` | ❌ | Conditional | PostgreSQL connection string. Required for Drizzle migration tooling. |
+
+<Callout title="SUPABASE_SERVICE_ROLE_KEY" tone="danger">
+  This key bypasses Row Level Security entirely. It must NEVER be exposed to the browser, committed to version control, or used in request-driven user flows. Only use it in trusted server-only contexts such as migration scripts or admin jobs.
+</Callout>
+
+### Application
+
+| Variable | Public | Required | Description |
+|----------|--------|----------|-------------|
+| `NEXT_PUBLIC_APP_URL` | ✅ | ✅ (prod) | Canonical application URL. Used by auth redirects and email links. Required in production. |
+| `NEXT_PUBLIC_APP_NAME` | ✅ | ❌ | Human-readable application name shown in the UI. |
+| `NEXT_PUBLIC_APP_ENV` | ✅ | ❌ | Runtime environment label: `development`, `staging`, or `production`. |
+
+<Callout title="Production URL requirement" tone="warning">
+  In production mode, at least one of `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, or `APP_URL` must be set to a non-localhost URL. Localhost-like values are rejected at startup. Always use `getAppUrl()` from `@enterprise/core/utils/env` — never access `process.env.NEXT_PUBLIC_APP_URL` directly.
+</Callout>
+
+### Email (Resend)
+
+| Variable | Public | Required | Description |
+|----------|--------|----------|-------------|
+| `RESEND_API_KEY` | ❌ | Conditional | Resend API key for transactional email. Required if email features are enabled. |
+| `EMAIL_FROM` | ❌ | ❌ | Sender address for outbound emails (e.g., `noreply@yourdomain.com`). |
+
+### Sentry
+
+| Variable | Public | Required | Description |
+|----------|--------|----------|-------------|
+| `NEXT_PUBLIC_SENTRY_DSN` | ✅ | ❌ | Sentry DSN for browser error reporting. Omit to disable Sentry. |
+| `SENTRY_AUTH_TOKEN` | ❌ | ❌ | Sentry auth token for source map upload during build. Keep secret. |
+| `SENTRY_ORG` | ❌ | ❌ | Sentry organization slug. Required if `SENTRY_AUTH_TOKEN` is set. |
+| `SENTRY_PROJECT` | ❌ | ❌ | Sentry project slug. Required if `SENTRY_AUTH_TOKEN` is set. |
+
+### E2E Testing
+
+| Variable | Public | Required | Description |
+|----------|--------|----------|-------------|
+| `E2E_EMAIL` | ❌ | ❌ | Email for the primary E2E test user. Defaults to `admin@enterprise.dev` locally. |
+| `E2E_PASSWORD` | ❌ | ❌ | Password for the primary E2E test user. Defaults to `password123` locally. |
+
+<Callout title="E2E credentials in CI" tone="warning">
+  When running E2E tests in CI against a cloud Supabase project, set `E2E_EMAIL` and `E2E_PASSWORD` as CI secrets. Never commit real credentials.
+</Callout>
+
+---
+
+## Configuration by Environment
+
+### Development (Local)
+
+Copy the example file and fill in local Supabase credentials from `supabase status`:
+
+<CommandPanel
+  title="Bootstrap .env.local"
+  commands={[
+    "cp .env.example .env.local",
+  ]}
+/>
+
+Full `.env.local` example for local development:
+
+```bash
+# ── Supabase (local) ──────────────────────────────────────────────────────────
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+# ── Application ───────────────────────────────────────────────────────────────
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_NAME=Enterprise Platform
+NEXT_PUBLIC_APP_ENV=development
+
+# ── Email (optional locally — Inbucket captures all emails) ──────────────────
+# RESEND_API_KEY=re_...
+# EMAIL_FROM=noreply@yourdomain.com
+
+# ── Sentry (optional locally) ─────────────────────────────────────────────────
+# NEXT_PUBLIC_SENTRY_DSN=https://...@sentry.io/...
+# SENTRY_AUTH_TOKEN=...
+# SENTRY_ORG=your-org
+# SENTRY_PROJECT=your-project
+
+# ── E2E Testing ───────────────────────────────────────────────────────────────
+E2E_EMAIL=admin@enterprise.dev
+E2E_PASSWORD=password123
+```
+
+<Callout title=".env.local is gitignored" tone="info">
+  Never commit `.env.local`. It is in `.gitignore` by default. Commit `.env.example` with placeholder values so new developers know which variables are needed.
+</Callout>
+
+### Production (Vercel)
+
+Set all production environment variables in the Vercel dashboard under **Project → Settings → Environment Variables**. See [Production Deployment](./production-deployment.mdx) for step-by-step Vercel instructions.
+
+Key differences from local:
+
+| Variable | Production value |
+|----------|-----------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<REF>.supabase.co` |
+| `NEXT_PUBLIC_APP_URL` | Your production domain (e.g., `https://your-app.com`) |
+| `NEXT_PUBLIC_APP_ENV` | `production` |
+| `DATABASE_URL` | Transaction pooler URL from Supabase (port 6543) |
+
+---
+
+## Adding a New Variable
+
+Follow this checklist whenever you introduce a new environment variable:
+
+1. **Add to `.env.example`** with a descriptive placeholder value and comment explaining what it is.
+
+2. **If it's a `NEXT_PUBLIC_` variable**, add it to `turbo.json` under `globalEnv` so Turborepo invalidates caches when it changes:
+
+   ```json
+   {
+     "globalEnv": [
+       "NEXT_PUBLIC_SUPABASE_URL",
+       "NEXT_PUBLIC_MY_NEW_VAR"
+     ]
+   }
+   ```
+
+3. **Access via helpers from `@enterprise/core/utils/env`** — not raw `process.env`:
+
+   ```typescript
+   import { getEnv, getAppUrl } from "@enterprise/core/utils/env";
+
+   // For the app URL specifically:
+   const url = getAppUrl();
+
+   // For other typed variables:
+   const apiKey = getEnv("RESEND_API_KEY");
+   ```
+
+4. **Document it** in this file under the appropriate category with its Public/Required/Description columns.
+
+---
+
+## Secrets Management Rules
+
+| Rule | Detail |
+|------|--------|
+| Never commit secrets | `.env.local` is gitignored. Never add real keys to `.env.example`. |
+| Never expose service keys to the browser | Any key without `NEXT_PUBLIC_` prefix is server-only. The `SUPABASE_SERVICE_ROLE_KEY` especially must stay server-side. |
+| Use `NEXT_PUBLIC_` only for truly public values | If a value is safe to expose to every end user, use `NEXT_PUBLIC_`. If there is any doubt, keep it server-side. |
+| Rotate compromised secrets immediately | If a secret is accidentally committed, rotate it at the service provider and revoke the old value. Git history exposure is permanent. |
+| Use CI environment secrets for E2E | Never hard-code credentials in test files. Use environment variables injected by the CI platform. |
+
+---
+
+*Last updated: 2026-04-24*

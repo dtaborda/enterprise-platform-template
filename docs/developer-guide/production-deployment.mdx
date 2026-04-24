@@ -1,0 +1,266 @@
+---
+title: "Production Deployment"
+description: "End-to-end guide for deploying the Enterprise Platform to production on Vercel + Supabase Cloud."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+import { Callout, CommandPanel } from "./_components.mdx";
+
+# Production Deployment
+
+## Purpose
+
+This guide walks through every step required to deploy the Enterprise Platform to a production environment. It covers the full infrastructure stack: Supabase Cloud, Vercel, Sentry, and Resend.
+
+## Scope
+
+- **Included**: Supabase production project, Vercel deployment, Sentry error tracking, Resend email, post-deploy verification, troubleshooting
+- **Excluded**: Custom domains/DNS configuration, CDN tuning, database performance optimization
+
+---
+
+## Overview: The Production Stack
+
+| Layer | Service | Purpose |
+|-------|---------|---------|
+| Hosting | [Vercel](https://vercel.com) | Next.js application hosting, edge functions, CI/CD |
+| Database + Auth | [Supabase Cloud](https://supabase.com) | PostgreSQL, Row Level Security, Auth, Storage |
+| Error Tracking | [Sentry](https://sentry.io) | Error capture, performance monitoring, alerting |
+| Transactional Email | [Resend](https://resend.com) | Welcome emails, password resets, notifications |
+
+<Callout title="Production vs dev Supabase" tone="danger">
+  Always create a SEPARATE Supabase project for production. Never point production to a shared dev project. Migrations run against real user data — there is no undo.
+</Callout>
+
+---
+
+## Step 1: Supabase Cloud Setup
+
+### 1.1 Create the Production Project
+
+1. Log in to [supabase.com](https://supabase.com).
+2. Click **New Project** and set a name like `my-app-production`.
+3. Choose the region closest to your users.
+4. Set a strong database password — save it in your password manager.
+5. Note the **Project Reference ID** from the project URL.
+
+### 1.2 Push Migrations
+
+<CommandPanel
+  title="Link CLI and push migrations"
+  commands={[
+    "supabase link --project-ref <PROD_REF>",
+    "supabase db push",
+  ]}
+/>
+
+<Callout title="Review before pushing" tone="warning">
+  Run `supabase db diff` first to preview the SQL that will be applied. In production, there is no `db reset` — changes are permanent and incremental.
+</Callout>
+
+### 1.3 Configure Auth
+
+In **Dashboard → Authentication → URL Configuration**:
+
+| Setting | Value |
+|---------|-------|
+| **Site URL** | Your production domain (e.g., `https://your-app.com`) |
+| **Redirect URLs** | `https://your-app.com/**` plus any preview URLs |
+
+Enable email confirmations in **Authentication → Providers → Email** if your product requires verified email addresses.
+
+### 1.4 Verify RLS
+
+```sql
+SELECT schemaname, tablename, rowsecurity
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY tablename;
+```
+
+Every table must show `rowsecurity = true`. If any table is unprotected, do not launch.
+
+### 1.5 Create Storage Buckets
+
+```sql
+INSERT INTO storage.buckets (id, name, public) VALUES
+  ('avatars', 'avatars', true),
+  ('documents', 'documents', false),
+  ('images', 'images', true);
+```
+
+---
+
+## Step 2: Vercel Setup
+
+### 2.1 Import Repository
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**.
+2. Import your repository from GitHub/GitLab/Bitbucket.
+3. Set **Framework Preset** to **Next.js**.
+
+### 2.2 Build Settings
+
+| Setting | Value |
+|---------|-------|
+| **Build Command** | `pnpm build` |
+| **Install Command** | `pnpm install` |
+| **Output Directory** | `.next` (default) |
+| **Root Directory** | `ui/` (if deploying only the web app from a monorepo root) |
+
+<Callout title="Monorepo root directory" tone="info">
+  If Vercel auto-detects the monorepo root and runs `pnpm build` from there, it will build all packages. Setting the Root Directory to `ui/` scopes the deployment to the Next.js app only. Check your Turborepo `build` pipeline before deciding.
+</Callout>
+
+### 2.3 Environment Variables
+
+Add every variable in **Project → Settings → Environment Variables** for the **Production** environment:
+
+| Variable | Where to get it | Secret? |
+|----------|----------------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API | No |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API | No |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API | **Yes** |
+| `DATABASE_URL` | Supabase → Settings → Database → Transaction Pooler (port 6543) | **Yes** |
+| `NEXT_PUBLIC_APP_URL` | Your production domain | No |
+| `NEXT_PUBLIC_APP_NAME` | Your app name | No |
+| `NEXT_PUBLIC_APP_ENV` | `production` | No |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry → Project → Settings → Client Keys | No |
+| `SENTRY_AUTH_TOKEN` | Sentry → User Settings → Auth Tokens | **Yes** |
+| `SENTRY_ORG` | Your Sentry org slug | No |
+| `SENTRY_PROJECT` | Your Sentry project slug | No |
+| `RESEND_API_KEY` | Resend → API Keys | **Yes** |
+| `EMAIL_FROM` | Your verified sender address | No |
+
+<Callout title="Sensitive variables" tone="danger">
+  Mark `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `SENTRY_AUTH_TOKEN`, and `RESEND_API_KEY` as **Sensitive** in Vercel. Sensitive variables are write-only — they cannot be viewed after saving.
+</Callout>
+
+---
+
+## Step 3: Sentry Setup (Optional)
+
+Sentry provides error capture, performance monitoring, and alerts.
+
+### 3.1 Create a Sentry Project
+
+1. Go to [sentry.io](https://sentry.io) → **Projects → Create Project**.
+2. Select **Next.js** as the platform.
+3. Note the **DSN** from the project settings.
+
+### 3.2 Install the SDK
+
+<CommandPanel
+  title="Install Sentry SDK"
+  commands={[
+    "pnpm --filter @enterprise/web add @sentry/nextjs",
+  ]}
+/>
+
+### 3.3 Configure next.config
+
+```javascript
+// ui/next.config.js
+const { withSentryConfig } = require("@sentry/nextjs");
+
+const nextConfig = {
+  // ... your existing config
+};
+
+module.exports = withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: true,
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+});
+```
+
+### 3.4 Source Maps
+
+Vercel automatically uploads source maps to Sentry during build when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` are set in the Vercel environment. No extra CI steps needed.
+
+---
+
+## Step 4: Resend Setup (Optional)
+
+Resend handles transactional emails: welcome messages, password resets, and notifications.
+
+### 4.1 Create Account and API Key
+
+1. Go to [resend.com](https://resend.com) and sign up.
+2. Navigate to **API Keys → Create API Key**.
+3. Copy the key — it is shown only once.
+
+### 4.2 Verify Your Domain
+
+For production deliverability, verify your sending domain in **Resend → Domains → Add Domain**. Follow the DNS verification instructions. Without domain verification, emails may be sent from `onboarding@resend.dev` and may end up in spam.
+
+### 4.3 Add to Vercel
+
+Add to Vercel environment variables:
+
+```
+RESEND_API_KEY=re_...
+EMAIL_FROM=noreply@yourdomain.com
+```
+
+---
+
+## Step 5: Deploy
+
+### 5.1 Push to Main
+
+<CommandPanel
+  title="Trigger production deploy"
+  commands={[
+    "git push origin main",
+  ]}
+/>
+
+Vercel auto-deploys every push to `main`. Monitor the build in the Vercel dashboard.
+
+### 5.2 Verify Production URL
+
+After the deployment completes, visit your production URL and confirm:
+
+- The landing page loads.
+- `/sign-in` loads and accepts credentials.
+- Auth redirects work (forgot password, sign-up confirmation).
+
+---
+
+## Post-Deploy Checklist
+
+Run through this list after every first-time production deployment:
+
+- [ ] Visit production URL — no 500 errors on landing page
+- [ ] Sign in with a real user account
+- [ ] Sign up a new user — verify tenant and profile are created
+- [ ] Trigger a password reset — verify email arrives
+- [ ] Access `/dashboard` — verify all data queries return correct tenant-scoped data
+- [ ] Verify RLS: check that a user cannot access another tenant's data
+- [ ] Open Sentry dashboard — confirm events are appearing after a test error
+- [ ] Check Resend dashboard — confirm emails are being sent and delivered
+- [ ] Run `supabase db push` — confirm no pending migrations
+
+---
+
+## Troubleshooting
+
+| Problem | Likely Cause | Fix |
+|---------|-------------|-----|
+| Build fails: "Cannot find module" | Missing workspace dependency | Check `turbo.json` build pipeline and workspace `package.json` |
+| Auth redirect goes to wrong URL | `NEXT_PUBLIC_APP_URL` misconfigured | Set to exact production domain, including `https://` |
+| RLS blocking all queries | Missing `tenant_id` in JWT `app_metadata` | Verify `handle_new_user()` trigger exists and runs on sign-up |
+| "Localhost URL rejected in production" startup error | `NEXT_PUBLIC_APP_URL` set to `localhost` | Set to real production domain |
+| Sentry not receiving events | Wrong DSN or `NEXT_PUBLIC_SENTRY_DSN` not set | Copy exact DSN from Sentry project settings |
+| Emails not sending | `RESEND_API_KEY` missing or domain not verified | Add API key to Vercel env vars and verify sender domain |
+| Storage uploads failing | Bucket not created or RLS policy missing | Create buckets manually and check `storage.objects` RLS policies |
+| Vercel build uses wrong Node version | Missing `.nvmrc` or engines field | Add `"engines": { "node": ">=20" }` to root `package.json` |
+
+---
+
+*Last updated: 2026-04-24*

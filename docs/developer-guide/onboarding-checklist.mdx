@@ -1,0 +1,221 @@
+---
+title: "Onboarding Checklist"
+description: "Step-by-step guide for new developers joining the Enterprise Platform — from prerequisites to a running dev environment."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+import { Callout, CommandPanel } from "./_components.mdx";
+
+# Onboarding Checklist
+
+## Purpose
+
+This guide walks a new developer through the complete local setup of the Enterprise Platform — from installing prerequisites to running the dev server, passing quality checks, and understanding the architecture.
+
+## Scope
+
+- **Included**: Prerequisites, clone, install, environment setup, local Supabase, dev server, quality checks, key routes, architecture reading order
+- **Excluded**: Production deployment (see [Production Deployment](./production-deployment.mdx)), contributing workflow, product customization
+
+---
+
+## Prerequisites
+
+Install and verify the following before proceeding:
+
+| Tool | Minimum version | Install |
+|------|----------------|---------|
+| Node.js | `>=20` | [nodejs.org](https://nodejs.org) or `nvm install 20` |
+| pnpm | `>=9` | `npm install -g pnpm` |
+| Docker Desktop | Latest | [docker.com](https://www.docker.com/products/docker-desktop) |
+| Supabase CLI | Latest | `brew install supabase/tap/supabase` |
+
+<CommandPanel
+  title="Verify prerequisites"
+  commands={[
+    "node --version    # should be >=20",
+    "pnpm --version    # should be >=9",
+    "docker --version  # should show Docker version",
+    "supabase --version",
+  ]}
+/>
+
+<Callout title="Docker must be running" tone="warning">
+  The local Supabase stack runs in Docker containers. Make sure Docker Desktop is running before executing `supabase start`.
+</Callout>
+
+---
+
+## Setup Steps
+
+### 1. Clone the Repository
+
+<CommandPanel
+  title="Clone"
+  commands={[
+    "git clone https://github.com/your-org/enterprise-platform-template.git",
+    "cd enterprise-platform-template",
+  ]}
+/>
+
+### 2. Install Dependencies
+
+<CommandPanel
+  title="Install all workspace packages"
+  commands={[
+    "pnpm install",
+  ]}
+/>
+
+This installs dependencies for all workspace packages: `@enterprise/web`, `@enterprise/contracts`, `@enterprise/core`, `@enterprise/db`, and `@enterprise/ui`.
+
+### 3. Configure Environment
+
+<CommandPanel
+  title="Bootstrap environment file"
+  commands={[
+    "cp .env.example .env.local",
+  ]}
+/>
+
+You will fill in the actual values in the next step. For now, `.env.local` serves as your configuration file — it is gitignored and never committed.
+
+### 4. Start Local Supabase
+
+<CommandPanel
+  title="Start Supabase stack"
+  commands={[
+    "supabase start",
+  ]}
+/>
+
+This starts PostgreSQL, Auth, Storage, and Inbucket in Docker containers. On first run, Docker pulls the images — this can take a few minutes.
+
+Once started, run:
+
+<CommandPanel
+  title="Get local credentials"
+  commands={[
+    "supabase status",
+  ]}
+/>
+
+Copy the `API URL` and `anon key` (and `service_role key`) into your `.env.local`:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from supabase status>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key from supabase status>
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_ENV=development
+```
+
+### 5. Apply Migrations and Seed Data
+
+<CommandPanel
+  title="Reset and seed local database"
+  commands={[
+    "supabase db reset",
+  ]}
+/>
+
+This drops and recreates the local database, applies all migrations, and runs `supabase/seed.sql` — creating deterministic test users and a demo tenant.
+
+### 6. Run the Dev Server
+
+<CommandPanel
+  title="Start development server"
+  commands={[
+    "pnpm dev",
+  ]}
+/>
+
+The app starts at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Key Routes to Verify
+
+After starting the dev server, confirm these routes load correctly:
+
+| Route | What to check |
+|-------|--------------|
+| `/` | Landing page loads |
+| `/sign-in` | Sign-in form renders |
+| `/sign-up` | Sign-up form renders |
+| `/forgot-password` | Password reset form renders |
+| `/dashboard` | Redirects to `/sign-in` when unauthenticated |
+
+Then sign in with a seeded test user:
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@enterprise.dev` | `password123` | owner |
+| `member@enterprise.dev` | `password123` | member |
+| `guest@enterprise.dev` | `password123` | guest |
+
+After signing in, verify:
+
+| Route | What to check |
+|-------|--------------|
+| `/dashboard` | Dashboard loads with tenant data |
+| `/dashboard/settings` | Settings page loads |
+
+---
+
+## Quality Checks
+
+Before pushing any code, run the full QA pipeline:
+
+<CommandPanel
+  title="Full quality check pipeline"
+  commands={[
+    "pnpm typecheck   # TypeScript type checking",
+    "pnpm lint        # Biome linting",
+    "pnpm test        # Vitest unit tests",
+    "pnpm e2e         # Playwright E2E tests (requires supabase start)",
+  ]}
+/>
+
+<Callout title="All checks must pass before opening a PR" tone="danger">
+  The QA checklist in AGENTS.md requires all four checks to pass: `typecheck`, `lint`, `test`, and `e2e` (for features with UI pages). A failing check means the PR is not ready for review.
+</Callout>
+
+All four should return zero errors on a fresh clone. If any fail after a clean setup, it indicates a configuration problem — check your `.env.local` values against the [Environment Variables Guide](./environment-guide.mdx).
+
+---
+
+## Understanding the Architecture
+
+Read these documents in order to understand how the codebase is structured:
+
+| Order | Document | What you will learn |
+|-------|----------|---------------------|
+| 1 | [Architecture Overview](./architecture.mdx) | Monorepo structure, package responsibilities, dependency rules |
+| 2 | [Service Layer](../architecture/service-layer.md) | Where business logic lives and how to write services |
+| 3 | [Multi-Tenant Model](../architecture/multi-tenant.md) | How tenant isolation works with RLS |
+| 4 | [Users and Roles](../architecture/users-and-roles.md) | The four-role model and authorization flow |
+| 5 | [Code Conventions](./conventions.mdx) | TypeScript, Zod, Drizzle, React/Next.js patterns |
+| 6 | [Testing Strategy](./testing-strategy.mdx) | How tests are structured and what to test |
+
+The `resources` feature module is the canonical example of a complete vertical slice. Read it when you are ready to build your first feature.
+
+---
+
+## Scope Reminder
+
+<Callout title="This is a starter template, not a finished product" tone="info">
+  The Enterprise Platform is a foundation, not a complete SaaS. Before launching your product fork, you will need to:
+
+  - Define your domain modules (replacing or extending `resources`)
+  - Set up production infrastructure (see [Production Deployment](./production-deployment.mdx))
+  - Configure monitoring, alerting, and operational runbooks
+  - Review legal and licensing requirements
+  - Establish your own contributing and review workflow
+</Callout>
+
+---
+
+*Last updated: 2026-04-24*

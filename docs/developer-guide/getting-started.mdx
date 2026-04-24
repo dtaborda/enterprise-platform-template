@@ -1,0 +1,231 @@
+---
+title: "Getting Started"
+description: "Local development setup with two options: local Supabase (Docker) or cloud Supabase."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+import { Callout, CommandPanel } from "./_components.mdx";
+
+# Getting Started
+
+## Purpose
+
+Provide a repeatable onboarding path for running the Enterprise Platform locally.
+
+## Scope
+
+- Included: prerequisites, install, environment config, two development modes, seeded users.
+- Excluded: production deployment (see [production-deployment.mdx](./production-deployment.mdx)), Supabase deep setup (see [supabase-setup.mdx](./supabase-setup.mdx)).
+
+## Prerequisites
+
+| Tool | Version | Why | Install |
+|------|---------|-----|---------|
+| **Node.js** | `>=20` | Runtime | [nodejs.org](https://nodejs.org) |
+| **pnpm** | `>=9` | Workspace package manager | `corepack enable && corepack prepare pnpm@latest --activate` |
+| **Docker** | Latest | Required only for local Supabase | [docker.com](https://www.docker.com/products/docker-desktop/) |
+| **Supabase CLI** | Latest | Local DB + migrations | `brew install supabase/tap/supabase` |
+
+<Callout title="Docker is optional" tone="info">
+You can skip Docker entirely by pointing to a hosted Supabase project. See **Option B** below.
+</Callout>
+
+## Install
+
+<CommandPanel
+  title="Install Dependencies"
+  commands={[
+    "git clone <repository-url> enterprise-platform",
+    "cd enterprise-platform",
+    "pnpm install",
+    "cp .env.example .env.local",
+    "ln -s ../.env.local ui/.env.local    # Next.js reads from ui/",
+  ]}
+/>
+
+## Choose Your Development Mode
+
+| Mode | When to Use | Requires Docker |
+|------|-------------|----------------|
+| **Option A: Local Supabase** | Full offline dev, test RLS locally, run E2E tests | Yes |
+| **Option B: Cloud Supabase** | Quick start, share DB with team, no Docker needed | No |
+
+---
+
+## Option A: Local Supabase (Recommended)
+
+### 1. Start Docker
+
+| OS | Command |
+|----|---------|
+| **macOS (Docker Desktop)** | `open -a Docker` |
+| **macOS (Colima)** | `colima start` |
+| **Linux** | `sudo systemctl start docker` |
+| **Windows (WSL)** | `sudo service docker start` |
+
+Wait until `docker info` returns without errors.
+
+### 2. Start Supabase
+
+<CommandPanel
+  title="Start Local Supabase"
+  commands={[
+    "supabase start    # First run downloads images (~2 min)",
+  ]}
+/>
+
+After startup, you will see output with credentials:
+
+```
+API URL:    http://127.0.0.1:55331
+Studio URL: http://127.0.0.1:55333
+Inbucket:   http://127.0.0.1:55334
+DB URL:     postgresql://postgres:postgres@127.0.0.1:55332/postgres
+```
+
+<Callout title="Ports" tone="info">
+Port numbers are configured in `supabase/config.toml`. The `.env.example` file is pre-configured with these local defaults.
+</Callout>
+
+### 3. Run the App
+
+<CommandPanel
+  title="Start Dev Server"
+  commands={["pnpm dev    # http://localhost:3000"]}
+/>
+
+### Seeded Users
+
+The local database is seeded with test users from `supabase/seed.sql`:
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@enterprise.dev` | `password123` | owner |
+| `member@enterprise.dev` | `password123` | member |
+| `guest@enterprise.dev` | `password123` | guest |
+| `reset@enterprise.dev` | `password123` | member |
+| `reset2@enterprise.dev` | `password123` | member |
+
+### Useful Local Commands
+
+| Command | What |
+|---------|------|
+| `supabase start` | Start all local services |
+| `supabase stop` | Stop all local services |
+| `supabase db reset` | Drop + recreate DB + reapply migrations + seed |
+| `supabase status` | Show URLs and credentials |
+
+---
+
+## Option B: Cloud Supabase (No Docker)
+
+### 1. Create a Supabase Project
+
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Go to **Settings → API** and copy the credentials
+3. Note the project reference ID (from URL: `https://supabase.com/dashboard/project/[REF]`)
+
+### 2. Deploy the Database Schema
+
+<CommandPanel
+  title="Push Migrations to Cloud"
+  commands={[
+    "supabase link --project-ref <your-project-ref>",
+    "supabase db push    # Applies all migrations from supabase/migrations/",
+  ]}
+/>
+
+<Callout title="Caution" tone="warning">
+`supabase db push` on a hosted project is irreversible. Always test migrations locally first with `supabase db reset`.
+</Callout>
+
+### 3. Configure Environment
+
+Edit `.env.local` with your cloud credentials:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from Supabase Dashboard>
+SUPABASE_SERVICE_ROLE_KEY=<service role key from Dashboard>
+DATABASE_URL=postgresql://postgres.<REF>:<PASSWORD>@aws-0-us-west-1.pooler.supabase.com:6543/postgres
+```
+
+### 4. Run the App
+
+<CommandPanel
+  title="Start Dev Server"
+  commands={["pnpm dev    # http://localhost:3000"]}
+/>
+
+<Callout title="No seeded users" tone="warning">
+Cloud projects don't have seeded users. You will need to sign up through the app or seed manually via the Supabase SQL Editor.
+</Callout>
+
+---
+
+## Verify Setup
+
+After starting the app, verify these routes:
+
+| Route | What |
+|-------|------|
+| `/sign-in` | Auth sign-in page |
+| `/sign-up` | Auth sign-up page |
+| `/dashboard` | Protected dashboard (requires auth) |
+| `/dashboard/resources` | CRUD example module |
+| `/dashboard/settings` | User settings |
+
+## Quality Checks
+
+<CommandPanel
+  title="Run All Checks"
+  commands={[
+    "pnpm typecheck     # TypeScript verification",
+    "pnpm lint          # Biome code quality",
+    "pnpm test          # Vitest unit tests",
+    "pnpm e2e           # Playwright E2E (requires local Supabase)",
+  ]}
+/>
+
+## Project Structure
+
+```
+enterprise-platform/
+├── ui/                          → @enterprise/web (Next.js app)
+│   ├── app/(auth)/              → Auth pages
+│   ├── app/(dashboard)/         → Protected dashboard
+│   ├── features/                → Feature modules
+│   └── e2e/                     → Playwright tests
+├── packages/
+│   ├── contracts/               → Zod schemas, DTOs, types
+│   ├── core/                    → Services, auth, Supabase clients
+│   ├── db/                      → Drizzle schema, RLS policies
+│   └── ui/                      → shadcn/ui components, theme tokens
+├── supabase/
+│   ├── config.toml              → Local Supabase config
+│   ├── migrations/              → SQL migrations
+│   └── seed.sql                 → Test user seed data
+└── docs/                        → Developer guide, architecture
+```
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Port 3000 in use | `lsof -ti:3000 \| xargs kill` |
+| `supabase start` fails | Check Docker is running: `docker info` |
+| pnpm install fails | Delete `node_modules` and `pnpm-lock.yaml`, re-run |
+| TypeScript errors after pull | Run `pnpm typecheck` to see exact issues |
+| Cannot sign in with seeded users | Run `supabase db reset` to re-seed |
+| E2E tests time out | Ensure local Supabase is running and `.env.local` is correct |
+
+## Next Steps
+
+- [Supabase Setup](./supabase-setup.mdx) — Deeper Supabase configuration (auth, storage, RLS)
+- [Environment Guide](./environment-guide.mdx) — Full variable reference
+- [Architecture](./architecture.mdx) — How the monorepo is organized
+
+---
+
+*Last updated: 2026-04-24*
