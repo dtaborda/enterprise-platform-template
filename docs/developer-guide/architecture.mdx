@@ -5,8 +5,6 @@ owner: "Engineering"
 lastUpdated: "2026-04-24"
 ---
 
-import { Callout, CommandPanel } from "./_components.mdx";
-
 # Architecture Overview
 
 ## Purpose
@@ -87,9 +85,7 @@ enterprise-platform-template/
 
 ## Dependency Direction Rules
 
-<Callout title="Enforced dependency direction" tone="danger">
-  Circular dependencies and upward dependencies are NEVER allowed. If you find yourself importing `@enterprise/web` from a package, stop — you have the layers inverted.
-</Callout>
+> **🚨 Enforced dependency direction:** Circular dependencies and upward dependencies are NEVER allowed. If you find yourself importing `@enterprise/web` from a package, stop — you have the layers inverted.
 
 ```
 Allowed:
@@ -168,9 +164,7 @@ export type CreateResourceInput = z.infer<typeof createResourceSchema>;
 
 This prevents shape drift between UI, server, and persistence layers. When the schema changes, TypeScript errors surface everywhere that uses it.
 
-<Callout title="Auth metadata shapes" tone="info">
-  Use `RegistrationMetadata` and `InvitationMetadata` from `@enterprise/contracts` when passing metadata to `supabase.auth.signUp()`. Never send raw untyped metadata objects.
-</Callout>
+> **ℹ️ Auth metadata shapes:** Use `RegistrationMetadata` and `InvitationMetadata` from `@enterprise/contracts` when passing metadata to `supabase.auth.signUp()`. Never send raw untyped metadata objects.
 
 ---
 

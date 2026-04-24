@@ -5,8 +5,6 @@ owner: "Engineering"
 lastUpdated: "2026-04-24"
 ---
 
-import { Callout, CommandPanel } from "./_components.mdx";
-
 # Supabase Setup
 
 ## Purpose
@@ -32,23 +30,21 @@ Local Supabase runs a full Supabase stack in Docker containers on your machine. 
 
 ### Start Local Stack
 
-<CommandPanel
-  title="Start Supabase"
-  commands={[
-    "supabase start",
-  ]}
-/>
+**Start Supabase**
+
+```bash
+supabase start
+```
 
 This spins up PostgreSQL, Auth, Storage, and Inbucket (email capture) locally.
 
 ### Get Credentials
 
-<CommandPanel
-  title="View local credentials"
-  commands={[
-    "supabase status",
-  ]}
-/>
+**View local credentials**
+
+```bash
+supabase status
+```
 
 Copy the output values into your `.env.local`:
 
@@ -60,18 +56,15 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role key from supabase status>
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 ```
 
-<Callout title="Port note" tone="info">
-  Default local ports: API at `54321`, DB at `54322`, Studio at `54323`, Inbucket at `55334`. Check `supabase/config.toml` if your ports differ.
-</Callout>
+> **ℹ️ Port note:** Default local ports: API at `54321`, DB at `54322`, Studio at `54323`, Inbucket at `55334`. Check `supabase/config.toml` if your ports differ.
 
 ### Apply Migrations
 
-<CommandPanel
-  title="Apply migrations and seed data"
-  commands={[
-    "supabase db reset",
-  ]}
-/>
+**Apply migrations and seed data**
+
+```bash
+supabase db reset
+```
 
 `supabase db reset` drops and recreates the local database, applies all migrations from `supabase/migrations/`, and runs `supabase/seed.sql`. Use this after pulling new migration files.
 
@@ -109,18 +102,17 @@ INSERT INTO storage.buckets (id, name, public) VALUES
 
 ### Useful Local Commands
 
-<CommandPanel
-  title="Common local Supabase commands"
-  commands={[
-    "supabase start           # Start all containers",
-    "supabase stop            # Stop all containers",
-    "supabase status          # Show credentials and port info",
-    "supabase db reset        # Re-apply migrations + seed",
-    "supabase studio          # Open Studio in browser",
-    "supabase db diff         # Preview pending migration SQL",
-    "supabase migration new my_migration  # Create a new migration file",
-  ]}
-/>
+**Common local Supabase commands**
+
+```bash
+supabase start           # Start all containers
+supabase stop            # Stop all containers
+supabase status          # Show credentials and port info
+supabase db reset        # Re-apply migrations + seed
+supabase studio          # Open Studio in browser
+supabase db diff         # Preview pending migration SQL
+supabase migration new my_migration  # Create a new migration file
+```
 
 ---
 
@@ -148,33 +140,27 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role key>
 DATABASE_URL=postgresql://postgres.<REF>:<PASSWORD>@aws-1-us-west-2.pooler.supabase.com:6543/postgres
 ```
 
-<Callout title="Security" tone="danger">
-  `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. Never expose it to the browser. Never commit it to version control. Treat it as a secret.
-</Callout>
+> **🚨 Security:** `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. Never expose it to the browser. Never commit it to version control. Treat it as a secret.
 
 ### 3. Link Your Project
 
-<CommandPanel
-  title="Link CLI to cloud project"
-  commands={[
-    "supabase link --project-ref <REF>",
-  ]}
-/>
+**Link CLI to cloud project**
+
+```bash
+supabase link --project-ref <REF>
+```
 
 ### 4. Push Migrations
 
-<CommandPanel
-  title="Push migrations to cloud"
-  commands={[
-    "supabase db push",
-  ]}
-/>
+**Push migrations to cloud**
+
+```bash
+supabase db push
+```
 
 This applies all pending migrations from `supabase/migrations/` to the cloud database.
 
-<Callout title="Seed data" tone="warning">
-  `supabase db push` does NOT run `seed.sql`. Seed data is for local development only. Do not seed test users into a shared cloud dev database.
-</Callout>
+> **⚠️ Seed data:** `supabase db push` does NOT run `seed.sql`. Seed data is for local development only. Do not seed test users into a shared cloud dev database.
 
 ---
 
@@ -210,9 +196,7 @@ The platform uses three buckets. Create them via the Dashboard (**Storage → Ne
 | `documents` | No | Private tenant documents |
 | `images` | Yes | General-purpose public images |
 
-<Callout title="Storage paths" tone="info">
-  Always use `buildStoragePath(type, { tenantId, entityId, filename })` from `@enterprise/core/supabase/storage-paths` to construct paths. Never concatenate strings — the path format is tied to RLS policies.
-</Callout>
+> **ℹ️ Storage paths:** Always use `buildStoragePath(type, { tenantId, entityId, filename })` from `@enterprise/core/supabase/storage-paths` to construct paths. Never concatenate strings — the path format is tied to RLS policies.
 
 ---
 

@@ -5,8 +5,6 @@ owner: "Engineering"
 lastUpdated: "2026-04-24"
 ---
 
-import { Callout, CommandPanel } from "./_components.mdx";
-
 # Environment Variables Guide
 
 ## Purpose
@@ -31,9 +29,7 @@ This guide documents every environment variable used by the Enterprise Platform,
 | `SUPABASE_SERVICE_ROLE_KEY` | ❌ | Conditional | Service role key for server-only admin operations. Bypasses RLS. |
 | `DATABASE_URL` | ❌ | Conditional | PostgreSQL connection string. Required for Drizzle migration tooling. |
 
-<Callout title="SUPABASE_SERVICE_ROLE_KEY" tone="danger">
-  This key bypasses Row Level Security entirely. It must NEVER be exposed to the browser, committed to version control, or used in request-driven user flows. Only use it in trusted server-only contexts such as migration scripts or admin jobs.
-</Callout>
+> **🚨 SUPABASE_SERVICE_ROLE_KEY:** This key bypasses Row Level Security entirely. It must NEVER be exposed to the browser, committed to version control, or used in request-driven user flows. Only use it in trusted server-only contexts such as migration scripts or admin jobs.
 
 ### Application
 
@@ -43,9 +39,7 @@ This guide documents every environment variable used by the Enterprise Platform,
 | `NEXT_PUBLIC_APP_NAME` | ✅ | ❌ | Human-readable application name shown in the UI. |
 | `NEXT_PUBLIC_APP_ENV` | ✅ | ❌ | Runtime environment label: `development`, `staging`, or `production`. |
 
-<Callout title="Production URL requirement" tone="warning">
-  In production mode, at least one of `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, or `APP_URL` must be set to a non-localhost URL. Localhost-like values are rejected at startup. Always use `getAppUrl()` from `@enterprise/core/utils/env` — never access `process.env.NEXT_PUBLIC_APP_URL` directly.
-</Callout>
+> **⚠️ Production URL requirement:** In production mode, at least one of `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, or `APP_URL` must be set to a non-localhost URL. Localhost-like values are rejected at startup. Always use `getAppUrl()` from `@enterprise/core/utils/env` — never access `process.env.NEXT_PUBLIC_APP_URL` directly.
 
 ### Email (Resend)
 
@@ -70,9 +64,7 @@ This guide documents every environment variable used by the Enterprise Platform,
 | `E2E_EMAIL` | ❌ | ❌ | Email for the primary E2E test user. Defaults to `admin@enterprise.dev` locally. |
 | `E2E_PASSWORD` | ❌ | ❌ | Password for the primary E2E test user. Defaults to `password123` locally. |
 
-<Callout title="E2E credentials in CI" tone="warning">
-  When running E2E tests in CI against a cloud Supabase project, set `E2E_EMAIL` and `E2E_PASSWORD` as CI secrets. Never commit real credentials.
-</Callout>
+> **⚠️ E2E credentials in CI:** When running E2E tests in CI against a cloud Supabase project, set `E2E_EMAIL` and `E2E_PASSWORD` as CI secrets. Never commit real credentials.
 
 ---
 
@@ -82,12 +74,11 @@ This guide documents every environment variable used by the Enterprise Platform,
 
 Copy the example file and fill in local Supabase credentials from `supabase status`:
 
-<CommandPanel
-  title="Bootstrap .env.local"
-  commands={[
-    "cp .env.example .env.local",
-  ]}
-/>
+**Bootstrap .env.local**
+
+```bash
+cp .env.example .env.local
+```
 
 Full `.env.local` example for local development:
 
@@ -118,9 +109,7 @@ E2E_EMAIL=admin@enterprise.dev
 E2E_PASSWORD=password123
 ```
 
-<Callout title=".env.local is gitignored" tone="info">
-  Never commit `.env.local`. It is in `.gitignore` by default. Commit `.env.example` with placeholder values so new developers know which variables are needed.
-</Callout>
+> **ℹ️ .env.local is gitignored:** Never commit `.env.local`. It is in `.gitignore` by default. Commit `.env.example` with placeholder values so new developers know which variables are needed.
 
 ### Production (Vercel)
 
