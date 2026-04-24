@@ -5,8 +5,6 @@ owner: "Engineering"
 lastUpdated: "2026-04-24"
 ---
 
-import { Callout, CommandPanel } from "./_components.mdx";
-
 # Developer Guide
 
 ## Purpose
@@ -30,26 +28,21 @@ Single, reliable starting point for developers working in the Enterprise Platfor
 8. [Production Deployment](./production-deployment.mdx) — Supabase cloud + Vercel + Sentry + Resend
 9. [Onboarding Checklist](./onboarding-checklist.mdx) — New developer checklist
 
-<Callout title="Start here" tone="success">
-If you just cloned the template and want to run it locally, go directly to [Getting Started](./getting-started.mdx).
-</Callout>
+> **✅ Start here:** If you just cloned the template and want to run it locally, go directly to [Getting Started](./getting-started.mdx).
 
-<Callout title="MDX Rendering" tone="info">
-These MDX files are readable as repo documentation (GitHub, VS Code). An MDX rendering pipeline (e.g., Fumadocs, next-mdx-remote) can be added to serve them as a docs site. The Callout and CommandPanel components will render correctly once that pipeline is in place.
-</Callout>
+> **ℹ️ MDX Rendering:** These MDX files are readable as repo documentation (GitHub, VS Code). An MDX rendering pipeline (e.g., Fumadocs, next-mdx-remote) can be added to serve them as a docs site. The Callout and CommandPanel components will render correctly once that pipeline is in place.
 
 ## Quick Start
 
-<CommandPanel
-  title="First Run (Local Supabase)"
-  commands={[
-    "pnpm install",
-    "cp .env.example .env.local",
-    "ln -s ../.env.local ui/.env.local",
-    "supabase start          # Requires Docker",
-    "pnpm dev                # http://localhost:3000",
-  ]}
-/>
+**First Run (Local Supabase)**
+
+```bash
+pnpm install
+cp .env.example .env.local
+ln -s ../.env.local ui/.env.local
+supabase start                    # Requires Docker — applies migrations + seeds DB
+pnpm dev                          # http://localhost:3000
+```
 
 ## Related Documents
 

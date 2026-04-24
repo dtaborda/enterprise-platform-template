@@ -17,6 +17,7 @@
     "@enterprise/core": "workspace:*",
     "@enterprise/db": "workspace:*",
     "@enterprise/ui": "workspace:*",
+    "@sentry/nextjs": "^10.48.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "lucide-react": "^0.468.0",

@@ -5,8 +5,6 @@ owner: "Engineering"
 lastUpdated: "2026-04-24"
 ---
 
-import { Callout, CommandPanel } from "./_components.mdx";
-
 # Code Conventions
 
 ## Purpose
@@ -64,9 +62,7 @@ interface User {
 
 ### Never Use `any`
 
-<Callout title="No any types" tone="danger">
-  `any` disables TypeScript's type checker entirely. Use `unknown` for truly unknown inputs and generics for flexible types. The project target is zero `any` occurrences.
-</Callout>
+> **🚨 No any types:** `any` disables TypeScript's type checker entirely. Use `unknown` for truly unknown inputs and generics for flexible types. The project target is zero `any` occurrences.
 
 ```typescript
 // ✅ Use unknown for truly unknown types
@@ -88,9 +84,7 @@ function parse(input: any): any {}
 
 ## Zod (Validation)
 
-<Callout title="Project uses Zod 3" tone="warning">
-  This project uses **Zod 3**, not Zod 4. Use `z.string().email()`, `z.string().uuid()`, and `z.string().min(1)` — NOT the Zod 4 shorthand `z.email()` or `z.uuid()`.
-</Callout>
+> **⚠️ Project uses Zod 3:** This project uses **Zod 3**, not Zod 4. Use `z.string().email()`, `z.string().uuid()`, and `z.string().min(1)` — NOT the Zod 4 shorthand `z.email()` or `z.uuid()`.
 
 ### Zod 3 Syntax
 
@@ -209,9 +203,7 @@ export async function createResourceAction(input: Record<string, unknown>) {
 }
 ```
 
-<Callout title="Business logic does NOT go in Server Actions" tone="danger">
-  Server Actions must never contain business rules, database queries, or multi-step orchestration. All of that belongs in `packages/core/src/services/`. If your action is more than ~20 lines, you are doing too much in it.
-</Callout>
+> **🚨 Business logic does NOT go in Server Actions:** Server Actions must never contain business rules, database queries, or multi-step orchestration. All of that belongs in `packages/core/src/services/`. If your action is more than ~20 lines, you are doing too much in it.
 
 ### Client Components
 
