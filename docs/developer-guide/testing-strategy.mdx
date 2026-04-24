@@ -5,8 +5,6 @@ owner: "Engineering"
 lastUpdated: "2026-04-24"
 ---
 
-import { Callout, CommandPanel } from "./_components.mdx";
-
 # Testing Strategy
 
 ## Purpose
@@ -115,30 +113,27 @@ sequenceDiagram
 
 ## Local Execution Pipeline
 
-<CommandPanel
-  title="Full local test pipeline"
-  commands={[
-    "# 1. Start local Supabase",
-    "supabase start",
-    "",
-    "# 2. Reset deterministic data",
-    "supabase db reset",
-    "",
-    "# 3. Type checks and lint",
-    "pnpm typecheck",
-    "pnpm lint",
-    "",
-    "# 4. Unit tests",
-    "pnpm test",
-    "",
-    "# 5. E2E browser tests",
-    "pnpm e2e",
-  ]}
-/>
+**Full local test pipeline**
 
-<Callout title="E2E requires running local Supabase" tone="warning">
-  E2E tests connect to a real local Supabase instance. Always run `supabase start` and `supabase db reset` before running `pnpm e2e`. If tests fail with auth errors, re-run `supabase db reset` to restore seeded users.
-</Callout>
+```bash
+# 1. Start local Supabase
+supabase start
+
+# 2. Reset deterministic data
+supabase db reset
+
+# 3. Type checks and lint
+pnpm typecheck
+pnpm lint
+
+# 4. Unit tests
+pnpm test
+
+# 5. E2E browser tests
+pnpm e2e
+```
+
+> **⚠️ E2E requires running local Supabase:** E2E tests connect to a real local Supabase instance. Always run `supabase start` and `supabase db reset` before running `pnpm e2e`. If tests fail with auth errors, re-run `supabase db reset` to restore seeded users.
 
 ---
 

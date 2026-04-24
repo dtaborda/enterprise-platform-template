@@ -5,8 +5,6 @@ owner: "Engineering"
 lastUpdated: "2026-04-24"
 ---
 
-import { Callout, CommandPanel } from "./_components.mdx";
-
 # Getting Started
 
 ## Purpose
@@ -27,22 +25,19 @@ Provide a repeatable onboarding path for running the Enterprise Platform locally
 | **Docker** | Latest | Required only for local Supabase | [docker.com](https://www.docker.com/products/docker-desktop/) |
 | **Supabase CLI** | Latest | Local DB + migrations | `brew install supabase/tap/supabase` |
 
-<Callout title="Docker is optional" tone="info">
-You can skip Docker entirely by pointing to a hosted Supabase project. See **Option B** below.
-</Callout>
+> **ℹ️ Docker is optional:** You can skip Docker entirely by pointing to a hosted Supabase project. See **Option B** below.
 
 ## Install
 
-<CommandPanel
-  title="Install Dependencies"
-  commands={[
-    "git clone <repository-url> enterprise-platform",
-    "cd enterprise-platform",
-    "pnpm install",
-    "cp .env.example .env.local",
-    "ln -s ../.env.local ui/.env.local    # Next.js reads from ui/",
-  ]}
-/>
+**Install Dependencies**
+
+```bash
+git clone <repository-url> enterprise-platform
+cd enterprise-platform
+pnpm install
+cp .env.example .env.local
+ln -s ../.env.local ui/.env.local    # Next.js reads from ui/
+```
 
 ## Choose Your Development Mode
 
@@ -68,12 +63,13 @@ Wait until `docker info` returns without errors.
 
 ### 2. Start Supabase
 
-<CommandPanel
-  title="Start Local Supabase"
-  commands={[
-    "supabase start    # First run downloads images (~2 min)",
-  ]}
-/>
+**Start Local Supabase**
+
+```bash
+supabase start       # First run: downloads images, applies migrations, seeds DB
+```
+
+> **ℹ️ Note:** On first run, `supabase start` automatically applies all migrations from `supabase/migrations/` and runs `supabase/seed.sql`. If you need to reset the database later, run `supabase db reset`.
 
 After startup, you will see output with credentials:
 
@@ -84,16 +80,15 @@ Inbucket:   http://127.0.0.1:55334
 DB URL:     postgresql://postgres:postgres@127.0.0.1:55332/postgres
 ```
 
-<Callout title="Ports" tone="info">
-Port numbers are configured in `supabase/config.toml`. The `.env.example` file is pre-configured with these local defaults.
-</Callout>
+> **ℹ️ Ports:** Port numbers are configured in `supabase/config.toml`. The `.env.example` file is pre-configured with these local defaults.
 
 ### 3. Run the App
 
-<CommandPanel
-  title="Start Dev Server"
-  commands={["pnpm dev    # http://localhost:3000"]}
-/>
+**Start Dev Server**
+
+```bash
+pnpm dev    # http://localhost:3000
+```
 
 ### Seeded Users
 
@@ -128,17 +123,14 @@ The local database is seeded with test users from `supabase/seed.sql`:
 
 ### 2. Deploy the Database Schema
 
-<CommandPanel
-  title="Push Migrations to Cloud"
-  commands={[
-    "supabase link --project-ref <your-project-ref>",
-    "supabase db push    # Applies all migrations from supabase/migrations/",
-  ]}
-/>
+**Push Migrations to Cloud**
 
-<Callout title="Caution" tone="warning">
-`supabase db push` on a hosted project is irreversible. Always test migrations locally first with `supabase db reset`.
-</Callout>
+```bash
+supabase link --project-ref <your-project-ref>
+supabase db push    # Applies all migrations from supabase/migrations/
+```
+
+> **⚠️ Caution:** `supabase db push` on a hosted project is irreversible. Always test migrations locally first with `supabase db reset`.
 
 ### 3. Configure Environment
 
@@ -153,14 +145,13 @@ DATABASE_URL=postgresql://postgres.<REF>:<PASSWORD>@aws-0-us-west-1.pooler.supab
 
 ### 4. Run the App
 
-<CommandPanel
-  title="Start Dev Server"
-  commands={["pnpm dev    # http://localhost:3000"]}
-/>
+**Start Dev Server**
 
-<Callout title="No seeded users" tone="warning">
-Cloud projects don't have seeded users. You will need to sign up through the app or seed manually via the Supabase SQL Editor.
-</Callout>
+```bash
+pnpm dev    # http://localhost:3000
+```
+
+> **⚠️ No seeded users:** Cloud projects don't have seeded users. You will need to sign up through the app or seed manually via the Supabase SQL Editor.
 
 ---
 
@@ -178,15 +169,14 @@ After starting the app, verify these routes:
 
 ## Quality Checks
 
-<CommandPanel
-  title="Run All Checks"
-  commands={[
-    "pnpm typecheck     # TypeScript verification",
-    "pnpm lint          # Biome code quality",
-    "pnpm test          # Vitest unit tests",
-    "pnpm e2e           # Playwright E2E (requires local Supabase)",
-  ]}
-/>
+**Run All Checks**
+
+```bash
+pnpm typecheck     # TypeScript verification
+pnpm lint          # Biome code quality
+pnpm test          # Vitest unit tests
+pnpm e2e           # Playwright E2E (requires local Supabase)
+```
 
 ## Project Structure
 

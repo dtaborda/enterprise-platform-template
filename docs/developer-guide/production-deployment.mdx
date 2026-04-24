@@ -5,8 +5,6 @@ owner: "Engineering"
 lastUpdated: "2026-04-24"
 ---
 
-import { Callout, CommandPanel } from "./_components.mdx";
-
 # Production Deployment
 
 ## Purpose
@@ -29,9 +27,7 @@ This guide walks through every step required to deploy the Enterprise Platform t
 | Error Tracking | [Sentry](https://sentry.io) | Error capture, performance monitoring, alerting |
 | Transactional Email | [Resend](https://resend.com) | Welcome emails, password resets, notifications |
 
-<Callout title="Production vs dev Supabase" tone="danger">
-  Always create a SEPARATE Supabase project for production. Never point production to a shared dev project. Migrations run against real user data — there is no undo.
-</Callout>
+> **🚨 Production vs dev Supabase:** Always create a SEPARATE Supabase project for production. Never point production to a shared dev project. Migrations run against real user data — there is no undo.
 
 ---
 
@@ -47,17 +43,14 @@ This guide walks through every step required to deploy the Enterprise Platform t
 
 ### 1.2 Push Migrations
 
-<CommandPanel
-  title="Link CLI and push migrations"
-  commands={[
-    "supabase link --project-ref <PROD_REF>",
-    "supabase db push",
-  ]}
-/>
+**Link CLI and push migrations**
 
-<Callout title="Review before pushing" tone="warning">
-  Run `supabase db diff` first to preview the SQL that will be applied. In production, there is no `db reset` — changes are permanent and incremental.
-</Callout>
+```bash
+supabase link --project-ref <PROD_REF>
+supabase db push
+```
+
+> **⚠️ Review before pushing:** Run `supabase db diff` first to preview the SQL that will be applied. In production, there is no `db reset` — changes are permanent and incremental.
 
 ### 1.3 Configure Auth
 
@@ -109,9 +102,7 @@ INSERT INTO storage.buckets (id, name, public) VALUES
 | **Output Directory** | `.next` (default) |
 | **Root Directory** | `ui/` (if deploying only the web app from a monorepo root) |
 
-<Callout title="Monorepo root directory" tone="info">
-  If Vercel auto-detects the monorepo root and runs `pnpm build` from there, it will build all packages. Setting the Root Directory to `ui/` scopes the deployment to the Next.js app only. Check your Turborepo `build` pipeline before deciding.
-</Callout>
+> **ℹ️ Monorepo root directory:** If Vercel auto-detects the monorepo root and runs `pnpm build` from there, it will build all packages. Setting the Root Directory to `ui/` scopes the deployment to the Next.js app only. Check your Turborepo `build` pipeline before deciding.
 
 ### 2.3 Environment Variables
 
@@ -133,9 +124,7 @@ Add every variable in **Project → Settings → Environment Variables** for the
 | `RESEND_API_KEY` | Resend → API Keys | **Yes** |
 | `EMAIL_FROM` | Your verified sender address | No |
 
-<Callout title="Sensitive variables" tone="danger">
-  Mark `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `SENTRY_AUTH_TOKEN`, and `RESEND_API_KEY` as **Sensitive** in Vercel. Sensitive variables are write-only — they cannot be viewed after saving.
-</Callout>
+> **🚨 Sensitive variables:** Mark `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `SENTRY_AUTH_TOKEN`, and `RESEND_API_KEY` as **Sensitive** in Vercel. Sensitive variables are write-only — they cannot be viewed after saving.
 
 ---
 
@@ -151,12 +140,11 @@ Sentry provides error capture, performance monitoring, and alerts.
 
 ### 3.2 Install the SDK
 
-<CommandPanel
-  title="Install Sentry SDK"
-  commands={[
-    "pnpm --filter @enterprise/web add @sentry/nextjs",
-  ]}
-/>
+**Install Sentry SDK**
+
+```bash
+pnpm --filter @enterprise/web add @sentry/nextjs
+```
 
 ### 3.3 Configure next.config
 
@@ -213,12 +201,11 @@ EMAIL_FROM=noreply@yourdomain.com
 
 ### 5.1 Push to Main
 
-<CommandPanel
-  title="Trigger production deploy"
-  commands={[
-    "git push origin main",
-  ]}
-/>
+**Trigger production deploy**
+
+```bash
+git push origin main
+```
 
 Vercel auto-deploys every push to `main`. Monitor the build in the Vercel dashboard.
 
