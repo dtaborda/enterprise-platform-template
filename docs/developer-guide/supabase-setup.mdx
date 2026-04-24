@@ -1,0 +1,265 @@
+---
+title: "Supabase Setup"
+description: "Configure Supabase for local development and cloud dev environments."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+import { Callout, CommandPanel } from "./_components.mdx";
+
+# Supabase Setup
+
+## Purpose
+
+This guide explains how to configure Supabase for the Enterprise Platform — both locally using Docker and in the cloud using a Supabase project. It covers credentials, migrations, RLS verification, storage buckets, auth settings, and local test users.
+
+## Scope
+
+- **Included**: Local Supabase (Docker), cloud Supabase (dev), auth configuration, storage buckets, RLS verification, local auth testing
+- **Excluded**: Production Supabase deployment (see [Production Deployment](./production-deployment.mdx)), Supabase Edge Functions
+
+---
+
+## Option A: Local Supabase (Docker)
+
+Local Supabase runs a full Supabase stack in Docker containers on your machine. This is the recommended setup for day-to-day development.
+
+### Prerequisites
+
+- Docker Desktop installed and running
+- Supabase CLI installed (`brew install supabase/tap/supabase` or `npm i -g supabase`)
+- Node.js `>=20` and pnpm `>=9`
+
+### Start Local Stack
+
+<CommandPanel
+  title="Start Supabase"
+  commands={[
+    "supabase start",
+  ]}
+/>
+
+This spins up PostgreSQL, Auth, Storage, and Inbucket (email capture) locally.
+
+### Get Credentials
+
+<CommandPanel
+  title="View local credentials"
+  commands={[
+    "supabase status",
+  ]}
+/>
+
+Copy the output values into your `.env.local`:
+
+```bash
+# .env.local — local Supabase values from `supabase status`
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from supabase status>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key from supabase status>
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+```
+
+<Callout title="Port note" tone="info">
+  Default local ports: API at `54321`, DB at `54322`, Studio at `54323`, Inbucket at `55334`. Check `supabase/config.toml` if your ports differ.
+</Callout>
+
+### Apply Migrations
+
+<CommandPanel
+  title="Apply migrations and seed data"
+  commands={[
+    "supabase db reset",
+  ]}
+/>
+
+`supabase db reset` drops and recreates the local database, applies all migrations from `supabase/migrations/`, and runs `supabase/seed.sql`. Use this after pulling new migration files.
+
+### Verify RLS
+
+Run the following SQL in the Supabase Studio (`http://localhost:54323`) or the CLI to confirm RLS is enabled on all public tables:
+
+```sql
+SELECT schemaname, tablename, rowsecurity
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY tablename;
+```
+
+Every row in `rowsecurity` should be `true`. If any table shows `false`, RLS is not enabled — the migration may be missing.
+
+### Storage Buckets
+
+Storage buckets are created by migrations. Verify they exist:
+
+```sql
+SELECT id, name, public FROM storage.buckets ORDER BY name;
+```
+
+Expected buckets: `avatars` (public), `documents` (private), `images` (public).
+
+To create them manually if missing:
+
+```sql
+INSERT INTO storage.buckets (id, name, public) VALUES
+  ('avatars', 'avatars', true),
+  ('documents', 'documents', false),
+  ('images', 'images', true);
+```
+
+### Useful Local Commands
+
+<CommandPanel
+  title="Common local Supabase commands"
+  commands={[
+    "supabase start           # Start all containers",
+    "supabase stop            # Stop all containers",
+    "supabase status          # Show credentials and port info",
+    "supabase db reset        # Re-apply migrations + seed",
+    "supabase studio          # Open Studio in browser",
+    "supabase db diff         # Preview pending migration SQL",
+    "supabase migration new my_migration  # Create a new migration file",
+  ]}
+/>
+
+---
+
+## Option B: Cloud Supabase (Dev)
+
+Use a Supabase cloud project as your development backend — useful when multiple developers share the same remote database.
+
+### 1. Create a Project
+
+1. Go to [supabase.com](https://supabase.com) and sign in.
+2. Click **New Project**, set a name, choose a region, and set a database password.
+3. Note the **Project Reference ID** from the URL: `https://supabase.com/dashboard/project/<REF>`.
+
+### 2. Get Credentials
+
+Go to **Dashboard → Settings → API**:
+
+```bash
+# .env.local — cloud Supabase values
+NEXT_PUBLIC_SUPABASE_URL=https://<REF>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key>
+
+# Database connection (use Transaction Pooler — port 6543)
+DATABASE_URL=postgresql://postgres.<REF>:<PASSWORD>@aws-1-us-west-2.pooler.supabase.com:6543/postgres
+```
+
+<Callout title="Security" tone="danger">
+  `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. Never expose it to the browser. Never commit it to version control. Treat it as a secret.
+</Callout>
+
+### 3. Link Your Project
+
+<CommandPanel
+  title="Link CLI to cloud project"
+  commands={[
+    "supabase link --project-ref <REF>",
+  ]}
+/>
+
+### 4. Push Migrations
+
+<CommandPanel
+  title="Push migrations to cloud"
+  commands={[
+    "supabase db push",
+  ]}
+/>
+
+This applies all pending migrations from `supabase/migrations/` to the cloud database.
+
+<Callout title="Seed data" tone="warning">
+  `supabase db push` does NOT run `seed.sql`. Seed data is for local development only. Do not seed test users into a shared cloud dev database.
+</Callout>
+
+---
+
+## Auth Configuration
+
+Configure auth in **Dashboard → Authentication → URL Configuration**:
+
+| Setting | Value |
+|---------|-------|
+| **Site URL** | Your app URL (e.g., `http://localhost:3000` for local, `https://your-app.vercel.app` for cloud dev) |
+| **Redirect URLs** | Add every URL that can receive auth redirects, including `http://localhost:3000/**` for local dev |
+
+### Email Confirmations
+
+For local development, email confirmations are disabled by default in `supabase/config.toml`:
+
+```toml
+[auth.email]
+enable_confirmations = false
+```
+
+For cloud dev, you can leave confirmations disabled or enable them and use Inbucket-style testing.
+
+---
+
+## Storage Buckets
+
+The platform uses three buckets. Create them via the Dashboard (**Storage → New Bucket**) or SQL:
+
+| Bucket | Public | Purpose |
+|--------|--------|---------|
+| `avatars` | Yes | User and tenant profile images |
+| `documents` | No | Private tenant documents |
+| `images` | Yes | General-purpose public images |
+
+<Callout title="Storage paths" tone="info">
+  Always use `buildStoragePath(type, { tenantId, entityId, filename })` from `@enterprise/core/supabase/storage-paths` to construct paths. Never concatenate strings — the path format is tied to RLS policies.
+</Callout>
+
+---
+
+## Local Auth Testing
+
+### Seeded Test Users
+
+After `supabase db reset`, the following users are available:
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@enterprise.dev` | `password123` | owner |
+| `member@enterprise.dev` | `password123` | member |
+| `guest@enterprise.dev` | `password123` | guest |
+| `reset@enterprise.dev` | `password123` | member (password reset flow) |
+| `reset2@enterprise.dev` | `password123` | member (reset retry backup) |
+
+All users share a single demo tenant for predictable E2E behavior. Profiles have `email_confirmed_at` pre-set, so login works immediately without email confirmation.
+
+### Inbucket Email Capture
+
+Inbucket runs locally at `http://localhost:55334`. All emails sent by Supabase Auth (confirmations, password resets) are captured here — no real email is ever sent.
+
+E2E password reset tests poll Inbucket via:
+
+- `GET /api/v1/mailbox/{mailbox}` — list messages
+- `GET /api/v1/mailbox/{mailbox}/{id}` — fetch message
+- `DELETE /api/v1/mailbox/{mailbox}` — clear mailbox
+
+Override the default URL with:
+
+```bash
+INBUCKET_URL=http://localhost:55334
+```
+
+---
+
+## Decision Log
+
+| Decision | Reason |
+|----------|--------|
+| Local stack uses Docker | Reproducible, isolated, no cloud costs during development |
+| `supabase db reset` for local setup | Ensures clean state with all migrations and seed data applied |
+| Seed users use `@enterprise.dev` domain | Avoids accidental real email delivery |
+| Email confirmations disabled locally | Removes friction from local auth testing |
+| Storage buckets created via migration | Infrastructure-as-code, reproducible across environments |
+
+---
+
+*Last updated: 2026-04-24*
