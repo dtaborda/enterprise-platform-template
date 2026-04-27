@@ -17,8 +17,7 @@
   "packages": {
     ".": {
       "release-type": "node",
-      "changelog-path": "CHANGELOG.md",
-      "component": "enterprise-platform"
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
