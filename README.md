@@ -11,7 +11,11 @@ A production-ready multi-tenant SaaS starter built with Next.js 15, React 19, Ty
 
 ---
 
-## Quick Start (Local Development)
+## Choose Your Path
+
+### Path A — Run locally now
+
+Best for daily development, local E2E tests, and validating RLS behavior.
 
 ### Prerequisites
 
@@ -33,7 +37,7 @@ cp .env.example .env.local
 ln -s ../.env.local ui/.env.local
 
 # 3. Start local Supabase (requires Docker)
-supabase start
+supabase start    # first run applies migrations + seed data
 
 # 4. Run dev server
 pnpm dev
@@ -55,7 +59,24 @@ If you prefer not to install Docker, you can point to a hosted Supabase project 
 
 ---
 
-## Deploy to Production
+### Path B — Deploy an MVP to the cloud quickly
+
+Best when you want a hosted demo or first production-like version without setting up CI automation yet.
+
+```bash
+supabase link --project-ref <ref>
+supabase db push
+```
+
+Then configure the **6 minimum required Vercel variables** and deploy.
+
+Use the dedicated guide:
+
+- [MVP Cloud Deploy](./docs/developer-guide/mvp-cloud-deploy.mdx)
+
+---
+
+### Path C — Production-ready automation
 
 The full production stack: **Supabase Cloud** (database + auth) + **Vercel** (hosting) + optional **Sentry** (monitoring) + **Resend** (email).
 
@@ -141,6 +162,7 @@ enterprise-platform/
 ### Developer Guide (start here)
 
 - [Getting Started](./docs/developer-guide/getting-started.mdx) — Local setup with Docker or cloud Supabase
+- [MVP Cloud Deploy](./docs/developer-guide/mvp-cloud-deploy.mdx) — Fastest path to a hosted MVP
 - [Supabase Setup](./docs/developer-guide/supabase-setup.mdx) — Auth, storage, RLS, migrations
 - [Environment Guide](./docs/developer-guide/environment-guide.mdx) — All env vars per environment
 - [Architecture](./docs/developer-guide/architecture.mdx) — Monorepo structure, service layer, conventions
@@ -181,6 +203,27 @@ supabase start        # Start local Supabase
 supabase stop         # Stop local Supabase
 supabase db reset     # Reset and re-seed local DB
 ```
+
+## What is optional vs required?
+
+### Required for local development
+
+- Node.js
+- pnpm
+- Supabase CLI
+- Docker (only if using local Supabase)
+
+### Required for a hosted MVP
+
+- Supabase cloud project
+- `supabase db push`
+- 6 Vercel environment variables
+
+### Optional until you want production hardening
+
+- GitHub Secrets for automated migration deploy
+- Sentry DSN / source map upload
+- Resend email integration
 
 ## AI Skills
 

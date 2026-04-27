@@ -41,6 +41,11 @@ ln -s ../.env.local ui/.env.local    # Next.js reads from ui/
 
 ## Choose Your Development Mode
 
+Pick one path and ignore the rest for now:
+
+- **Option A: Local Supabase** → best for daily work, RLS validation, and E2E tests
+- **Option B: Cloud Supabase** → best when you want a shared backend or do not want Docker installed
+
 | Mode | When to Use | Requires Docker |
 |------|-------------|----------------|
 | **Option A: Local Supabase** | Full offline dev, test RLS locally, run E2E tests | Yes |
@@ -114,6 +119,8 @@ The local database is seeded with test users from `supabase/seed.sql`:
 ---
 
 ## Option B: Cloud Supabase (No Docker)
+
+> **✅ Best for a fast MVP:** If your goal is to get a demo or first deployment online quickly, this is usually the shortest path. Pair this with [MVP Cloud Deploy](./mvp-cloud-deploy.mdx).
 
 ### 1. Create a Supabase Project
 

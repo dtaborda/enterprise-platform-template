@@ -1,0 +1,144 @@
+---
+title: "MVP Cloud Deploy"
+description: "The shortest path from cloned template to a working cloud MVP using Supabase Cloud and Vercel."
+owner: "Engineering"
+lastUpdated: "2026-04-24"
+---
+
+# MVP Cloud Deploy
+
+## Purpose
+
+Provide the fastest path to get the template running in the cloud with the minimum required configuration.
+
+## Scope
+
+- Included: Supabase cloud project, database deploy, minimum Vercel env vars, first production deploy.
+- Excluded: CI automation, Sentry, Resend, preview environments, custom domains.
+
+## When to Use This Path
+
+Choose this guide if you want:
+
+- a working hosted MVP quickly
+- no Docker dependency
+- no GitHub Secrets setup yet
+- no CI-driven database deploy yet
+
+> **✅ Recommended for templates:** This is the lowest-friction path for a new team evaluating the starter.
+
+## What You Need
+
+- A GitHub repository with this template
+- A Supabase account
+- A Vercel account
+- Node.js and Supabase CLI installed locally
+
+## Step 1 — Create a Supabase Cloud Project
+
+1. Go to [supabase.com](https://supabase.com) and create a new project.
+2. Save the database password in your password manager.
+3. Note the project reference from the URL: `https://supabase.com/dashboard/project/<REF>`.
+
+## Step 2 — Deploy the Template Database
+
+From your local clone of the template:
+
+**Push database schema to Supabase cloud**
+
+```bash
+supabase link --project-ref <REF>
+supabase db push
+```
+
+This applies everything from `supabase/migrations/` to your cloud database.
+
+> **ℹ️ What this does:** It creates the schema, RLS helpers, tables, policies, and storage-related SQL defined by the template.
+
+> **⚠️ Important:** `supabase db push` does not run `supabase/seed.sql`. Seed data is local-only by design.
+
+## Step 3 — Get the Minimum Required Supabase Credentials
+
+In **Supabase Dashboard → Settings → API**, copy:
+
+- `Project URL`
+- `anon public key`
+- `service_role secret key`
+
+## Step 4 — Import the Repo in Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**.
+2. Import your repository.
+3. Use these settings:
+
+| Setting | Value |
+|---------|-------|
+| Framework Preset | Next.js |
+| Install Command | `pnpm install` |
+| Build Command | `pnpm build` |
+| Output Directory | `.next` |
+
+## Step 5 — Configure the Minimum Required Vercel Environment Variables
+
+These are the only variables required for an MVP deploy:
+
+| Variable | Required for MVP | Value |
+|----------|------------------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | `https://<REF>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | From Supabase API settings |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | From Supabase API settings |
+| `NEXT_PUBLIC_APP_URL` | Yes | Your Vercel production URL |
+| `NEXT_PUBLIC_APP_NAME` | Yes | Your app name |
+| `NEXT_PUBLIC_APP_ENV` | Yes | `production` |
+
+Add them in **Vercel → Project → Settings → Environment Variables**.
+
+> **ℹ️ Not required yet:** `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `RESEND_API_KEY`, `EMAIL_FROM`, and GitHub Secrets are optional for this MVP path.
+
+## Step 6 — Configure Supabase Auth URLs
+
+In **Supabase Dashboard → Authentication → URL Configuration**:
+
+| Setting | Value |
+|---------|-------|
+| Site URL | Your Vercel production URL |
+| Redirect URLs | `https://your-app.vercel.app/**` |
+
+Without this step, auth redirects (sign-up, password reset, OAuth callbacks) will break.
+
+## Step 7 — Deploy
+
+Push your branch or trigger a deployment from Vercel.
+
+If you already connected the repo, Vercel will build automatically.
+
+## Step 8 — Verify the MVP
+
+After deploy, verify these routes manually:
+
+- `/sign-in`
+- `/sign-up`
+- `/dashboard`
+- `/dashboard/resources`
+- `/dashboard/settings`
+
+## MVP Checklist
+
+- [ ] Supabase cloud project created
+- [ ] `supabase db push` completed successfully
+- [ ] 6 minimum Vercel env vars configured
+- [ ] Supabase Site URL configured
+- [ ] App deployed in Vercel
+- [ ] Sign-in and dashboard routes work
+
+## What Comes Next
+
+Once the MVP is live, the next recommended upgrades are:
+
+1. [Production Deployment](./production-deployment.mdx) — GitHub Secrets, automated migration deploy, Sentry, Resend
+2. [Environment Guide](./environment-guide.mdx) — Full variable reference
+3. [Supabase Setup](./supabase-setup.mdx) — Storage, RLS verification, local/cloud workflows
+
+---
+
+*Last updated: 2026-04-24*

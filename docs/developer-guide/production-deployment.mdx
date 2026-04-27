@@ -16,6 +16,19 @@ This guide walks through every step required to deploy the Enterprise Platform t
 - **Included**: Supabase production project, Vercel deployment, Sentry error tracking, Resend email, post-deploy verification, troubleshooting
 - **Excluded**: Custom domains/DNS configuration, CDN tuning, database performance optimization
 
+## Before You Continue
+
+This guide is for the **production-ready** path.
+
+If you only want the fastest hosted MVP, stop here and use [MVP Cloud Deploy](./mvp-cloud-deploy.mdx) instead.
+
+### Use this guide when you want:
+
+- automated database deploys from CI
+- Sentry already wired for traceability
+- optional Resend email ready for production
+- GitHub Secrets and Vercel env vars fully configured
+
 ---
 
 ## Overview: The Production Stack
@@ -87,7 +100,15 @@ INSERT INTO storage.buckets (id, name, public) VALUES
 
 ## Step 2: GitHub Secrets
 
-The CI workflow reads secrets from **GitHub repository Settings → Secrets and variables → Actions**. Configure all of these before your first push to `main`.
+The CI workflow reads secrets from **GitHub repository Settings → Secrets and variables → Actions**.
+
+> **ℹ️ Are all of these required for the template?** No.
+>
+> - **Required for CI build:** the `NEXT_PUBLIC_*` values used by `pnpm build`
+> - **Required for automated migration deploy:** `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD`
+> - **Optional but recommended for observability:** the Sentry secrets
+>
+> If you are following the MVP path and deploying manually, you can skip GitHub Secrets entirely.
 
 ### 2.1 Add Secrets
 
@@ -111,6 +132,21 @@ The CI workflow reads secrets from **GitHub repository Settings → Secrets and 
 | `SENTRY_PROJECT` | Optional | Sentry project slug | Source map upload |
 
 > **ℹ️ Sentry secrets are optional:** If `SENTRY_AUTH_TOKEN` is absent, source maps are not uploaded but the build still succeeds (`silent: true` is set). Sentry event capture requires only `NEXT_PUBLIC_SENTRY_DSN` at runtime.
+
+### Minimum GitHub Secrets for Automation
+
+If you want the full production-ready pipeline, the **minimum** GitHub Secrets set is:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_APP_NAME`
+- `NEXT_PUBLIC_APP_ENV`
+- `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_PROJECT_ID`
+- `SUPABASE_DB_PASSWORD`
+
+Add the Sentry secrets only if you want observability and source maps.
 
 ---
 
@@ -160,6 +196,19 @@ Add every variable in **Project → Settings → Environment Variables**, select
 | `EMAIL_FROM` | Production | Your verified sender email |
 
 > **🚨 Sensitive variables:** Mark `SUPABASE_SERVICE_ROLE_KEY`, `SENTRY_AUTH_TOKEN`, and `RESEND_API_KEY` as **Sensitive** in Vercel. Sensitive variables are write-only — they cannot be viewed after saving.
+
+### Minimum Vercel Variables for a Production MVP
+
+If you only want a working production deployment without optional integrations, the minimum required set is:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_APP_NAME`
+- `NEXT_PUBLIC_APP_ENV`
+
+Everything else in the table is optional or recommended for production hardening.
 
 ---
 
