@@ -66,6 +66,10 @@ export class ResourcesPage {
   }
 
   async expectResourceInTable(title: string): Promise<void> {
+    // Wait for the table to be present before asserting the specific cell.
+    // In CI the page re-fetches via Server Components after revalidatePath,
+    // which can take longer than the default expect timeout.
+    await expect(this.page.getByRole("table")).toBeVisible();
     await expect(this.page.getByRole("cell", { name: title })).toBeVisible();
   }
 
