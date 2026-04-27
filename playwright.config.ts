@@ -13,6 +13,10 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   workers: isCI ? 1 : undefined,
   reporter: isCI ? [["html"], ["github"]] : "html",
+  expect: {
+    // Default 5 s is too tight in CI (Server Components + cold DB round-trips).
+    timeout: 15_000,
+  },
   use: {
     baseURL: "http://localhost:3000",
     trace: isCI ? "retain-on-failure" : "on",

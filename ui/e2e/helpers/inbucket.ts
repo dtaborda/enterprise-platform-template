@@ -2,7 +2,9 @@
 const DEFAULT_INBUCKET_BASE_URL = process.env["INBUCKET_URL"] ?? "http://localhost:55334";
 
 const INBUCKET_POLLING = {
-  DEFAULT_TIMEOUT_MS: 10_000,
+  // 20 s gives Supabase Auth enough time to send the email in CI
+  // (local SMTP delivery via Inbucket/Mailpit can lag under load).
+  DEFAULT_TIMEOUT_MS: 20_000,
   DEFAULT_POLL_INTERVAL_MS: 500,
 } as const;
 
