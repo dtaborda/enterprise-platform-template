@@ -2,7 +2,7 @@
 title: "Production Deployment"
 description: "End-to-end guide for deploying the Enterprise Platform to production on Vercel + Supabase Cloud."
 owner: "Engineering"
-lastUpdated: "2026-04-24"
+lastUpdated: "2026-04-27"
 ---
 
 # Production Deployment
@@ -20,14 +20,45 @@ This guide walks through every step required to deploy the Enterprise Platform t
 
 This guide is for the **production-ready** path.
 
-If you only want the fastest hosted MVP, stop here and use [MVP Cloud Deploy](./mvp-cloud-deploy.mdx) instead.
+If you only want the fastest hosted MVP, stop here and use [MVP Cloud Deploy](./mvp-cloud-deploy.mdx) instead. That path requires **no GitHub Secrets** and no CI automation.
+
+### When do I need GitHub Secrets?
+
+| Path | GitHub Secrets needed? |
+|------|----------------------|
+| **Local development** | No |
+| **MVP cloud deploy** (manual `supabase db push`) | No |
+| **Production automation** (CI-driven migration deploy) | Yes |
 
 ### Use this guide when you want:
 
-- automated database deploys from CI
+- automated database deploys from a separate CI workflow
 - Sentry already wired for traceability
 - optional Resend email ready for production
 - GitHub Secrets and Vercel env vars fully configured
+
+## Setup Model for This Template
+
+This template intentionally separates deployment maturity into three levels:
+
+### Required for a hosted MVP
+
+- Supabase cloud project
+- Manual `supabase db push`
+- Minimum Vercel environment variables
+
+### Required for production automation
+
+- GitHub Secrets for CI build and migration deployment
+- Repository variable: `ENABLE_SUPABASE_MIGRATIONS=true`
+- Separate migration deployment workflow enabled on `main`
+
+### Optional for observability and email
+
+- Sentry DSN and source map upload credentials
+- Resend API key and verified sender domain
+
+This means the template is safe by default: a new team can deploy an MVP without first configuring GitHub automation.
 
 ---
 
@@ -98,44 +129,78 @@ INSERT INTO storage.buckets (id, name, public) VALUES
 
 ---
 
-## Step 2: GitHub Secrets
+## Step 2: GitHub Secrets and Variables
 
-The CI workflow reads secrets from **GitHub repository Settings → Secrets and variables → Actions**.
+GitHub Secrets and Variables are configured in **Settings → Secrets and variables → Actions**.
 
-> **ℹ️ Are all of these required for the template?** No.
+> **ℹ️ Are all of these required?** No.
 >
 > - **Required for CI build:** the `NEXT_PUBLIC_*` values used by `pnpm build`
-> - **Required for automated migration deploy:** `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD`
-> - **Optional but recommended for observability:** the Sentry secrets
+> - **Required for automated migration deploy:** `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD` + the `ENABLE_SUPABASE_MIGRATIONS` repository variable
+> - **Optional for observability:** the Sentry secrets
 >
-> If you are following the MVP path and deploying manually, you can skip GitHub Secrets entirely.
+> If you are following the **MVP path** and deploying manually, you do **not** need any GitHub Secrets. The CI workflow runs typecheck, lint, test, and build — it does not deploy migrations.
 
-### 2.1 Add Secrets
+### 2.1 Secrets for CI Build
 
-1. Go to your GitHub repository → **Settings → Secrets and variables → Actions**.
+1. Go to your GitHub repository → **Settings → Secrets and variables → Actions → Secrets**.
 2. Click **New repository secret**.
 3. Add each secret from the table below.
 
-| Secret | Required | Where to get it | Used by |
-|--------|----------|----------------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase Dashboard → Settings → API | CI build |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase Dashboard → Settings → API | CI build |
-| `NEXT_PUBLIC_APP_URL` | Yes | Your production URL (e.g. `https://myapp.vercel.app`) | CI build |
-| `NEXT_PUBLIC_APP_NAME` | Yes | Your app name | CI build |
-| `NEXT_PUBLIC_APP_ENV` | Yes | Set to `production` | CI build |
-| `SUPABASE_ACCESS_TOKEN` | Yes | supabase.com → Account → Access Tokens | Migration deploy |
-| `SUPABASE_PROJECT_ID` | Yes | Supabase Dashboard URL → project ref | Migration deploy |
-| `SUPABASE_DB_PASSWORD` | Yes | The password you set when creating the project | Migration deploy |
-| `NEXT_PUBLIC_SENTRY_DSN` | Optional | Sentry → Project → Settings → Client Keys | CI build + Sentry |
-| `SENTRY_AUTH_TOKEN` | Optional | sentry.io → Settings → Auth Tokens | Source map upload |
-| `SENTRY_ORG` | Optional | Sentry organization slug | Source map upload |
-| `SENTRY_PROJECT` | Optional | Sentry project slug | Source map upload |
+| Secret | Required for | Where to get it |
+|--------|-------------|----------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | CI build | Supabase Dashboard → Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | CI build | Supabase Dashboard → Settings → API |
+| `NEXT_PUBLIC_APP_URL` | CI build | Your production URL (e.g. `https://myapp.vercel.app`) |
+| `NEXT_PUBLIC_APP_NAME` | CI build | Your app name |
+| `NEXT_PUBLIC_APP_ENV` | CI build | Set to `production` |
+| `NEXT_PUBLIC_SENTRY_DSN` | Optional — Sentry | Sentry → Project → Settings → Client Keys |
+| `SENTRY_AUTH_TOKEN` | Optional — source maps | sentry.io → Settings → Auth Tokens |
+| `SENTRY_ORG` | Optional — source maps | Sentry organization slug |
+| `SENTRY_PROJECT` | Optional — source maps | Sentry project slug |
 
 > **ℹ️ Sentry secrets are optional:** If `SENTRY_AUTH_TOKEN` is absent, source maps are not uploaded but the build still succeeds (`silent: true` is set). Sentry event capture requires only `NEXT_PUBLIC_SENTRY_DSN` at runtime.
 
-### Minimum GitHub Secrets for Automation
+### 2.2 Secrets for Migration Deployment (Optional)
 
-If you want the full production-ready pipeline, the **minimum** GitHub Secrets set is:
+These secrets are only required if you enable the separate migration deployment workflow.
+
+| Secret | Where to get it |
+|--------|----------------|
+| `SUPABASE_ACCESS_TOKEN` | supabase.com → Account → Access Tokens |
+| `SUPABASE_PROJECT_ID` | Supabase Dashboard URL → project ref |
+| `SUPABASE_DB_PASSWORD` | The password you set when creating the project |
+
+### 2.3 Repository Variable for Migration Deployment
+
+To enable automated migration deployment, add a **repository variable** (not a secret):
+
+1. Go to **Settings → Secrets and variables → Actions → Variables**.
+2. Click **New repository variable**.
+3. Name: `ENABLE_SUPABASE_MIGRATIONS`, Value: `true`.
+
+Without this variable, the migration deployment workflow is skipped entirely — safe for template forks that have not configured Supabase secrets yet.
+
+### Why migration deployment is separate from CI
+
+The main `ci.yml` workflow is intentionally limited to quality gates:
+
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test`
+- `pnpm build`
+
+For a template, this is important because most adopters do **not** have production Supabase credentials configured on day one. If migration deployment lived inside the main CI workflow, a template fork could fail immediately after merge even though the code itself is healthy.
+
+By keeping migration deployment in a separate workflow:
+
+- local adopters are not blocked
+- MVP cloud adopters can deploy manually
+- production teams can opt in when they are ready
+
+### Minimum GitHub Secrets for Full Automation
+
+If you want CI build + automated migration deploy, the minimum set is:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -145,6 +210,7 @@ If you want the full production-ready pipeline, the **minimum** GitHub Secrets s
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_PROJECT_ID`
 - `SUPABASE_DB_PASSWORD`
+- Repository variable: `ENABLE_SUPABASE_MIGRATIONS=true`
 
 Add the Sentry secrets only if you want observability and source maps.
 
@@ -235,6 +301,16 @@ Set these in both Vercel (Step 3.3) and GitHub Secrets (Step 2.1):
 | `SENTRY_ORG` | Your Sentry organization slug (from the URL) |
 | `SENTRY_PROJECT` | Your Sentry project slug |
 
+### Release automation note
+
+This template uses `release-please` for versioning and changelog generation. It manages:
+
+- release PRs
+- changelog updates
+- git tags / releases
+
+It does **not** manage labels for ordinary feature or fix PRs. If you expect labels to change automatically on normal PRs, that requires a separate workflow and is intentionally not part of the template by default.
+
 ### 4.3 What Is Already Configured
 
 | Feature | Status |
@@ -281,11 +357,11 @@ EMAIL_FROM=noreply@yourdomain.com
 
 ---
 
-## Step 6: CI/CD and Automated Migration Deployment
+## Step 6: CI/CD Pipeline
 
-The GitHub Actions CI workflow (`ci.yml`) runs on every pull request to `main` and every push to `main`.
+### CI Workflow (`ci.yml`)
 
-### Pipeline Overview
+The CI workflow runs on every pull request to `main` and every push to `main`. It is a **pure quality gate** — it does not deploy anything.
 
 | Step | When | What it does |
 |------|------|--------------|
@@ -293,25 +369,44 @@ The GitHub Actions CI workflow (`ci.yml`) runs on every pull request to `main` a
 | Lint | Always | `pnpm lint` — Biome lint rules |
 | Test | Always | `pnpm test` — Vitest unit tests |
 | Build | Always | `pnpm build` — Next.js production build |
-| Deploy Migrations | Push to `main` only | `supabase db push` — applies pending migrations |
 
-### Automated Migration Deployment
+### Migration Deployment Workflow (`deploy-migrations.yml`)
 
-Migrations run automatically **after a successful build** on every push to `main`. This means:
+Migration deployment runs in a **separate workflow** that is disabled by default.
 
-- The build must pass before migrations are applied — broken code never reaches the database.
-- Migrations are applied in order using the Supabase CLI.
-- Required secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD`.
+| Step | What it does |
+|------|--------------|
+| Validate secrets | Fails with a clear message if required secrets are missing |
+| Link project | `supabase link --project-ref $SUPABASE_PROJECT_ID` |
+| Push migrations | `supabase db push` — applies pending migrations |
+
+**To enable it:**
+
+1. Add the repository variable `ENABLE_SUPABASE_MIGRATIONS=true` (see Step 2.3).
+2. Add the three required secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD` (see Step 2.2).
+
+The workflow triggers on push to `main` and also supports `workflow_dispatch` for manual runs.
 
 > **⚠️ Migrations are irreversible in production.** Always test migrations in a staging environment first. Use `supabase db diff` locally to preview what will be applied.
 
-### Required Secrets for Migration Deployment
+### Why Migration Deploy is Separate from CI
 
-| Secret | Purpose |
-|--------|---------|
-| `SUPABASE_ACCESS_TOKEN` | Authenticates the Supabase CLI |
-| `SUPABASE_PROJECT_ID` | Identifies the production project to link to |
-| `SUPABASE_DB_PASSWORD` | Required by `supabase db push` |
+This is a **template repository**. When someone forks or clones it:
+
+- The CI workflow must work immediately — typecheck, lint, test, build — without requiring any secrets.
+- Migration deployment requires Supabase credentials that new users will not have yet.
+- Coupling migration deploy into CI would cause failures on every push for unconfigured repos.
+- Separating the workflows lets teams opt into automated deploys when they are ready, without touching the quality pipeline.
+
+### Release Automation Note
+
+This template uses [release-please](https://github.com/googleapis/release-please) (`.github/workflows/release.yml`) for versioning. It is important to understand what release-please does and does not do:
+
+- **Does**: Creates and maintains a release PR that bumps versions based on conventional commits. When merged, it creates a GitHub release with a changelog and tags the commit.
+- **Does not**: Add labels to your ordinary feature/fix PRs. It only manages its own release PR.
+- **Does not**: Deploy anything. Deployment is handled by Vercel (auto-deploy on push to main) and the optional migration workflow.
+
+You do not need to configure anything for release-please — it works out of the box with `GITHUB_TOKEN`.
 
 ---
 

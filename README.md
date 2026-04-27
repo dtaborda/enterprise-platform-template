@@ -63,6 +63,8 @@ If you prefer not to install Docker, you can point to a hosted Supabase project 
 
 Best when you want a hosted demo or first production-like version without setting up CI automation yet.
 
+No GitHub Secrets are required for this path.
+
 ```bash
 supabase link --project-ref <ref>
 supabase db push
@@ -79,6 +81,8 @@ Use the dedicated guide:
 ### Path C — Production-ready automation
 
 The full production stack: **Supabase Cloud** (database + auth) + **Vercel** (hosting) + optional **Sentry** (monitoring) + **Resend** (email).
+
+This path assumes GitHub Secrets are configured and the optional Supabase migration workflow is enabled.
 
 See the step-by-step [Production Deployment guide](./docs/developer-guide/production-deployment.mdx).
 
