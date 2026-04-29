@@ -1,28 +1,50 @@
-name: Security Review
+name: Security Checks
 
 permissions:
-  pull-requests: write  # Needed for leaving PR comments
   contents: read
+  security-events: write
 
 on:
   pull_request:
+    branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-  security:
+  dependency-audit:
+    name: Dependency Audit
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 2
-      
-      # Optional: Add more security checks as needed
-      # - name: Run security audits
-      #   run: pnpm audit
-      
-      # This is a placeholder for security review automation
-      # You can add tools like: npm audit, trivy, sonarqube, etc.
-      - name: Dependency check
-        run: |
-          echo "Security checks placeholder"
-          echo "Add tools like: npm audit, trivy, snyk, etc."
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level=high
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

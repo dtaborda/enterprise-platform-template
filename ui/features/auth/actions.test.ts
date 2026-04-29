@@ -8,6 +8,7 @@ const {
   mockRequestPasswordResetService,
   mockSignOutService,
   mockUpdatePasswordService,
+  mockResolveRoleRedirectPath,
   mockRedirect,
   mockNormalizeSafeRedirectPath,
   mockGetAppUrl,
@@ -18,6 +19,9 @@ const {
   mockRequestPasswordResetService: vi.fn(),
   mockSignOutService: vi.fn(),
   mockUpdatePasswordService: vi.fn(),
+  mockResolveRoleRedirectPath: vi.fn((role: string | null | undefined) =>
+    role === "guest" ? "/" : "/dashboard",
+  ),
   mockRedirect: vi.fn((path: string) => {
     throw createRedirectError(path);
   }),
@@ -45,6 +49,7 @@ vi.mock("@enterprise/core/services/auth-service", () => ({
   requestPasswordResetService: mockRequestPasswordResetService,
   signOutService: mockSignOutService,
   updatePasswordService: mockUpdatePasswordService,
+  resolveRoleRedirectPath: mockResolveRoleRedirectPath,
 }));
 
 vi.mock("./redirects", () => ({

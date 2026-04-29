@@ -51,7 +51,6 @@ export const authSessionSchema = z.object({
 /** Registration metadata sent to Supabase auth.signUp() */
 export const registrationMetadataSchema = z.object({
   name: z.string().min(1).max(255).optional(),
-  role: userRoleSchema.optional(),
 });
 
 /** Invitation metadata sent to Supabase auth APIs */

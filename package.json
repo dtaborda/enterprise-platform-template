@@ -12,6 +12,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:coverage": "vitest run --coverage",

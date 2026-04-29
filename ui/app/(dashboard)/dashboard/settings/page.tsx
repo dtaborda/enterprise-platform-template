@@ -1,3 +1,8 @@
+import {
+  createPlatformServiceContext,
+  ProfileService,
+  TenantService,
+} from "@enterprise/core/services";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { getAppUrl } from "@enterprise/core/utils/env";
 import {
@@ -14,11 +19,23 @@ export const metadata = { title: "Settings" };
 export default async function SettingsPage() {
   const user = await requireAuth();
   const supabase = await getServerClient();
+  const context = createPlatformServiceContext(supabase, {
+    userId: user.id,
+    tenantId: user.tenantId,
+    role: user.role,
+    email: user.email,
+  });
 
-  const [{ data: tenant }, { data: profile }] = await Promise.all([
-    supabase.from("tenants").select("name, slug, status").eq("id", user.tenantId).single(),
-    supabase.from("profiles").select("name, email, role, updated_at").eq("id", user.id).single(),
+  const tenantService = new TenantService(context);
+  const profileService = new ProfileService(context);
+
+  const [tenantResult, profileResult] = await Promise.all([
+    tenantService.getCurrent(),
+    profileService.getCurrent(),
   ]);
+
+  const tenant = tenantResult.success ? tenantResult.data : null;
+  const profile = profileResult.success ? profileResult.data : null;
 
   return (
     <div className="flex flex-col gap-6">

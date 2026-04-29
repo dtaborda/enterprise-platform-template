@@ -1,4 +1,7 @@
-import type { UserRole } from "@enterprise/contracts";
+import {
+  getUserRoleService,
+  resolveRoleRedirectPath,
+} from "@enterprise/core/services/auth-service";
 import { createMiddlewareClient, updateSession } from "@enterprise/core/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -12,13 +15,6 @@ const PUBLIC_ROUTES = [
 ];
 const AUTH_COMPLETION_ROUTES = ["/auth/callback", "/reset-password"];
 const PROTECTED_ROUTES = ["/dashboard"];
-
-const ROLE_REDIRECTS: Record<UserRole, string> = {
-  owner: "/dashboard",
-  admin: "/dashboard",
-  member: "/dashboard",
-  guest: "/",
-};
 
 const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const supabaseAnonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
@@ -63,13 +59,10 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  const role = (profile?.role as UserRole | undefined) ?? "guest";
-  const roleHome = ROLE_REDIRECTS[role] ?? "/dashboard";
+  const roleResult = await getUserRoleService(supabase, user.id);
+  const roleHome = roleResult.success
+    ? resolveRoleRedirectPath(roleResult.data.role)
+    : resolveRoleRedirectPath("guest");
 
   if (isServerActionRequest) {
     return response;

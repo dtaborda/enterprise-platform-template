@@ -1,4 +1,4 @@
-import type { RegistrationMetadata, UserRole } from "@enterprise/contracts";
+import type { PlatformUser, RegistrationMetadata, UserRole } from "@enterprise/contracts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface ServiceSuccess<T> {
@@ -44,6 +44,92 @@ export interface UpdatePasswordServiceInput {
   password: string;
 }
 
+export interface UserRoleServiceData {
+  role: UserRole;
+}
+
+const ROLE_HOME_PATHS: Record<UserRole, string> = {
+  owner: "/dashboard",
+  admin: "/dashboard",
+  member: "/dashboard",
+  guest: "/",
+};
+
+export function resolveRoleRedirectPath(role: UserRole | null | undefined): string {
+  if (!role) {
+    return "/dashboard";
+  }
+
+  return ROLE_HOME_PATHS[role] ?? "/dashboard";
+}
+
+export async function getUserRoleService(
+  client: SupabaseClient,
+  userId: string,
+): Promise<ServiceResult<UserRoleServiceData>> {
+  const { data: profile, error } = await client
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    return {
+      success: false,
+      error: "Could not load user role",
+      code: "ROLE_LOOKUP_FAILED",
+    };
+  }
+
+  return {
+    success: true,
+    data: {
+      role: (profile?.role as UserRole | null | undefined) ?? "guest",
+    },
+  };
+}
+
+export async function getCurrentPlatformUserService(
+  client: SupabaseClient,
+): Promise<ServiceResult<PlatformUser | null>> {
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser();
+
+  if (error) {
+    return {
+      success: false,
+      error: "Could not resolve authenticated user",
+      code: "AUTH_USER_LOOKUP_FAILED",
+    };
+  }
+
+  if (!user) {
+    return { success: true, data: null };
+  }
+
+  const { data: profile } = await client
+    .from("profiles")
+    .select("tenant_id, role, name, avatar_url")
+    .eq("id", user.id)
+    .single();
+
+  return {
+    success: true,
+    data: {
+      id: user.id,
+      createdAt: new Date(user.created_at),
+      updatedAt: new Date(user.updated_at ?? user.created_at),
+      email: user.email ?? "",
+      name: profile?.name ?? null,
+      avatarUrl: profile?.avatar_url ?? null,
+      role: (profile?.role as UserRole | undefined) ?? "guest",
+      tenantId: profile?.tenant_id ?? "",
+    },
+  };
+}
+
 export async function signInWithPasswordService(
   client: SupabaseClient,
   input: SignInServiceInput,
@@ -65,24 +151,16 @@ export async function signInWithPasswordService(
     return { success: false, error: "User not found after sign-in", code: "USER_NOT_FOUND" };
   }
 
-  const { data: profile, error: profileError } = await client
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const roleResult = await getUserRoleService(client, user.id);
 
-  if (profileError) {
-    return {
-      success: false,
-      error: "Could not load user profile",
-      code: "PROFILE_NOT_FOUND",
-    };
+  if (!roleResult.success) {
+    return roleResult;
   }
 
   return {
     success: true,
     data: {
-      role: (profile?.role as UserRole | null | undefined) ?? null,
+      role: roleResult.data.role,
     },
   };
 }
