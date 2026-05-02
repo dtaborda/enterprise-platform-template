@@ -37,7 +37,7 @@
   },
   "pnpm": {
     "overrides": {
-      "next": "15.5.14"
+      "next": "15.5.15"
     },
     "peerDependencyRules": {
       "ignoreMissing": [
