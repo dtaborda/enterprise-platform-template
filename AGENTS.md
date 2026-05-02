@@ -136,6 +136,10 @@ Load these skills BEFORE writing any code when the context matches:
 
 Repo-local skills require runtime wiring. Run `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so OpenCode can discover `.agents/skills` before relying on local skills such as `drizzle`, `supabase`, `sentry`, and the design-system skills.
 
+Availability note:
+- Repo-local skills live in `skills/` and are discovered through `.agents/skills` after setup.
+- Skills like `issue-creation`, `branch-pr`, and `pr-review` may come from your global agent runtime, not this repository.
+
 ## Design Reference
 
 Before implementing ANY UI component or page, follow this workflow:

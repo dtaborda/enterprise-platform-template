@@ -9,7 +9,7 @@ Detailed patterns for Drizzle ORM schema definition and Row Level Security polic
 ### Basic Table with Conventions
 
 ```typescript
-// packages/db/src/schema.ts
+// packages/db/src/schema/platform.ts
 import { pgTable, pgPolicy, sql, uuid, text, timestamp, boolean, integer, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { authenticatedRole, anonRole } from 'drizzle-orm/supabase';

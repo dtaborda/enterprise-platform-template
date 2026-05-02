@@ -103,7 +103,7 @@ describe("auth-service", () => {
       }
     });
 
-    it("profile query error returns PROFILE_NOT_FOUND", async () => {
+    it("profile query error returns ROLE_LOOKUP_FAILED", async () => {
       const client = createMockClient() as SupabaseClient & {
         __mockSingle: ReturnType<typeof vi.fn>;
       };
@@ -123,11 +123,11 @@ describe("auth-service", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.code).toBe("PROFILE_NOT_FOUND");
+        expect(result.code).toBe("ROLE_LOOKUP_FAILED");
       }
     });
 
-    it("null/undefined profile role returns success with role: null", async () => {
+    it("null/undefined profile role returns success with guest role", async () => {
       const client = createMockClient() as SupabaseClient & {
         __mockSingle: ReturnType<typeof vi.fn>;
       };
@@ -145,7 +145,7 @@ describe("auth-service", () => {
         password: "password123",
       });
 
-      expect(result).toEqual({ success: true, data: { role: null } });
+      expect(result).toEqual({ success: true, data: { role: "guest" } });
     });
   });
 

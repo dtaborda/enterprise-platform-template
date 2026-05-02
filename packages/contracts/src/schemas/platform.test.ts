@@ -67,18 +67,13 @@ describe("authSessionSchema", () => {
 
 describe("registrationMetadataSchema", () => {
   it("accepts valid metadata", () => {
-    expect(registrationMetadataSchema.parse({ name: "Owner User", role: "owner" })).toEqual({
+    expect(registrationMetadataSchema.parse({ name: "Owner User" })).toEqual({
       name: "Owner User",
-      role: "owner",
     });
   });
 
   it("accepts optional name as undefined", () => {
-    expect(registrationMetadataSchema.parse({ role: "member" })).toEqual({ role: "member" });
-  });
-
-  it("rejects invalid role", () => {
-    expect(() => registrationMetadataSchema.parse({ role: "invalid" })).toThrow();
+    expect(registrationMetadataSchema.parse({})).toEqual({});
   });
 });
 

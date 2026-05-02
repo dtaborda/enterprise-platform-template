@@ -1,31 +1,37 @@
-import type { UserRole } from "@enterprise/contracts";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockGetUser, mockUpdateSession, chain, mockCreateMiddlewareClient } = vi.hoisted(() => {
-  const singleMock = vi.fn();
-  const eqMock = vi.fn(() => ({ single: singleMock }));
-  const selectMock = vi.fn(() => ({ eq: eqMock }));
-  const fromMock = vi.fn(() => ({ select: selectMock }));
-  const chain = { fromMock, selectMock, eqMock, singleMock };
-
+const {
+  mockGetUser,
+  mockUpdateSession,
+  mockCreateMiddlewareClient,
+  mockGetUserRoleService,
+  mockResolveRoleRedirectPath,
+} = vi.hoisted(() => {
   return {
     mockGetUser: vi.fn(),
     mockUpdateSession: vi.fn(),
-    chain,
     mockCreateMiddlewareClient: vi.fn(() => ({
       auth: {
         getUser: vi.fn(),
       },
-      from: vi.fn(),
     })),
+    mockGetUserRoleService: vi.fn(),
+    mockResolveRoleRedirectPath: vi.fn((role: string | null | undefined) =>
+      role === "guest" ? "/" : "/dashboard",
+    ),
   };
 });
 
 vi.mock("@enterprise/core/supabase/middleware", () => ({
   createMiddlewareClient: mockCreateMiddlewareClient,
   updateSession: mockUpdateSession,
+}));
+
+vi.mock("@enterprise/core/services/auth-service", () => ({
+  getUserRoleService: mockGetUserRoleService,
+  resolveRoleRedirectPath: mockResolveRoleRedirectPath,
 }));
 
 interface CreateRequestOptions {
@@ -52,7 +58,6 @@ async function loadMiddleware() {
     auth: {
       getUser: mockGetUser,
     },
-    from: chain.fromMock,
   });
 
   return import("./middleware");
@@ -69,7 +74,7 @@ function expectRedirectPath(response: NextResponse, expectedPath: string): void 
 describe("middleware auth flow", () => {
   beforeEach(() => {
     mockUpdateSession.mockResolvedValue(NextResponse.next());
-    chain.singleMock.mockResolvedValue({ data: { role: "member" }, error: null });
+    mockGetUserRoleService.mockResolvedValue({ success: true, data: { role: "member" } });
   });
 
   it("unauthenticated request to a public route (e.g., /sign-in) returns pass-through response", async () => {
@@ -110,23 +115,22 @@ describe("middleware auth flow", () => {
 
     const { middleware } = await loadMiddleware();
 
-    const roleCases: Array<{ role: UserRole; expected: string }> = [
-      { role: "owner", expected: "/dashboard" },
-      { role: "admin", expected: "/dashboard" },
-      { role: "member", expected: "/dashboard" },
-      { role: "guest", expected: "/" },
-    ];
+    mockGetUserRoleService.mockResolvedValueOnce({ success: true, data: { role: "owner" } });
+    const ownerResult = await middleware(createRequest("/"));
+    expectRedirectPath(ownerResult, "/dashboard");
 
-    for (const roleCase of roleCases) {
-      chain.singleMock.mockResolvedValueOnce({ data: { role: roleCase.role }, error: null });
-      const result = await middleware(createRequest("/"));
-      expectRedirectPath(result, roleCase.expected);
-    }
+    mockGetUserRoleService.mockResolvedValueOnce({ success: true, data: { role: "guest" } });
+    const guestResult = await middleware(createRequest("/"));
+    expectRedirectPath(guestResult, "/");
   });
 
   it("authenticated request with missing profile defaults to guest and redirects to / for public-entry routes", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-    chain.singleMock.mockResolvedValue({ data: null, error: { message: "not found" } });
+    mockGetUserRoleService.mockResolvedValue({
+      success: false,
+      error: "Could not load user role",
+      code: "ROLE_LOOKUP_FAILED",
+    });
 
     const { middleware } = await loadMiddleware();
     const result = await middleware(createRequest("/sign-in"));
@@ -136,7 +140,7 @@ describe("middleware auth flow", () => {
 
   it("authenticated server action POST to a public route does not redirect", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-    chain.singleMock.mockResolvedValue({ data: { role: "member" }, error: null });
+    mockGetUserRoleService.mockResolvedValue({ success: true, data: { role: "member" } });
 
     const { middleware } = await loadMiddleware();
     const result = await middleware(
