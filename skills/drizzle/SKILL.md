@@ -10,7 +10,7 @@ license: Apache-2.0
 metadata:
   author: anyoneAI
   version: "1.1.0"
-  scope: [packages, packages/db, packages/core, ui]
+  scope: [packages/db, packages/core, ui]
   auto_invoke:
     - "Creating database schemas"
     - "Defining table columns and types"
@@ -18,7 +18,7 @@ metadata:
     - "Creating database relations"
     - "Running migrations"
     - "Writing database queries"
-    - "Working with Supabase auth"
+    - "Defining auth-related database schemas or RLS policies"
     - "Implementing pgvector/embeddings"
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---

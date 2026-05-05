@@ -194,7 +194,12 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
         mv "$agents_path.tmp" "$agents_path"
         echo -e "${GREEN}  ✓ Updated Auto-invoke section${NC}"
     else
-        echo -e "${YELLOW}  ! No existing Auto-invoke section in $agents_path${NC}"
+        echo -e "${YELLOW}  ! No existing Auto-invoke section in $agents_path — appending${NC}"
+        {
+            echo ""
+            cat "$section_file"
+        } >> "$agents_path"
+        echo -e "${GREEN}  ✓ Created Auto-invoke section${NC}"
     fi
 
     rm -f "$section_file"

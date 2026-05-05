@@ -6,7 +6,7 @@ Shared UI component library based on shadcn/ui. It owns design tokens, base comp
 
 ### Auto-invoke Skills
 
-When performing these actions, invoke the corresponding available skill FIRST. Repo-local skills require `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so the runtime can see `.agents/skills`.
+When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 | Action | Skill |
 |--------|-------|
@@ -24,9 +24,6 @@ When performing these actions, invoke the corresponding available skill FIRST. R
 | Modifying globals.css or @theme tokens | `design-tokens` |
 | Setting typography font families or weights | `design-tokens` |
 | Styling component visual hierarchy | `design-rules` |
-| Writing or refactoring React components | `react-19` |
-| Strict TypeScript changes in UI components | `typescript` |
-| Tailwind styling, tokens, and class composition | `tailwind-4` |
 
 ---
 

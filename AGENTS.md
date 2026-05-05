@@ -29,6 +29,18 @@ packages/ui/        → @enterprise/ui — shadcn/ui component library, design t
 docs/               → Product docs (PRD, RFE)
 ```
 
+## Workspace AGENTS.md
+
+Each workspace has its own AGENTS.md with specific rules. The runtime reads them by directory proximity — when editing a file, the nearest AGENTS.md in the path applies.
+
+| Workspace | AGENTS.md | Focus |
+|-----------|-----------|-------|
+| `ui/` | `ui/AGENTS.md` | Server Actions, features, E2E tests |
+| `packages/core/` | `packages/core/AGENTS.md` | Service layer, Supabase clients |
+| `packages/db/` | `packages/db/AGENTS.md` | Schema definition, migrations |
+| `packages/ui/` | `packages/ui/AGENTS.md` | Components, design tokens |
+| `packages/contracts/` | `packages/contracts/AGENTS.md` | Zod schemas, DTOs |
+
 ## Dependency Direction (ENFORCED)
 
 ```
@@ -45,42 +57,17 @@ NEVER create circular dependencies. NEVER import from @enterprise/web in any pac
 
 1. **Feature-based structure**: Each module in `ui/features/{module}/` with actions, queries, schemas, types, components, hooks
 2. **Server-first**: Landings with SSR. Dashboard with Server Components where possible. Client Components only for interactivity
-3. **Service layer**: ALL business logic lives in `packages/core/src/services/`. Server Actions are thin wrappers only (see below)
+3. **Service layer**: ALL business logic lives in `packages/core/src/services/`. Server Actions are thin wrappers only
 4. **Adapter pattern**: External integrations behind adapter interfaces for decoupling
 5. **RLS everywhere**: ALL queries go through Supabase RLS. No tenant bypass in frontend
 6. **Contracts as source of truth**: All DTOs, inputs, and outputs defined as Zod schemas in @enterprise/contracts
-7. **Explicit Supabase contracts**: Auth metadata shapes, storage paths, and env vars are typed and centralized (see below)
+7. **Explicit Supabase contracts**: Auth metadata shapes, storage paths, and env vars are typed and centralized
 
 ## Service Layer Pattern (ENFORCED)
 
 ALL business logic MUST live in `packages/core/src/services/`. Server Actions are **thin wrappers only**.
 
-### Server Action Pattern (MANDATORY for all mutations):
-
-```
-Server Action (thin wrapper)              Service (business logic)
-─────────────────────────                ────────────────────────
-"use server"                             NO "use server"
-1. Zod validation                        1. Receive typed data + SupabaseClient
-2. Get authenticated Supabase client     2. Execute business logic
-3. Call service function                 3. Return ServiceResult<T>
-4. Return ActionResult<T> on failure
-5. revalidatePath on success when needed
-6. Return ActionResult<T>
-```
-
-### Service Design Rules:
-- Services receive `SupabaseClient` as first arg (dependency injection — testable with mocks)
-- Services return `ServiceResult<T>` = `{ success: true; data: T } | { success: false; error: string; code?: string }`
-- Services have NO `"use server"`, NO `revalidatePath`, NO `redirect`, NO Sentry calls
-- Services live in `packages/core/src/services/{module}-service.ts`
-- Tests live in `packages/core/src/services/__tests__/{module}-service.test.ts`
-
-### Existing Services:
-| Service | API shape | What it covers |
-|---------|-----------|---------------|
-| `auth-service.ts` | function-based services returning `ServiceResult<T>` | Sign in, sign out, sign up, password reset |
-| `services/index.ts` | class-based platform services (`TenantService`, `ProfileService`, `AuditService`, `RoleService`) | Tenant, profile, audit, and role operations |
+**New services MUST use the function-based pattern** (like `auth-service.ts`). The class-based services in `index.ts` are legacy and will be migrated. See `packages/core/AGENTS.md` for the full service layer rules.
 
 ### When adding a new feature:
 1. Create `packages/core/src/services/{feature}-service.ts`
@@ -88,100 +75,43 @@ Server Action (thin wrapper)              Service (business logic)
 3. Create thin Server Actions in `ui/features/{feature}/actions.ts`
 4. Use `AuditService.log()` or an equivalent platform logging abstraction for create/update/delete operations
 
-## Supabase Contracts (ENFORCED)
-
-### Auth Metadata
-- Registration metadata: use `RegistrationMetadata` type from `@enterprise/contracts`
-- Invitation metadata: use `InvitationMetadata` type from `@enterprise/contracts`
-- NEVER send raw untyped metadata to `supabase.auth.signUp()` — always use the typed schemas
-
-### Storage Paths
-- ALWAYS use `buildStoragePath(type, { tenantId, entityId, filename })` from `@enterprise/core/supabase/storage-paths`
-- NEVER construct storage paths with string concatenation
-- Path format `{tenantId}/{entityId}/{filename}` is enforced by RLS — changing it breaks authorization
-
-### Environment Variables
-- ALWAYS use `getAppUrl()` from `@enterprise/core/utils/env` for the application URL
-- Use `getEnv()` and the typed helpers in `@enterprise/core/utils/env` instead of ad-hoc `process.env` access in shared code
-
-### Audit Logging
-- Use `AuditService.log()` (or a thin wrapper around it) for CUD operations that need audit entries
-- Audit logging is fire-and-forget — it MUST NOT block the main operation
-- NEVER log PII (email, name, phone) in audit metadata
-
-## Skill Auto-Invoke Table
-
-Load these skills BEFORE writing any code when the context matches:
-
-| Context | Skill |
-|---------|-------|
-| React components, hooks, patterns | react-19 |
-| Next.js routing, Server Actions, data fetching | nextjs-15 |
-| TypeScript types, interfaces, generics | typescript |
-| Tailwind styling, cn(), theme variables | tailwind-4 |
-| Zod schemas, validation | typescript |
-| Zustand stores, state management | zustand-5 |
-| E2E tests, Page Objects | playwright |
-| Creating GitHub issues | issue-creation |
-| Creating pull requests | branch-pr |
-| Reviewing PRs | pr-review |
-| Drizzle schemas, migrations, DB queries | drizzle |
-| CSS tokens, theme variables, colors | design-tokens |
-| UI layout composition, visual hierarchy | design-rules |
-| Feature components, shadcn theming | design-components |
-| Sentry, error tracking, error boundaries, monitoring, observability | sentry |
-| Supabase auth, SSR, RLS, storage, CLI, MCP, Edge Functions | supabase |
-| Postgres query optimization, schema performance, connection management | supabase-postgres-best-practices |
-| Creating new AI agent skills, documenting patterns for AI | skill-creator |
+## Skills
 
 Repo-local skills require runtime wiring. Run `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so OpenCode can discover `.agents/skills` before relying on local skills such as `drizzle`, `supabase`, `sentry`, and the design-system skills.
 
-Availability note:
-- Repo-local skills live in `skills/` and are discovered through `.agents/skills` after setup.
-- Skills like `issue-creation`, `branch-pr`, and `pr-review` may come from your global agent runtime, not this repository.
+Skills not yet auto-synced (available globally or without metadata): `issue-creation`, `branch-pr`, `pr-review`. These are invoked by context from each workspace's own AGENTS.md auto-invoke table.
 
-## Design Reference
+### Auto-invoke Skills
 
-Before implementing ANY UI component or page, follow this workflow:
+When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
-### Step 1: Check existing UI primitives and tokens
-Inspect `packages/ui/src/components/` and `packages/ui/src/styles/globals.css` before creating new UI.
-
-### Step 2: Check existing screens or generate a reference
-If a Stitch project exists for this application, query its MCP to find relevant reference screens.
-If no Stitch project is configured, implement using the existing component patterns in the codebase.
-
-### Step 3: Implement following the design
-When writing the component code:
-- Use the **tokens** from `globals.css` (surface-container-*, primary-fixed-dim, etc.)
-- Follow the existing tonal layering and spacing patterns already used in `packages/ui` and `ui/`
-- Match the **layout and hierarchy** from any available reference screen
-- Use `@enterprise/ui` primitives and compose them consistently
-
-### Key principle
-Design references are DIRECTION, not pixel-perfect. The source of truth is the existing `@enterprise/ui` package plus the local CSS token definitions.
+| Action | Skill |
+|--------|-------|
+| Adding error tracking to Server Actions | `sentry` |
+| After creating/modifying a skill | `skill-sync` |
+| App Router / Server Actions | `nextjs-15` |
+| Configuring RLS at client level | `supabase` |
+| Configuring database connections | `supabase-postgres-best-practices` |
+| Creating new skills | `skill-creator` |
+| Implementing auth flows | `supabase` |
+| Optimizing Postgres queries | `supabase-postgres-best-practices` |
+| Regenerate AGENTS.md Auto-invoke tables (sync.sh) | `skill-sync` |
+| Reviewing schema performance | `supabase-postgres-best-practices` |
+| Setting up Supabase SSR cookies | `supabase` |
+| Troubleshoot why a skill is missing from AGENTS.md auto-invoke | `skill-sync` |
+| Using Zustand stores | `zustand-5` |
+| Using captureException or captureActionError | `sentry` |
+| Using getUser or getSession | `supabase` |
+| Working with Supabase clients | `supabase` |
+| Working with Tailwind classes | `tailwind-4` |
+| Working with error boundaries | `sentry` |
+| Writing Playwright E2E tests | `playwright` |
+| Writing React components | `react-19` |
+| Writing TypeScript types/interfaces | `typescript` |
 
 ## Language Policy (ENFORCED)
 
-**ALL generated artifacts MUST be in English.** No exceptions.
-
-| Artifact | Language | Example |
-|----------|----------|---------|
-| Variable/function names | English | `createResource`, `itemCount`, `buyerEmail` |
-| Type/interface names | English | `ActionResult`, `ResourceStatus`, `CheckInInput` |
-| Component names | English | `ResourceCard`, `TenantForm`, `CheckInPanel` |
-| File/folder names | English | `resource-card.tsx`, `check-in/`, `use-resource-form.ts` |
-| Code comments | English | `// Verify token hasn't been used before` |
-| Commit messages | English | `feat: add check-in scanner` |
-| PR titles and descriptions | English | Clear, concise English |
-| JSDoc / TSDoc | English | `@param resourceId - The UUID of the resource` |
-| Error messages (developer-facing) | English | `"Missing required environment variable"` |
-| Log messages | English | `console.error("Webhook signature verification failed")` |
-| README and technical docs | English | Architecture docs, setup guides |
-| AGENTS.md files | English | All agent instructions |
-| Test descriptions | English | `it("should reject already-used token")` |
-
-**Documentation is NOT an exception.** PRD, RFE, README, ADRs, and any future docs MUST be written and maintained in English.
+**ALL generated artifacts MUST be in English.** No exceptions — code, comments, commits, docs, types, file names, error messages, test descriptions.
 
 ## Code Conventions
 
@@ -202,17 +132,7 @@ Every feature module MUST include tests. This is NOT optional.
 | Unit tests | Vitest | Contracts, utilities, pure logic | `*.test.ts` colocated with source |
 | E2E tests | Playwright | Every feature with UI pages | `ui/e2e/{feature}/` |
 
-### E2E Test Rules
-- Every feature that adds dashboard pages MUST include Playwright E2E tests
-- Tests cover: CRUD happy paths + critical edge cases (auth, validation, error states)
-- Use Page Object Model pattern (see `playwright` skill)
-- Auth helper in `ui/e2e/helpers/auth.ts` for login flow reuse
-- Test files: `ui/e2e/{feature}/{feature}.spec.ts`
-
-### SDD Task Generation Rule
-When `sdd-tasks` generates a task breakdown for a feature with UI pages, it MUST include:
-- A testing phase with E2E test tasks for every user-facing flow
-- Unit test tasks for contracts, utilities, and business logic
+See `ui/AGENTS.md` for E2E test rules and conventions.
 
 ## QA Checklist (before every PR)
 

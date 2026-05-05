@@ -89,18 +89,21 @@ show_menu() {
     SETUP_COPILOT=${selected[4]}
 }
 
-copy_agents_md() {
+symlink_agents_md() {
     local target_name="$1"
     local count=0
 
     while IFS= read -r -d '' agents_file; do
         local agents_dir
         agents_dir="$(dirname "$agents_file")"
-        cp "$agents_file" "$agents_dir/$target_name"
+        local target_path="$agents_dir/$target_name"
+        [ -L "$target_path" ] && rm "$target_path"
+        [ -f "$target_path" ] && rm "$target_path"
+        ln -s "AGENTS.md" "$target_path"
         count=$((count + 1))
     done < <(find "$REPO_ROOT" \( -name "AGENTS.md" -o -name "AGENTS.MD" \) -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.venv/*" -print0 2>/dev/null)
 
-    echo -e "${GREEN}  ✓ Copied $count AGENTS.md -> $target_name${NC}"
+    echo -e "${GREEN}  ✓ Symlinked $count AGENTS.md -> $target_name${NC}"
 }
 
 setup_claude() {
@@ -110,7 +113,7 @@ setup_claude() {
     [ -d "$target" ] && mv "$target" "$REPO_ROOT/.claude/skills.backup.$(date +%s)"
     ln -s "$SKILLS_SOURCE" "$target"
     echo -e "${GREEN}  ✓ .claude/skills -> skills/${NC}"
-    copy_agents_md "CLAUDE.md"
+    symlink_agents_md "CLAUDE.md"
 }
 
 setup_opencode() {
@@ -130,7 +133,7 @@ setup_gemini() {
     [ -d "$target" ] && mv "$target" "$REPO_ROOT/.gemini/skills.backup.$(date +%s)"
     ln -s "$SKILLS_SOURCE" "$target"
     echo -e "${GREEN}  ✓ .gemini/skills -> skills/${NC}"
-    copy_agents_md "GEMINI.md"
+    symlink_agents_md "GEMINI.md"
 }
 
 setup_codex() {

@@ -1,23 +1,6 @@
 # Packages — Agent Instructions
 
-### Auto-invoke Skills
-
-When performing these actions, invoke the corresponding available skill FIRST. Repo-local skills require `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so the runtime can see `.agents/skills`.
-
-| Action | Skill |
-|--------|-------|
-| Adding RLS policies | `drizzle` |
-| Creating database relations | `drizzle` |
-| Creating database schemas | `drizzle` |
-| Defining table columns and types | `drizzle` |
-| Implementing pgvector/embeddings | `drizzle` |
-| Running migrations | `drizzle` |
-| Working with Supabase auth | `drizzle` |
-| Writing database queries | `drizzle` |
-| TypeScript types, exports, interfaces, strict-mode fixes | `typescript` |
-| React package UI work | `react-19` |
-| Tailwind styling in shared UI packages | `tailwind-4` |
-| Playwright E2E work | `playwright` |
+Each package has its own AGENTS.md with workspace-specific rules and auto-invoke tables. See `packages/*/AGENTS.md` for details.
 
 ## Package Boundary Rules
 
@@ -32,7 +15,7 @@ When performing these actions, invoke the corresponding available skill FIRST. R
 @enterprise/contracts → zod (ONLY external dep)
 @enterprise/core      → @enterprise/contracts + @enterprise/db + supabase
 @enterprise/db        → drizzle-orm (ONLY external dep, NO business logic)
-@enterprise/ui        → clsx + tailwind-merge + CVA + lucide-react (NO business logic)
+@enterprise/ui        → clsx + tailwind-merge + CVA + lucide-react + radix-ui (NO business logic)
 ```
 
 ## Adding a New Package
@@ -42,3 +25,4 @@ When performing these actions, invoke the corresponding available skill FIRST. R
 3. Extend root tsconfig: `"extends": "../../tsconfig.json"`
 4. Add to consuming package's dependencies: `"@enterprise/{name}": "workspace:*"`
 5. Add to `ui/next.config.ts` transpilePackages if it contains JSX
+6. Create `packages/{name}/AGENTS.md` following the template of an existing package. Add the new scope to `skills/skill-sync/assets/sync.sh:get_agents_path()` so auto-invoke tables are maintained

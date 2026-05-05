@@ -6,21 +6,25 @@ Shared business infrastructure: Supabase clients, service layer, auth helpers, a
 
 ### Auto-invoke Skills
 
-When performing these actions, invoke the corresponding available skill FIRST. Repo-local skills require `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so the runtime can see `.agents/skills`.
+When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 | Action | Skill |
 |--------|-------|
 | Adding RLS policies | `drizzle` |
+| Configuring RLS at client level | `supabase` |
+| Configuring database connections | `supabase-postgres-best-practices` |
 | Creating database relations | `drizzle` |
 | Creating database schemas | `drizzle` |
+| Defining auth-related database schemas or RLS policies | `drizzle` |
 | Defining table columns and types | `drizzle` |
-| Implementing feature business logic in server actions or routing | `nextjs-15` |
+| Implementing auth flows | `supabase` |
 | Implementing pgvector/embeddings | `drizzle` |
-| Making permission or role-based decisions | `typescript` |
+| Optimizing Postgres queries | `supabase-postgres-best-practices` |
+| Reviewing schema performance | `supabase-postgres-best-practices` |
 | Running migrations | `drizzle` |
-| Working with Supabase auth | `drizzle` |
-| Strict TypeScript work in services or helpers | `typescript` |
-| Working with Supabase clients, SSR, storage, CLI | `supabase` |
+| Setting up Supabase SSR cookies | `supabase` |
+| Using getUser or getSession | `supabase` |
+| Working with Supabase clients | `supabase` |
 | Writing database queries | `drizzle` |
 
 ---
@@ -46,9 +50,10 @@ src/services/
 ```
 
 ### Rules
-- Services receive `SupabaseClient` as first arg when following the function-based pattern
+- **New services MUST use the function-based pattern** (like `auth-service.ts`). The class-based services in `index.ts` are legacy and will be migrated
+- Services receive `SupabaseClient` as first arg (dependency injection — testable with mocks)
 - Services return `ServiceResult<T>` — NEVER `ActionResult<T>`
-- Services have NO `"use server"`, NO `revalidatePath`, NO `redirect`
+- Services have NO `"use server"`, NO `revalidatePath`, NO `redirect`, NO Sentry calls (services must be testable without observability infrastructure — Sentry calls belong in Server Actions or error boundaries)
 - New features MUST create a service before creating actions
 
 ### Adding a New Service

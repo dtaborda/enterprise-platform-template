@@ -4,6 +4,13 @@ description: "Use when doing ANY task involving Supabase. Triggers: Supabase pro
 metadata:
   author: supabase
   version: "0.1.0"
+  scope: [packages/core, ui, root]
+  auto_invoke:
+    - "Working with Supabase clients"
+    - "Implementing auth flows"
+    - "Configuring RLS at client level"
+    - "Using getUser or getSession"
+    - "Setting up Supabase SSR cookies"
 ---
 
 # Supabase
