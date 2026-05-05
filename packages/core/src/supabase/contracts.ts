@@ -10,7 +10,7 @@ export interface Database {
           name: string;
           slug: string;
           status: "active" | "inactive" | "suspended";
-          settings: Record<string, unknown> | null;
+          settings: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -19,7 +19,7 @@ export interface Database {
           name: string;
           slug: string;
           status?: "active" | "inactive" | "suspended";
-          settings?: Record<string, unknown> | null;
+          settings?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -28,7 +28,7 @@ export interface Database {
           name?: string;
           slug?: string;
           status?: "active" | "inactive" | "suspended";
-          settings?: Record<string, unknown> | null;
+          settings?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -99,7 +99,7 @@ export interface Database {
           action: "create" | "read" | "update" | "delete" | "login" | "logout" | "custom";
           resource: string;
           resource_id: string | null;
-          metadata: Record<string, unknown> | null;
+          metadata: string | null;
           ip_address: string | null;
           user_agent: string | null;
           created_at: string;
@@ -111,7 +111,7 @@ export interface Database {
           action: "create" | "read" | "update" | "delete" | "login" | "logout" | "custom";
           resource: string;
           resource_id?: string | null;
-          metadata?: Record<string, unknown> | null;
+          metadata?: string | null;
           ip_address?: string | null;
           user_agent?: string | null;
           created_at?: string;
@@ -123,7 +123,7 @@ export interface Database {
           action?: "create" | "read" | "update" | "delete" | "login" | "logout" | "custom";
           resource?: string;
           resource_id?: string | null;
-          metadata?: Record<string, unknown> | null;
+          metadata?: string | null;
           ip_address?: string | null;
           user_agent?: string | null;
           created_at?: string;

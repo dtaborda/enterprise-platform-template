@@ -10,7 +10,7 @@ metadata:
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, WebFetch, WebSearch, Task
 ---
 
-> **WARNING — VERSION MISMATCH**: This project uses **Zod 3.24** (`zod@^3.24.0`). The patterns below document **Zod 4** breaking changes for future migration. Do NOT use Zod 4 syntax (`z.email()`, `z.uuid()`, `z.url()`, `{ error: "..." }`) until the project upgrades. Current Zod 3 patterns: `z.string().email()`, `z.string().uuid()`, `z.string().url()`, `{ message: "..." }`.
+> **WARNING — VERSION MISMATCH**: This project uses **Zod 3.25** (`zod@^3.25.0`). The patterns below document **Zod 4** breaking changes for future migration. Do NOT use Zod 4 syntax (`z.email()`, `z.uuid()`, `z.url()`, `{ error: "..." }`) until the project upgrades. Current Zod 3 patterns: `z.string().email()`, `z.string().uuid()`, `z.string().url()`, `{ message: "..." }`.
 
 ## Breaking Changes from Zod 3
 

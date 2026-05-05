@@ -10,6 +10,7 @@ import {
 } from "@enterprise/contracts";
 import {
   requestPasswordResetService,
+  resolveRoleRedirectPath,
   signInWithPasswordService,
   signOutService,
   signUpService,
@@ -20,19 +21,8 @@ import { getAppUrl } from "@enterprise/core/utils/env";
 import { redirect } from "next/navigation";
 import { normalizeSafeRedirectPath } from "./redirects";
 
-const ROLE_REDIRECTS: Record<UserRole, string> = {
-  owner: "/dashboard",
-  admin: "/dashboard",
-  member: "/dashboard",
-  guest: "/",
-};
-
 function resolveRoleRedirect(role: UserRole | null | undefined) {
-  if (!role) {
-    return "/dashboard";
-  }
-
-  return ROLE_REDIRECTS[role] ?? "/dashboard";
+  return resolveRoleRedirectPath(role);
 }
 
 const AUTH_CALLBACK_PATH = "/auth/callback";
@@ -88,7 +78,6 @@ export async function signUpAction(formData: FormData) {
 
   const metadata = registrationMetadataSchema.parse({
     name: parsedInput.data.name,
-    role: "member",
   });
 
   const supabase = await getServerClient();

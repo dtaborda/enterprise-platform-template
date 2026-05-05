@@ -29,7 +29,7 @@ All database **schema** work lives in `packages/db/` (schema-only package).
 All database **query** code lives in `packages/core/` or Server Actions / Route Handlers in `ui/`.
 NEVER place query logic or client setup in `packages/db/`.
 
-> **CURRENT STATE**: `packages/db/src/schema.ts` uses `pgTable.withRLS()` on all 7 tables,
+> **CURRENT STATE**: `packages/db/src/schema/platform.ts` defines the platform tables,
 > defines inline `pgPolicy()` rules, exports `$inferSelect`/`$inferInsert` types (with `Row`
 > suffix), and uses `auth.tenant_id()` / `auth.user_role()` / `auth.user_sede_id()` helper
 > functions in RLS policies. These functions must be created via custom migration.
@@ -130,7 +130,7 @@ import { eq, and, or, desc, sql } from 'drizzle-orm';
 
 | Item | Path | Notes |
 |------|------|-------|
-| Schema (platform) | `packages/db/src/platform.ts` | tenants, profiles, userRoleEnum |
+| Schema (platform) | `packages/db/src/schema/platform.ts` | tenants, profiles, userRoleEnum |
 | Schema (domain) | `packages/db/src/domain.ts` | sedes, eventos, orders, tickets, notifications + enums |
 | Schema (helpers) | `packages/db/src/helpers.ts` | RLS SQL fragments (isTenantMember, isAdminOrAbove) |
 | Schema (relations) | `packages/db/src/relations.ts` | All Drizzle relations() definitions |

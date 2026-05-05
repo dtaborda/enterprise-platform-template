@@ -58,9 +58,19 @@ BEGIN
     NEW.id,
     new_tenant_id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', ''),
     'owner'
   );
+
+  -- Persist RLS claims in app metadata (never in user metadata)
+  UPDATE auth.users
+  SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || jsonb_build_object(
+    'tenant_id',
+    new_tenant_id,
+    'role',
+    'owner'
+  )
+  WHERE id = NEW.id;
 
   RETURN NEW;
 END;

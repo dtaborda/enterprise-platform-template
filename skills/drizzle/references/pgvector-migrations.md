@@ -143,7 +143,7 @@ pnpm --filter @sala/db db:studio
 
 ```bash
 # The ONLY supported workflow in this project:
-# 1. Modify schema in packages/db/src/schema.ts
+# 1. Modify schema in packages/db/src/schema/platform.ts
 # 2. Generate migration SQL
 pnpm db:generate              # Creates SQL in ./migrations/
 # 3. Review the generated SQL
