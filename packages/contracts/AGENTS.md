@@ -6,14 +6,15 @@ Single source of truth for all data shapes (DTOs). Every Zod schema, input type,
 
 ### Auto-invoke Skills
 
-When performing these actions, invoke the corresponding installed skill FIRST:
+When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 | Action | Skill |
 |--------|-------|
 | TypeScript types, DTO exports, strict-mode fixes | `typescript` |
 | Making permission or role-based decisions | `typescript` |
+| Writing Zod validation schemas | `typescript` |
 
-There is currently **no installed Zod 3 skill** in this repo. Follow the local rules below for schema work.
+Project uses **Zod 3.24**. A `zod-4` skill exists for future migration reference. Current validation patterns follow the rules below.
 
 ---
 
@@ -22,7 +23,7 @@ There is currently **no installed Zod 3 skill** in this repo. Follow the local r
 1. **Zero internal deps**: Only dependency is `zod`. Never import from `@enterprise/core`, `@enterprise/ui`, or `@enterprise/web`
 2. **Schema naming**: Always suffix with `Schema` (e.g., `createResourceSchema`)
 3. **Type inference**: Derive TypeScript types from schemas using `z.infer<typeof schema>`
-4. **File organization**: Keep shared contracts in the current structure — `src/dto/platform.ts`, `src/schemas/platform.ts`, and `src/types/platform.ts`
+4. **File organization**: Organize by domain: `src/{dto,schemas,types}/{domain}.ts`. Platform-level contracts live in `platform.ts`; feature-specific contracts in their own files (e.g., `resources.ts`, `theme.ts`)
 5. **Barrel export**: `index.ts` re-exports everything
 6. **Enums**: Define as `const` arrays + `z.enum()` for runtime validation AND type narrowing
 

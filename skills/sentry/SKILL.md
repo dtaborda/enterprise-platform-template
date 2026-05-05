@@ -4,6 +4,11 @@ description: "Sentry instrumentation patterns for @enterprise/web — Server Act
 metadata:
   author: enterprise-platform
   version: "1.0.0"
+  scope: [ui, root]
+  auto_invoke:
+    - "Adding error tracking to Server Actions"
+    - "Working with error boundaries"
+    - "Using captureException or captureActionError"
 ---
 
 # Sentry Instrumentation — @enterprise/web

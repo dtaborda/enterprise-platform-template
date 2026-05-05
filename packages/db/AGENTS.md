@@ -4,7 +4,21 @@
 
 ### Auto-invoke Skills
 
-Use the repo-local `drizzle` skill for schema and migration work after running `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so the runtime can see `.agents/skills`.
+When performing these actions, ALWAYS invoke the corresponding skill FIRST:
+
+| Action | Skill |
+|--------|-------|
+| Adding RLS policies | `drizzle` |
+| Configuring database connections | `supabase-postgres-best-practices` |
+| Creating database relations | `drizzle` |
+| Creating database schemas | `drizzle` |
+| Defining auth-related database schemas or RLS policies | `drizzle` |
+| Defining table columns and types | `drizzle` |
+| Implementing pgvector/embeddings | `drizzle` |
+| Optimizing Postgres queries | `supabase-postgres-best-practices` |
+| Reviewing schema performance | `supabase-postgres-best-practices` |
+| Running migrations | `drizzle` |
+| Writing database queries | `drizzle` |
 
 ---
 
@@ -39,7 +53,7 @@ This package is **SCHEMA-ONLY**. It defines the database structure using Drizzle
 The correct workflow:
 
 ```bash
-# 1. Modify schema in src/schema/platform.ts
+# 1. Modify schema files in src/schema/ (create new domain files as needed)
 
 # 2. Generate a migration from the schema
 pnpm --filter @enterprise/db db:generate
@@ -90,7 +104,8 @@ packages/db/
 └── src/
     ├── index.ts               # Barrel export
     └── schema/
-        └── platform.ts        # Tables, enums, and exported schema types
+        ├── platform.ts        # Platform tables (tenants, profiles, roles, audit)
+        └── resources.ts       # Domain tables (new domain files follow this pattern)
 ```
 
 ## Dependency Direction
