@@ -238,6 +238,13 @@ pnpm skills:setup      # Wire skills for OpenCode runtime
 pnpm skills:sync       # Regenerate AGENTS auto-invoke tables
 ```
 
+See [docs/developer-guide/ai-skills.mdx](./docs/developer-guide/ai-skills.mdx) for:
+
+- skills setup for OpenCode, Claude Code, Gemini, Codex, and Copilot
+- `skills:sync` usage and scoped sync examples
+- project MCP configuration via `.mcp.json` for Claude Code
+- the difference between Claude Code MCP config and OpenCode `opencode.json`
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
