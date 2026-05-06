@@ -1,0 +1,200 @@
+---
+title: "AI Skills"
+description: "How to configure AI coding assistants to use the project's repo-local skills for architecture-aware code generation."
+owner: "Engineering"
+lastUpdated: "2026-05-05"
+---
+
+# AI Skills
+
+## Purpose
+
+This template includes repo-local AI skills under `skills/` that teach AI coding assistants the project's architecture, conventions, and patterns. When configured, assistants automatically follow the project's design system, testing strategy, and coding standards.
+
+## Scope
+
+- Included: Setup for all supported runtimes, skill sync, creating new skills, troubleshooting
+- Excluded: Writing skill content (see the `skill-creator` skill for that)
+
+---
+
+## What Are Skills?
+
+Skills are Markdown files (`SKILL.md`) that provide domain-specific instructions to AI assistants. Each skill covers a focused topic — Drizzle ORM patterns, Sentry instrumentation, Playwright testing, etc.
+
+The `AGENTS.md` files at each workspace level reference these skills via "Auto-invoke" tables. When an AI assistant works on a file that matches a skill's trigger, it loads the skill automatically.
+
+```
+skills/
+├── drizzle/SKILL.md          → Database schema patterns
+├── nextjs-15/SKILL.md        → App Router conventions
+├── playwright/SKILL.md       → E2E testing patterns
+├── react-19/SKILL.md         → React 19 component patterns
+├── sentry/SKILL.md           → Error tracking instrumentation
+├── skill-sync/               → Auto-invoke table generator
+├── supabase/SKILL.md         → Auth, RLS, client patterns
+├── tailwind-4/SKILL.md       → Styling conventions
+├── zod-4/SKILL.md            → Validation patterns
+└── ...
+```
+
+---
+
+## Setup
+
+After cloning the repository, run the setup script to wire skills into your AI assistant:
+
+### Quick Setup (OpenCode only)
+
+```bash
+pnpm skills:setup
+```
+
+This creates a `.agents/skills/` symlink pointing to `skills/`, which is all OpenCode needs.
+
+### Setup for All Runtimes
+
+```bash
+pnpm skills:setup:all
+```
+
+Or run the script directly with specific flags:
+
+```bash
+bash ./skills/setup.sh --claude     # Claude Code only
+bash ./skills/setup.sh --opencode   # OpenCode only
+bash ./skills/setup.sh --gemini     # Gemini CLI only
+bash ./skills/setup.sh --codex      # Codex (OpenAI) only
+bash ./skills/setup.sh --copilot    # GitHub Copilot only
+bash ./skills/setup.sh --all        # All of the above
+```
+
+### Interactive Mode
+
+Running the script with no flags opens an interactive menu:
+
+```bash
+bash ./skills/setup.sh
+```
+
+### What Each Runtime Gets
+
+| Runtime | Setup Action |
+|---------|-------------|
+| **OpenCode** | `.agents/skills/` symlink |
+| **Claude Code** | `.claude/skills/` symlink + `CLAUDE.md` copies next to each `AGENTS.md` |
+| **Gemini CLI** | `.gemini/skills/` symlink + `GEMINI.md` copies next to each `AGENTS.md` |
+| **Codex (OpenAI)** | `.codex/skills/` symlink (uses `AGENTS.md` natively) |
+| **GitHub Copilot** | `AGENTS.md` copied to `.github/copilot-instructions.md` |
+| **Cursor** | No setup needed — reads `AGENTS.md` natively |
+
+> **Restart your AI assistant** after running setup to load the skills.
+
+---
+
+## Skill Sync
+
+When you add a new skill or update a skill's `metadata.auto_invoke` field, the Auto-invoke tables in `AGENTS.md` files become stale. Run sync to regenerate them:
+
+### Sync All AGENTS.md Files
+
+```bash
+pnpm skills:sync
+```
+
+### Dry Run (preview changes without writing)
+
+```bash
+pnpm skills:sync:dry-run
+```
+
+### Sync a Specific Scope
+
+```bash
+bash ./skills/skill-sync/assets/sync.sh --scope root
+bash ./skills/skill-sync/assets/sync.sh --scope ui
+bash ./skills/skill-sync/assets/sync.sh --scope packages/core
+bash ./skills/skill-sync/assets/sync.sh --scope packages/db
+bash ./skills/skill-sync/assets/sync.sh --scope packages/ui
+bash ./skills/skill-sync/assets/sync.sh --scope packages/contracts
+```
+
+### When to Run Sync
+
+- After adding a new skill to `skills/`
+- After changing `metadata.auto_invoke` in any `SKILL.md`
+- After modifying `metadata.scope` in any `SKILL.md`
+- After creating a new `AGENTS.md` in a workspace
+
+---
+
+## MCP Configuration
+
+This repository includes a root `.mcp.json` file for **Claude Code** project-level MCP servers.
+
+```json
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=..."
+    }
+  }
+}
+```
+
+### What `.mcp.json` Is For
+
+- **Claude Code** reads `.mcp.json` from the repository root as the project MCP definition.
+- This file is the right place for project-scoped integrations such as Supabase, Sentry, and Linear.
+- Team members who open the repo in Claude Code get the same MCP wiring automatically.
+
+### OpenCode Uses a Different Location
+
+OpenCode does **not** use `.mcp.json`.
+
+Use these files instead:
+
+| Tool | Location | Purpose |
+|------|----------|---------|
+| **Claude Code** | `.mcp.json` | Project-level MCP servers |
+| **OpenCode** | `opencode.json` | Project-level MCP servers, agents, and runtime config |
+| **OpenCode (global)** | `~/.config/opencode/opencode.jsonc` or `~/.config/opencode/opencode.json` | Global MCPs and runtime defaults |
+
+### Current Project MCPs
+
+The committed `.mcp.json` config is intended for Claude Code and includes:
+
+- **Supabase** — project database/auth MCP
+- **Sentry** — error tracking MCP
+- **Linear** — project management MCP
+
+If you also use OpenCode, keep the equivalent project MCP definitions in `opencode.json` so both tools stay aligned.
+
+---
+
+## Quick Reference
+
+| Goal | Command |
+|------|---------|
+| Wire skills for OpenCode | `pnpm skills:setup` |
+| Wire skills for all runtimes | `pnpm skills:setup:all` |
+| Regenerate Auto-invoke tables | `pnpm skills:sync` |
+| Preview sync changes | `pnpm skills:sync:dry-run` |
+| Sync one workspace only | `bash ./skills/skill-sync/assets/sync.sh --scope ui` |
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| Skills not loading in assistant | Run `pnpm skills:setup` and restart the assistant |
+| Auto-invoke table is empty | Run `pnpm skills:sync` — skills need `metadata.auto_invoke` entries |
+| Symlink broken after branch switch | Re-run `pnpm skills:setup` |
+| Skill changes not reflected | Restart the AI assistant — most cache skills at session start |
+| `CLAUDE.md` not found | Run `pnpm skills:setup:all` (or `--claude`) to create the copies |
+
+---
+
+*Last updated: 2026-05-05*

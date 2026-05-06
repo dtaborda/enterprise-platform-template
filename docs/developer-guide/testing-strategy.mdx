@@ -137,6 +137,100 @@ pnpm e2e
 
 ---
 
+## Running E2E Tests
+
+### Prerequisites
+
+E2E tests require a running local Supabase instance:
+
+```bash
+supabase start
+supabase db reset   # Seed test users
+```
+
+### Run All Tests (headless)
+
+```bash
+pnpm e2e
+```
+
+This runs all specs in `ui/e2e/` using headless Chromium (background mode, no visible browser).
+
+### Run a Specific Folder
+
+```bash
+pnpm e2e -- ui/e2e/auth/
+pnpm e2e -- ui/e2e/resources/
+pnpm e2e -- ui/e2e/settings/
+pnpm e2e -- ui/e2e/smoke/
+pnpm e2e -- ui/e2e/theme/
+```
+
+### Run a Single Test File
+
+```bash
+pnpm e2e -- ui/e2e/auth/auth.spec.ts
+pnpm e2e -- ui/e2e/auth/password-reset.spec.ts
+```
+
+### Run with Visible Browser (headed mode)
+
+Opens a real Chromium window so you can watch the interaction:
+
+```bash
+pnpm e2e -- --headed
+pnpm e2e -- --headed ui/e2e/auth/auth.spec.ts   # Single file, visible
+```
+
+### Run with Playwright UI Mode
+
+Interactive test runner with time-travel debugging, DOM snapshots, and step-by-step replay:
+
+```bash
+pnpm e2e -- --ui
+```
+
+### Run a Specific Test by Name
+
+Use `-g` (grep) to match test titles:
+
+```bash
+pnpm e2e -- -g "sign in with valid credentials"
+pnpm e2e -- -g "password reset" --headed
+```
+
+### Debug Mode (step through with DevTools)
+
+Opens a headed browser with DevTools and pauses at `page.pause()` calls:
+
+```bash
+pnpm e2e -- --debug
+pnpm e2e -- --debug ui/e2e/auth/auth.spec.ts
+```
+
+### View Last Test Report
+
+After any run, open the HTML report with traces and screenshots:
+
+```bash
+npx playwright show-report
+```
+
+### Quick Reference
+
+| Goal | Command |
+|------|---------|
+| All tests, headless | `pnpm e2e` |
+| Single folder | `pnpm e2e -- ui/e2e/auth/` |
+| Single file | `pnpm e2e -- ui/e2e/auth/auth.spec.ts` |
+| Headed (visible browser) | `pnpm e2e -- --headed` |
+| UI mode (interactive) | `pnpm e2e -- --ui` |
+| By test name | `pnpm e2e -- -g "test title"` |
+| Debug with DevTools | `pnpm e2e -- --debug` |
+| Show last report | `npx playwright show-report` |
+
+---
+
 ## E2E Anti-Patterns
 
 ### Do Not Test Skeleton/Loading States
