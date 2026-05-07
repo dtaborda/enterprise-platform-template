@@ -1,0 +1,35 @@
+# Enterprise Platform — Code Owners
+#
+# Each line maps a file pattern to one or more owners.
+# Owners are auto-requested for review when a PR touches matching paths.
+#
+# When this repo moves to an org, replace @dtaborda with team handles:
+#   @org/frontend, @org/backend, @org/platform
+#
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ── Root / fallback ───────────────────────────────────────────────
+*                               @dtaborda
+
+# ── Web application (Next.js) ────────────────────────────────────
+/ui/                            @dtaborda
+
+# ── Packages ─────────────────────────────────────────────────────
+/packages/core/                 @dtaborda
+/packages/db/                   @dtaborda
+/packages/contracts/            @dtaborda
+/packages/ui/                   @dtaborda
+
+# ── AI Skills ────────────────────────────────────────────────────
+/skills/                        @dtaborda
+
+# ── Platform / CI / Infra ────────────────────────────────────────
+/.github/                       @dtaborda
+**/Dockerfile*                  @dtaborda
+**/docker-compose*.yml          @dtaborda
+
+# ── Documentation ────────────────────────────────────────────────
+/docs/                          @dtaborda
+
+# ── Database migrations ──────────────────────────────────────────
+/supabase/migrations/           @dtaborda
