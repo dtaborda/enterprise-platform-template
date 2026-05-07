@@ -6,8 +6,10 @@ import type {
   ResourceStatus,
   ResourceType,
 } from "@enterprise/contracts";
-import { RESOURCE_STATUS, RESOURCE_TYPE } from "@enterprise/contracts";
-import { Button } from "@enterprise/ui/components/button";
+import { getFieldError, RESOURCE_STATUS, RESOURCE_TYPE } from "@enterprise/contracts";
+import { FormBanner } from "@enterprise/ui/components/form-banner";
+import { FormField } from "@enterprise/ui/components/form-field";
+import { FormMessage } from "@enterprise/ui/components/form-message";
 import { Input } from "@enterprise/ui/components/input";
 import { Label } from "@enterprise/ui/components/label";
 import {
@@ -17,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@enterprise/ui/components/select";
+import { SubmitButton } from "@enterprise/ui/components/submit-button";
 import { Textarea } from "@enterprise/ui/components/textarea";
 import { useActionState } from "react";
 import { createResourceAction, updateResourceAction } from "@/features/resources/actions";
@@ -39,15 +42,6 @@ const RESOURCE_STATUS_LABELS: Record<ResourceStatus, string> = {
   archived: "Archived",
   suspended: "Suspended",
 };
-
-function getFieldError(
-  result: ActionResult<ResourceEntity> | null,
-  field: string,
-): string | undefined {
-  if (!result || result.success) return undefined;
-  const details = result.error?.details as Record<string, string[]> | undefined;
-  return details?.[field]?.[0];
-}
 
 function parseJsonString(value: string | null): Record<string, unknown> | undefined {
   if (!value) return undefined;
@@ -96,7 +90,7 @@ export function ResourceForm({ defaultValues }: ResourceFormProps) {
     return createResourceAction(input);
   }
 
-  const [state, formAction, isPending] = useActionState(boundAction, null);
+  const [state, formAction] = useActionState(boundAction, null);
 
   const existingImageUrlsText = (() => {
     if (!defaultValues?.imageUrls) return "";
@@ -119,43 +113,31 @@ export function ResourceForm({ defaultValues }: ResourceFormProps) {
     }
   })();
 
-  return (
-    <form action={formAction} className="flex flex-col gap-6">
-      {state && !state.success && !state.error?.details && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {state.error?.message ?? "An error occurred. Please try again."}
-        </p>
-      )}
+  // Select fields cannot use FormField's cloneElement injection because the
+  // Select primitive wraps the trigger in its own context — aria attributes
+  // must be passed directly to SelectTrigger instead.
+  const typeError = getFieldError(state, "type");
+  const statusError = getFieldError(state, "status");
 
-      {state?.success && !isEdit && (
-        <p className="rounded-md bg-green-100 px-3 py-2 text-sm text-green-800">
-          Resource created successfully.
-        </p>
-      )}
+  return (
+    <form action={formAction} noValidate className="flex flex-col gap-6">
+      <FormBanner
+        state={state}
+        successMessage={isEdit ? undefined : "Resource created successfully."}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Label htmlFor="title">
-            Title <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="title"
-            name="title"
-            required
-            defaultValue={defaultValues?.title ?? ""}
-            placeholder="Resource title"
-          />
-          {getFieldError(state, "title") && (
-            <p className="text-xs text-destructive">{getFieldError(state, "title")}</p>
-          )}
-        </div>
+        <FormField name="title" label="Title" state={state} required className="sm:col-span-2">
+          <Input defaultValue={defaultValues?.title ?? ""} placeholder="Resource title" />
+        </FormField>
 
+        {/* Select fields: aria-invalid injected directly on SelectTrigger (cloneElement cannot pierce Select's context) */}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="type">
             Type <span className="text-destructive">*</span>
           </Label>
           <Select name="type" defaultValue={defaultValues?.type ?? RESOURCE_TYPE.PRODUCT} required>
-            <SelectTrigger id="type">
+            <SelectTrigger id="type" aria-invalid={Boolean(typeError) || undefined}>
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
@@ -166,9 +148,7 @@ export function ResourceForm({ defaultValues }: ResourceFormProps) {
               ))}
             </SelectContent>
           </Select>
-          {getFieldError(state, "type") && (
-            <p className="text-xs text-destructive">{getFieldError(state, "type")}</p>
-          )}
+          {typeError && <FormMessage>{typeError}</FormMessage>}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -180,7 +160,7 @@ export function ResourceForm({ defaultValues }: ResourceFormProps) {
             defaultValue={defaultValues?.status ?? RESOURCE_STATUS.ACTIVE}
             required
           >
-            <SelectTrigger id="status">
+            <SelectTrigger id="status" aria-invalid={Boolean(statusError) || undefined}>
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
@@ -191,60 +171,50 @@ export function ResourceForm({ defaultValues }: ResourceFormProps) {
               ))}
             </SelectContent>
           </Select>
-          {getFieldError(state, "status") && (
-            <p className="text-xs text-destructive">{getFieldError(state, "status")}</p>
-          )}
+          {statusError && <FormMessage>{statusError}</FormMessage>}
         </div>
 
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Label htmlFor="description">Description</Label>
+        <FormField name="description" label="Description" state={state} className="sm:col-span-2">
           <Textarea
-            id="description"
-            name="description"
             defaultValue={defaultValues?.description ?? ""}
             placeholder="Resource description"
             rows={4}
           />
-          {getFieldError(state, "description") && (
-            <p className="text-xs text-destructive">{getFieldError(state, "description")}</p>
-          )}
-        </div>
+        </FormField>
 
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Label htmlFor="metadataText">Metadata (JSON)</Label>
+        <FormField
+          name="metadataText"
+          label="Metadata (JSON)"
+          state={state}
+          description="Use a valid JSON object."
+          className="sm:col-span-2"
+        >
           <Textarea
-            id="metadataText"
-            name="metadataText"
             defaultValue={existingMetadataText}
             placeholder='{"owner":"operations","tags":["internal"]}'
             rows={5}
           />
-          <p className="text-xs text-muted-foreground">Use a valid JSON object.</p>
-          {getFieldError(state, "metadata") && (
-            <p className="text-xs text-destructive">{getFieldError(state, "metadata")}</p>
-          )}
-        </div>
+        </FormField>
 
-        <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Label htmlFor="imageUrlsText">Image URLs</Label>
+        <FormField
+          name="imageUrlsText"
+          label="Image URLs"
+          state={state}
+          description="Separate multiple URLs with commas."
+          className="sm:col-span-2"
+        >
           <Textarea
-            id="imageUrlsText"
-            name="imageUrlsText"
             defaultValue={existingImageUrlsText}
             placeholder="Comma-separated image URLs"
             rows={2}
           />
-          <p className="text-xs text-muted-foreground">Separate multiple URLs with commas.</p>
-          {getFieldError(state, "imageUrls") && (
-            <p className="text-xs text-destructive">{getFieldError(state, "imageUrls")}</p>
-          )}
-        </div>
+        </FormField>
       </div>
 
       <div className="flex justify-end gap-3">
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Saving…" : isEdit ? "Update Resource" : "Create Resource"}
-        </Button>
+        <SubmitButton pendingText="Saving…">
+          {isEdit ? "Update Resource" : "Create Resource"}
+        </SubmitButton>
       </div>
     </form>
   );
