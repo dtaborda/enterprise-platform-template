@@ -3,6 +3,9 @@
 # Opens PRs monthly for outdated dependencies.
 # Each ecosystem gets its own labels for easy filtering.
 #
+# IMPORTANT: Major version bumps of framework-level dependencies are IGNORED.
+# These require dedicated migration planning, not automated PRs.
+#
 # Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
 
 version: 2
@@ -27,6 +30,34 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # Framework-level — major bumps require migration planning
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Schema/validation — major bumps have breaking API changes
+      - dependency-name: "zod"
+        update-types: ["version-update:semver-major"]
+      # UI primitives — major bumps change component APIs
+      - dependency-name: "tailwind-merge"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "lucide-react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@radix-ui/*"
+        update-types: ["version-update:semver-major"]
+      # ORM — major bumps change schema/query APIs
+      - dependency-name: "drizzle-orm"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "drizzle-kit"
+        update-types: ["version-update:semver-major"]
+      # Auth/DB — major bumps change client APIs
+      - dependency-name: "@supabase/*"
+        update-types: ["version-update:semver-major"]
 
   # ── GitHub Actions ───────────────────────────────────────────
   - package-ecosystem: "github-actions"
@@ -40,3 +71,15 @@ updates:
       - "github-actions"
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # Major bumps on core actions need SHA-pin validation
+      - dependency-name: "actions/checkout"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "actions/setup-node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "actions/upload-artifact"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pnpm/action-setup"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "supabase/setup-cli"
+        update-types: ["version-update:semver-major"]
