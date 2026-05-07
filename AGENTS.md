@@ -113,6 +113,7 @@ Use these skills for detailed patterns on-demand. The runtime resolves them auto
 | `enterprise-commit` | Conventional commits with project scopes |
 | `enterprise-docs` | Documentation style guide and writing standards |
 | `enterprise-pr` | PR creation workflow and template |
+| `form-validation` | Form validation patterns — useActionState, ActionResult, inline errors, accessibility |
 | `skill-creator` | Create new AI agent skills |
 | `skill-sync` | Sync skill metadata to AGENTS.md tables |
 
@@ -128,18 +129,22 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 | Action | Skill |
 |--------|-------|
+| Adding form validation or error handling | `form-validation` |
+| Adding developer guides | `enterprise-docs` |
 | Adding error tracking to Server Actions | `sentry` |
 | After creating/modifying a skill | `skill-sync` |
 | App Router / Server Actions | `nextjs-15` |
 | Committing changes | `enterprise-commit` |
-| Creating a git commit | `enterprise-commit` |
-| Creating a pull request | `enterprise-pr` |
-| Writing documentation | `enterprise-docs` |
 | Configuring RLS at client level | `supabase` |
 | Configuring database connections | `supabase-postgres-best-practices` |
+| Creating MDX pages | `enterprise-docs` |
+| Creating a git commit | `enterprise-commit` |
+| Creating a pull request | `enterprise-pr` |
 | Creating new skills | `skill-creator` |
 | Implementing auth flows | `supabase` |
+| Opening a PR | `enterprise-pr` |
 | Optimizing Postgres queries | `supabase-postgres-best-practices` |
+| Preparing changes for review | `enterprise-pr` |
 | Regenerate AGENTS.md Auto-invoke tables (sync.sh) | `skill-sync` |
 | Reviewing schema performance | `supabase-postgres-best-practices` |
 | Setting up Supabase SSR cookies | `supabase` |
@@ -153,6 +158,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Writing Playwright E2E tests | `playwright` |
 | Writing React components | `react-19` |
 | Writing TypeScript types/interfaces | `typescript` |
+| Writing documentation | `enterprise-docs` |
 
 ## Language Policy (ENFORCED)
 

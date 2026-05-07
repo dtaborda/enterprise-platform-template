@@ -17,7 +17,7 @@ test.describe("Auth flows", () => {
     await authPage.expectDashboardFacts(OWNER_EMAIL, "owner");
   });
 
-  test("sign-in failure with invalid credentials remains on /sign-in and does not enter dashboard", async ({
+  test("sign-in failure with invalid credentials shows error banner and does not enter dashboard", async ({
     page,
   }) => {
     const authPage = new AuthPage(page);
@@ -27,6 +27,17 @@ test.describe("Auth flows", () => {
 
     await authPage.expectOnSignIn();
     await expect(page.getByRole("heading", { name: "Dashboard" })).toHaveCount(0);
+    await expect(page.getByText("Invalid email or password.")).toBeVisible();
+  });
+
+  test("sign-in with empty fields shows inline field errors", async ({ page }) => {
+    const authPage = new AuthPage(page);
+
+    await authPage.gotoSignIn();
+    await authPage.submitEmptySignIn();
+
+    await authPage.expectOnSignIn();
+    await expect(page.getByRole("alert").first()).toBeVisible();
   });
 
   test("sign-in with redirectTo=/dashboard/settings lands on /dashboard/settings", async ({
@@ -64,7 +75,7 @@ test.describe("Auth flows", () => {
     await authPage.expectRegistrationSuccessNotice();
   });
 
-  test("sign-up validation failure (password < 8) keeps user on /sign-up and shows error state", async ({
+  test("sign-up validation failure (password < 8) stays on /sign-up and shows inline field error", async ({
     page,
   }) => {
     const authPage = new AuthPage(page);
@@ -73,10 +84,8 @@ test.describe("Auth flows", () => {
     await authPage.gotoSignUp();
     await authPage.signUpWithoutNativeValidation("Invalid User", email, "short");
 
-    await expect(page).toHaveURL(/\/sign-up\?error=validation/);
-    await expect(
-      page.getByText("We could not create your account. Check your inputs and try again."),
-    ).toBeVisible();
+    await expect(page).toHaveURL(/\/sign-up/);
+    await expect(page.getByRole("alert").first()).toBeVisible();
   });
 
   test("forgot-password request with valid email redirects to /forgot-password?sent=1 and shows sent notice", async ({
@@ -89,6 +98,18 @@ test.describe("Auth flows", () => {
 
     await expect(page).toHaveURL(/\/forgot-password\?sent=1/);
     await authPage.expectResetRequestSentNotice();
+  });
+
+  test("reset-password with mismatched passwords shows confirmPassword field error", async ({
+    page,
+  }) => {
+    const authPage = new AuthPage(page);
+
+    await page.goto("/reset-password");
+    await authPage.submitMismatchedPasswords("password123", "different456");
+
+    await expect(page).toHaveURL(/\/reset-password/);
+    await expect(page.getByText("Passwords do not match")).toBeVisible();
   });
 
   test("authenticated dashboard access shows user email, role, and workspace facts", async ({

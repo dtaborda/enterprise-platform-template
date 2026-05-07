@@ -134,17 +134,23 @@ describe("actions", () => {
   });
 
   describe("signInAction", () => {
-    it("invalid FormData redirects to /sign-in", async () => {
+    it("invalid FormData returns ActionResult with field errors", async () => {
       const { signInAction } = await loadActions();
       const formData = buildFormData({ email: "invalid" });
 
-      await expect(signInAction(formData)).rejects.toSatisfy((error: unknown) => {
-        expectRedirectDigest(error, "/sign-in");
-        return true;
+      const result = await signInAction(null, formData);
+
+      expect(result).toMatchObject({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Please fix the errors below.",
+        },
       });
+      expect(result.error?.details).toBeDefined();
     });
 
-    it("valid credentials call signIn", async () => {
+    it("valid credentials call signIn and redirect on success", async () => {
       const { signInAction } = await loadActions();
 
       mockSignInWithPasswordService.mockResolvedValue({ success: true, data: { role: "member" } });
@@ -154,7 +160,7 @@ describe("actions", () => {
         password: "password123",
       });
 
-      await expect(signInAction(formData)).rejects.toSatisfy((error: unknown) => {
+      await expect(signInAction(null, formData)).rejects.toSatisfy((error: unknown) => {
         expect(mockSignInWithPasswordService).toHaveBeenCalledWith(mockClient, {
           email: "member@enterprise.dev",
           password: "password123",
@@ -164,7 +170,32 @@ describe("actions", () => {
       });
     });
 
-    it("when signIn returns error, redirects to /sign-in with preserved normalized redirectTo when present", async () => {
+    it("when signIn returns error, returns ActionResult with AUTH_ERROR", async () => {
+      const { signInAction } = await loadActions();
+
+      mockSignInWithPasswordService.mockResolvedValue({
+        success: false,
+        error: "Invalid credentials",
+        code: "INVALID_CREDENTIALS",
+      });
+
+      const formData = buildFormData({
+        email: "member@enterprise.dev",
+        password: "wrong-password",
+      });
+
+      const result = await signInAction(null, formData);
+
+      expect(result).toEqual({
+        success: false,
+        error: {
+          code: "AUTH_ERROR",
+          message: "Invalid email or password.",
+        },
+      });
+    });
+
+    it("when signIn returns error with redirectTo, returns ActionResult with AUTH_ERROR", async () => {
       const { signInAction } = await loadActions();
 
       mockSignInWithPasswordService.mockResolvedValue({
@@ -180,30 +211,41 @@ describe("actions", () => {
         redirectTo: "/dashboard/settings",
       });
 
-      await expect(signInAction(formData)).rejects.toSatisfy((error: unknown) => {
-        expectRedirectDigest(error, "/sign-in?redirectTo=%2Fdashboard%2Fsettings");
-        return true;
+      const result = await signInAction(null, formData);
+
+      expect(result).toEqual({
+        success: false,
+        error: {
+          code: "AUTH_ERROR",
+          message: "Invalid email or password.",
+        },
       });
     });
   });
 
   describe("signUpAction", () => {
-    it("invalid payload redirects to /sign-up?error=validation", async () => {
+    it("invalid payload returns ActionResult with field errors", async () => {
       const { signUpAction } = await loadActions();
       const formData = buildFormData({ email: "invalid", password: "short" });
 
-      await expect(signUpAction(formData)).rejects.toSatisfy((error: unknown) => {
-        expectRedirectDigest(error, "/sign-up?error=validation");
-        return true;
+      const result = await signUpAction(null, formData);
+
+      expect(result).toMatchObject({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Please fix the errors below.",
+        },
       });
+      expect(result.error?.details).toBeDefined();
     });
 
-    it("service failure redirects to /sign-up?error=failed", async () => {
+    it("service failure returns ActionResult with AUTH_ERROR", async () => {
       const { signUpAction } = await loadActions();
 
       mockSignUpService.mockResolvedValue({
         success: false,
-        error: "failed",
+        error: "Email already in use.",
         code: "SIGN_UP_FAILED",
       });
 
@@ -213,9 +255,13 @@ describe("actions", () => {
         password: "password123",
       });
 
-      await expect(signUpAction(formData)).rejects.toSatisfy((error: unknown) => {
-        expectRedirectDigest(error, "/sign-up?error=failed");
-        return true;
+      const result = await signUpAction(null, formData);
+
+      expect(result).toMatchObject({
+        success: false,
+        error: {
+          code: "AUTH_ERROR",
+        },
       });
     });
 
@@ -233,7 +279,7 @@ describe("actions", () => {
         password: "password123",
       });
 
-      await expect(signUpAction(formData)).rejects.toSatisfy((error: unknown) => {
+      await expect(signUpAction(null, formData)).rejects.toSatisfy((error: unknown) => {
         expect(mockSignOutService).toHaveBeenCalledWith(mockClient);
         expectRedirectDigest(error, "/sign-in?registered=1");
         return true;
@@ -242,17 +288,23 @@ describe("actions", () => {
   });
 
   describe("forgotPasswordAction", () => {
-    it("invalid payload redirects to /forgot-password?error=validation", async () => {
+    it("invalid payload returns ActionResult with field errors", async () => {
       const { forgotPasswordAction } = await loadActions();
       const formData = buildFormData({ email: "invalid" });
 
-      await expect(forgotPasswordAction(formData)).rejects.toSatisfy((error: unknown) => {
-        expectRedirectDigest(error, "/forgot-password?error=validation");
-        return true;
+      const result = await forgotPasswordAction(null, formData);
+
+      expect(result).toMatchObject({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Please fix the errors below.",
+        },
       });
+      expect(result.error?.details).toBeDefined();
     });
 
-    it("service failure redirects to /forgot-password?error=failed", async () => {
+    it("service failure returns ActionResult with AUTH_ERROR", async () => {
       const { forgotPasswordAction } = await loadActions();
       mockRequestPasswordResetService.mockResolvedValue({
         success: false,
@@ -262,9 +314,13 @@ describe("actions", () => {
 
       const formData = buildFormData({ email: "member@enterprise.dev" });
 
-      await expect(forgotPasswordAction(formData)).rejects.toSatisfy((error: unknown) => {
-        expectRedirectDigest(error, "/forgot-password?error=failed");
-        return true;
+      const result = await forgotPasswordAction(null, formData);
+
+      expect(result).toMatchObject({
+        success: false,
+        error: {
+          code: "AUTH_ERROR",
+        },
       });
     });
 
@@ -274,7 +330,7 @@ describe("actions", () => {
 
       const formData = buildFormData({ email: "member@enterprise.dev" });
 
-      await expect(forgotPasswordAction(formData)).rejects.toSatisfy((error: unknown) => {
+      await expect(forgotPasswordAction(null, formData)).rejects.toSatisfy((error: unknown) => {
         expectRedirectDigest(error, "/forgot-password?sent=1");
         return true;
       });
@@ -300,17 +356,43 @@ describe("actions", () => {
   });
 
   describe("updatePasswordAction", () => {
-    it("invalid payload redirects to /reset-password?error=validation", async () => {
+    it("missing confirmPassword returns ActionResult with field errors", async () => {
       const { updatePasswordAction } = await loadActions();
       const formData = buildFormData({ password: "password123" });
 
-      await expect(updatePasswordAction(formData)).rejects.toSatisfy((error: unknown) => {
-        expectRedirectDigest(error, "/reset-password?error=validation");
-        return true;
+      const result = await updatePasswordAction(null, formData);
+
+      expect(result).toMatchObject({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Please fix the errors below.",
+        },
       });
+      expect(result.error?.details).toBeDefined();
     });
 
-    it("service failure redirects to /reset-password?error=failed", async () => {
+    it("mismatched passwords returns ActionResult with confirmPassword field error", async () => {
+      const { updatePasswordAction } = await loadActions();
+      const formData = buildFormData({
+        password: "password123",
+        confirmPassword: "different456",
+      });
+
+      const result = await updatePasswordAction(null, formData);
+
+      expect(result).toMatchObject({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Please fix the errors below.",
+        },
+      });
+      const details = result.error?.details as Record<string, string[]> | undefined;
+      expect(details?.["confirmPassword"]).toBeDefined();
+    });
+
+    it("service failure returns ActionResult with AUTH_ERROR", async () => {
       const { updatePasswordAction } = await loadActions();
       mockUpdatePasswordService.mockResolvedValue({
         success: false,
@@ -323,9 +405,13 @@ describe("actions", () => {
         confirmPassword: "password123",
       });
 
-      await expect(updatePasswordAction(formData)).rejects.toSatisfy((error: unknown) => {
-        expectRedirectDigest(error, "/reset-password?error=failed");
-        return true;
+      const result = await updatePasswordAction(null, formData);
+
+      expect(result).toMatchObject({
+        success: false,
+        error: {
+          code: "AUTH_ERROR",
+        },
       });
     });
 
@@ -339,7 +425,7 @@ describe("actions", () => {
         confirmPassword: "password123",
       });
 
-      await expect(updatePasswordAction(formData)).rejects.toSatisfy((error: unknown) => {
+      await expect(updatePasswordAction(null, formData)).rejects.toSatisfy((error: unknown) => {
         expect(mockSignOutService).toHaveBeenCalledWith(mockClient);
         expectRedirectDigest(error, "/sign-in?passwordUpdated=1");
         return true;

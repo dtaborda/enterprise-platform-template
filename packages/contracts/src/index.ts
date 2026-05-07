@@ -58,6 +58,7 @@ export {
   typographySchema,
 } from "./schemas/theme";
 // Types
+export * from "./types/form";
 export * from "./types/platform";
 export * from "./types/resources";
 export * from "./types/theme";
