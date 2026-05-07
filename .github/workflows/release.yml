@@ -4,29 +4,45 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false # Never cancel a release in progress
 
 permissions:
   contents: write
-  issues: write
   pull-requests: write
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      sha: ${{ steps.release.outputs.sha }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - name: Create or update release PR
+        uses: googleapis/release-please-action@a37ac6e4f6449ce8b3f7607e4d97d0146028dc0b # v4.1.0
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # Optional: Deploy after release
-  # deploy:
-  #   needs: release-please
-  #   if: ${{ needs.release-please.outputs.released }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Deploy to Vercel
-  #       # Add Vercel deployment steps
+      - name: Release summary
+        if: steps.release.outputs.release_created == 'true'
+        run: |
+          echo "## 🚀 Release Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Tag** | \`$TAG_NAME\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | \`$VERSION\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`$SHA\` |" >> $GITHUB_STEP_SUMMARY
+        env:
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
+          VERSION: ${{ steps.release.outputs.version }}
+          SHA: ${{ steps.release.outputs.sha }}
