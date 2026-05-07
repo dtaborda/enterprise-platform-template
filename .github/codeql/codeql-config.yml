@@ -1,0 +1,20 @@
+name: Enterprise Platform CodeQL Config
+
+paths:
+  - ui/
+  - packages/
+
+paths-ignore:
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/*.md"
+  - "**/node_modules/**"
+  - "ui/.next/**"
+  - "ui/e2e/**"
+  - "playwright-report/**"
+  - "coverage/**"
+
+queries:
+  - uses: security-and-quality
