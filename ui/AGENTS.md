@@ -18,9 +18,11 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Building mobile-first UI | `design-components` |
 | Choosing between border and tonal shift | `design-rules` |
 | Choosing colors for components | `design-tokens` |
+| Committing changes | `enterprise-commit` |
 | Composing layout structure | `design-rules` |
 | Composing shadcn components for a screen | `design-components` |
 | Configuring RLS at client level | `supabase` |
+| Creating a git commit | `enterprise-commit` |
 | Creating cards, panels, or containers | `design-rules` |
 | Creating database relations | `drizzle` |
 | Creating database schemas | `drizzle` |
@@ -145,11 +147,45 @@ export async function createResource(formData: FormData): Promise<ActionResult<R
 
 ### Form + Zod Validation
 
-```typescript
+> See the `form-validation` skill for the full pattern, shared components, and accessibility rules.
+
+```tsx
+// ✅ Correct — useActionState + ActionResult + FormField
+"use client";
+
+import type { ActionResult } from "@enterprise/contracts";
+import { createResourceSchema } from "@enterprise/contracts";
+import { Input } from "@enterprise/ui/components/input";
+import { FormField } from "@enterprise/ui/components/form-field";
+import { FormBanner } from "@enterprise/ui/components/form-banner";
+import { SubmitButton } from "@enterprise/ui/components/submit-button";
+import { useFormValidation } from "@enterprise/ui/hooks/use-form-validation";
+import { useActionState } from "react";
+import { createResourceAction } from "@/features/resources/actions";
+
+export function ResourceForm() {
+  const validatedAction = useFormValidation({
+    schema: createResourceSchema,
+    serverAction: createResourceAction,
+  });
+  const [state, formAction] = useActionState(validatedAction, null);
+
+  return (
+    <form action={formAction} noValidate className="flex flex-col gap-4">
+      <FormBanner state={state} successMessage="Resource created." />
+      <FormField name="title" label="Title" state={state} required>
+        <Input placeholder="Resource title" />
+      </FormField>
+      <SubmitButton>Create Resource</SubmitButton>
+    </form>
+  );
+}
+```
+
+```tsx
+// ❌ Wrong — react-hook-form is NOT used in this project
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createResourceSchema } from "@enterprise/contracts";
-
 const form = useForm({ resolver: zodResolver(createResourceSchema) });
 ```
 

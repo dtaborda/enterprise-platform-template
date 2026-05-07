@@ -164,5 +164,22 @@ test.describe("Resources", () => {
       await resourcesPage.deleteResource(deleteTitle);
       await resourcesPage.expectResourceNotInTable(deleteTitle);
     });
+
+    test("validation: submitting blank title shows inline field error", async ({ page }) => {
+      const resourcesPage = new ResourcesPage(page);
+
+      await login(page);
+      await resourcesPage.gotoNew();
+
+      // Submit with no title — leave title blank
+      await resourcesPage.submitForm();
+
+      // Inline field error should appear below the title input (Zod min(1) message)
+      await expect(page.getByText("String must contain at least 1 character(s)")).toBeVisible();
+
+      // Title input should have aria-invalid="true" (injected by FormField)
+      const titleInput = page.getByRole("textbox", { name: /title/i });
+      await expect(titleInput).toHaveAttribute("aria-invalid", "true");
+    });
   });
 });
