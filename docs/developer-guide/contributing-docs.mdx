@@ -1,0 +1,160 @@
+---
+title: "Contributing to Documentation"
+description: "How to add or modify documentation in the Enterprise Platform, including structure, conventions, and AI-driven documentation patterns."
+owner: "Engineering"
+lastUpdated: "2026-05-06"
+---
+
+# Contributing to Documentation
+
+This guide explains how documentation is organized, how to contribute new pages, and how to ensure your docs are AI-agent friendly.
+
+## Documentation Structure
+
+The Enterprise Platform documentation is organized into these sections:
+
+```
+docs/
+├── developer-guide/       # How to build with and extend the platform
+│   ├── getting-started    # Clone, install, run
+│   ├── architecture       # System design overview
+│   ├── conventions        # Code conventions (TS, Zod, React, etc.)
+│   ├── ai-skills          # AI Skills system setup and usage
+│   ├── testing-strategy   # Unit + E2E testing approach
+│   ├── theme-system       # Design token pipeline
+│   ├── supabase-setup     # Database and auth configuration
+│   ├── environment-guide  # Environment variables reference
+│   └── ...
+├── architecture/          # Deep-dive architecture docs (ADR-adjacent)
+│   ├── overview           # High-level system map
+│   ├── multi-tenant       # Tenant isolation via RLS
+│   ├── service-layer      # Service layer patterns
+│   ├── request-flow       # Request lifecycle
+│   └── extension-patterns # How to extend the platform
+└── adr/                   # Architecture Decision Records
+    ├── 001-platform-architecture
+    ├── 002-rls-helper-functions
+    ├── 003-service-layer
+    └── 004-package-dependencies
+```
+
+| Section | Audience | Content Type |
+|---------|----------|--------------|
+| `developer-guide/` | New contributors, daily development | How-to guides, setup, conventions |
+| `architecture/` | Technical leads, architects | Design decisions, data flow, patterns |
+| `adr/` | Future selves, new team members | Historical decision records |
+
+## AI-Driven Documentation
+
+This project uses an **AGENTS.md system** to guide AI coding assistants. Documentation contributes to this system in two ways:
+
+1. **Skills reference docs** — Skills in `skills/` may point to `docs/` pages as their single source of truth
+2. **AGENTS.md files** — Each workspace has an `AGENTS.md` that AI agents read for context
+
+When writing documentation, consider: "Would an AI agent benefit from knowing this?" If yes, ensure the relevant `AGENTS.md` or skill references the doc.
+
+See [AI Skills](./ai-skills.mdx) for the full system overview.
+
+---
+
+## Page Format
+
+Every documentation page uses `.mdx` format with required frontmatter:
+
+```mdx
+---
+title: "Page Title"
+description: "One-sentence description of what this page covers."
+owner: "Engineering"
+lastUpdated: "2026-05-06"
+---
+
+# Page Title
+
+## Purpose
+
+What this document covers and why it exists.
+
+## Scope
+
+- Included: what topics this page addresses
+- Excluded: what topics are covered elsewhere (with links)
+
+---
+
+## Content sections...
+```
+
+### Frontmatter Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `title` | ✅ | Page title (appears in navigation) |
+| `description` | ✅ | One-sentence summary |
+| `owner` | ✅ | Team or person responsible |
+| `lastUpdated` | ✅ | ISO date of last significant update |
+
+---
+
+## Writing Conventions
+
+### Language
+
+- ALL documentation MUST be in English (matches project Language Policy)
+- Use present tense and active voice
+- Be direct — avoid "you might want to" or "it's possible to"
+
+### Structure
+
+- Start with **Purpose** + **Scope** (what's in, what's out)
+- Use `---` horizontal rules to separate major sections
+- Prefer tables over bullet lists when comparing options
+- Use code blocks with language annotation for all code examples
+- Keep headings action-oriented: "Adding a New Service" not "New Services"
+
+### Code Examples
+
+- Always show the **correct** pattern first, then the **wrong** pattern
+- Annotate with `// ✅ Correct` and `// ❌ Wrong`
+- Keep examples minimal — show the pattern, not a full implementation
+- Use real project paths and imports (e.g., `@enterprise/contracts`, not `@acme/utils`)
+
+### Cross-References
+
+- Link to other docs using relative paths: `[Architecture](./architecture.mdx)`
+- Reference AGENTS.md when the doc is normative: "This is enforced in `packages/core/AGENTS.md`"
+- Never duplicate content — link to the source of truth instead
+
+---
+
+## Adding a New Page
+
+1. Create `docs/{section}/{page-name}.mdx` with the frontmatter template above
+2. Write content following the conventions in this doc
+3. If the page documents a convention that AI agents should follow, update the relevant `AGENTS.md` or skill to reference it
+4. Submit a PR with the `docs:` commit prefix
+
+---
+
+## Modifying Existing Pages
+
+1. Update the content
+2. Update the `lastUpdated` field in frontmatter
+3. If the change affects AI agent behavior (new rules, changed patterns), also update the relevant `AGENTS.md`
+4. Submit a PR
+
+---
+
+## Quick Reference
+
+| Goal | Action |
+|------|--------|
+| Add a developer guide | Create `docs/developer-guide/{name}.mdx` |
+| Add an architecture doc | Create `docs/architecture/{name}.md` |
+| Record an architecture decision | Create `docs/adr/{NNN}-{description}.md` |
+| Update AI agent rules | Edit the relevant workspace `AGENTS.md` |
+| Create a new AI skill | Use the `skill-creator` skill |
+
+---
+
+*Last updated: 2026-05-06*
