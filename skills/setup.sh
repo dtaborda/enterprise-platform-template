@@ -34,13 +34,14 @@ show_help() {
     echo "Configure AI coding assistants for Enterprise Platform development."
     echo ""
     echo "Options:"
-    echo "  --all       Configure all AI assistants"
-    echo "  --claude    Configure Claude Code"
-    echo "  --opencode  Configure OpenCode (.agents/skills)"
-    echo "  --gemini    Configure Gemini CLI"
-    echo "  --codex     Configure Codex (OpenAI)"
-    echo "  --copilot   Configure GitHub Copilot"
-    echo "  --help      Show this help message"
+    echo "  --all         Configure all AI assistants"
+    echo "  --claude      Configure Claude Code"
+    echo "  --opencode    Configure OpenCode (.agents/skills)"
+    echo "  --gemini      Configure Gemini CLI"
+    echo "  --codex       Configure Codex (OpenAI)"
+    echo "  --copilot     Configure GitHub Copilot"
+    echo "  --with-hooks  Install git pre-commit hook to run skills:check"
+    echo "  --help        Show this help message"
 }
 
 show_menu() {
@@ -160,6 +161,8 @@ setup_copilot() {
     fi
 }
 
+WITH_HOOKS=false
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         --all)
@@ -174,6 +177,8 @@ while [[ $# -gt 0 ]]; do
             SETUP_CODEX=true; shift ;;
         --copilot)
             SETUP_COPILOT=true; shift ;;
+        --with-hooks)
+            WITH_HOOKS=true; shift ;;
         --help|-h)
             show_help; exit 0 ;;
         *)
@@ -231,3 +236,45 @@ echo "Configured:"
 echo ""
 echo -e "${BLUE}Note: Restart your AI assistant to load the skills.${NC}"
 echo -e "${BLUE}      AGENTS.md is the source of truth - edit it, then re-run this script.${NC}"
+
+# ---------------------------------------------------------------------------
+# Optional: install git pre-commit hook to run skills:check
+# ---------------------------------------------------------------------------
+install_pre_commit_hook() {
+    local git_dir
+    git_dir="$(git -C "$REPO_ROOT" rev-parse --git-dir 2>/dev/null || true)"
+    if [ -z "$git_dir" ]; then
+        echo -e "${YELLOW}⚠ Not inside a git repository — skipping hook install.${NC}"
+        return
+    fi
+
+    local hook_path="$git_dir/hooks/pre-commit"
+    local hook_marker="# skills-check hook"
+    local hook_line="bash \"\$(git rev-parse --show-toplevel)/skills/check.sh\" --ci"
+
+    if [ -f "$hook_path" ] && grep -qF "$hook_marker" "$hook_path" 2>/dev/null; then
+        echo -e "${GREEN}  ✓ Pre-commit hook already installed — skipping.${NC}"
+        return
+    fi
+
+    if [ -f "$hook_path" ]; then
+        # Append to existing hook
+        printf '\n%s\n%s\n' "$hook_marker" "$hook_line" >> "$hook_path"
+    else
+        # Create new hook
+        printf '#!/usr/bin/env bash\n%s\n%s\n' "$hook_marker" "$hook_line" > "$hook_path"
+        chmod +x "$hook_path"
+    fi
+
+    echo -e "${GREEN}  ✓ Pre-commit hook installed at $hook_path${NC}"
+    echo -e "${BLUE}    Every commit will now run 'skills:check --ci' to catch untracked skills.${NC}"
+}
+
+if [ "$WITH_HOOKS" = true ]; then
+    echo ""
+    echo -e "${YELLOW}Installing git pre-commit hook...${NC}"
+    install_pre_commit_hook
+else
+    echo ""
+    echo -e "${BLUE}Tip: Run with --with-hooks to install a pre-commit hook that runs skills:check.${NC}"
+fi

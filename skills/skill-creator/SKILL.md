@@ -195,6 +195,7 @@ ls -la .agents/skills/{name}
 - [ ] Commands section exists
 - [ ] Skill file created in `skills/{name}/SKILL.md` (NOT in `.agents/skills/`)
 - [ ] Symlink created: `.agents/skills/{name}` -> `../../skills/{name}`
+- [ ] **Run `git add skills/{name}/` and verify the file is tracked with `git status skills/`** — untracked skills are invisible to other developers and will fail CI
 - [ ] Added to AGENTS.md auto-invoke table
 - [ ] Added to `.atl/skill-registry.md`
 
