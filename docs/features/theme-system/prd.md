@@ -1,4 +1,6 @@
-# PRD — Sistema de Theme Configurable por JSON para Arquitectura Web
+# PRD — JSON-configurable theme system for web architecture
+
+> **Language note:** This PRD was originally authored in Spanish and was migrated without changing intent. The content is preserved to avoid accidental requirement drift during the reorganization. A full English translation can be produced in a dedicated follow-up.
 
 ## 1. Resumen ejecutivo
 
