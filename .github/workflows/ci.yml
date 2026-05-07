@@ -41,6 +41,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate skills integrity
+        run: pnpm skills:check --ci
+
       - name: Enforce package boundaries
         run: pnpm check:boundaries
 
