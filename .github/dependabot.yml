@@ -60,26 +60,18 @@ updates:
         update-types: ["version-update:semver-major"]
 
   # ── GitHub Actions ───────────────────────────────────────────
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-    target-branch: main
-    labels:
-      - "dependencies"
-      - "github-actions"
-    commit-message:
-      prefix: "chore(deps)"
-    ignore:
-      # Major bumps on core actions need SHA-pin validation
-      - dependency-name: "actions/checkout"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "actions/setup-node"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "actions/upload-artifact"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "pnpm/action-setup"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "supabase/setup-cli"
-        update-types: ["version-update:semver-major"]
+  # DISABLED: We SHA-pin all actions manually as part of our supply chain
+  # hardening (Sprint 2). Dependabot can't update SHA pins correctly and
+  # generates noisy PRs. Re-enable if we switch back to tag-based pinning.
+  #
+  # - package-ecosystem: "github-actions"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "monthly"
+  #   open-pull-requests-limit: 5
+  #   target-branch: main
+  #   labels:
+  #     - "dependencies"
+  #     - "github-actions"
+  #   commit-message:
+  #     prefix: "chore(deps)"
