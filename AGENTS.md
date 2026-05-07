@@ -111,6 +111,7 @@ Use these skills for detailed patterns on-demand. The runtime resolves them auto
 | `design-rules` | Glass Rule, Surface Hierarchy, motion |
 | `design-tokens` | Color system, typography, spacing |
 | `enterprise-commit` | Conventional commits with project scopes |
+| `enterprise-docs` | Documentation style guide and writing standards |
 | `enterprise-pr` | PR creation workflow and template |
 | `skill-creator` | Create new AI agent skills |
 | `skill-sync` | Sync skill metadata to AGENTS.md tables |
@@ -133,6 +134,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Committing changes | `enterprise-commit` |
 | Creating a git commit | `enterprise-commit` |
 | Creating a pull request | `enterprise-pr` |
+| Writing documentation | `enterprise-docs` |
 | Configuring RLS at client level | `supabase` |
 | Configuring database connections | `supabase-postgres-best-practices` |
 | Creating new skills | `skill-creator` |
