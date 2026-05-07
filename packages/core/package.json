@@ -27,7 +27,7 @@
     "@enterprise/db": "workspace:*",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.50.0",
-    "zod": "^3.25.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "next": "^15.5.15",
