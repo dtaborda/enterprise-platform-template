@@ -1,0 +1,7 @@
+rules:
+  # pull_request_target is intentional for labeler and conflict checker
+  # — they need write access for labels/comments and don't checkout PR code unsafely
+  dangerous-triggers:
+    ignore:
+      - labeler.yml
+      - pr-conflict-checker.yml
