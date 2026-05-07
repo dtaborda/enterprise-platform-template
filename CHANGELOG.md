@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.2.0](https://github.com/dtaborda/enterprise-platform-template/compare/v1.1.2...v1.2.0) (2026-05-07)
+
+
+### ✨ Features
+
+* add JSON-configurable theme system with light/dark mode switching ([24822d3](https://github.com/dtaborda/enterprise-platform-template/commit/24822d3df3d4846bc0c21154dabb281fb55a038a))
+* add resources reference module with full CRUD, RLS, and E2E tests ([8e6f13e](https://github.com/dtaborda/enterprise-platform-template/commit/8e6f13e1717f5433fef8fe4840216e17967bb38e))
+* add Sentry instrumentation and CI migration deployment ([6a594d3](https://github.com/dtaborda/enterprise-platform-template/commit/6a594d327ac57f7ca843b2c6001263ae8abc197e))
+* unified form validation UX system ([#36](https://github.com/dtaborda/enterprise-platform-template/issues/36)) ([8c58f21](https://github.com/dtaborda/enterprise-platform-template/commit/8c58f21f0e11eab8f48fe5f918e919bbf528b247))
+
+
+### 🐛 Bug Fixes
+
+* align all port references to 55331+ (supabase local isolation) ([18e7ecc](https://github.com/dtaborda/enterprise-platform-template/commit/18e7ecc26ff784dd005dfc79314078f59ddf3648))
+* **ci:** disable dependabot for github-actions (SHA-pinned manually) ([#58](https://github.com/dtaborda/enterprise-platform-template/issues/58)) ([bd23506](https://github.com/dtaborda/enterprise-platform-template/commit/bd2350619ee1d5f54acaae03d494b7573c6f9e6d))
+* **ci:** ignore major version bumps in dependabot config ([#54](https://github.com/dtaborda/enterprise-platform-template/issues/54)) ([4d546b3](https://github.com/dtaborda/enterprise-platform-template/commit/4d546b36e105623435db23c82dd3bd55c446adab))
+* **ci:** improve release-please config and workflow reliability ([#37](https://github.com/dtaborda/enterprise-platform-template/issues/37)) ([2eb0029](https://github.com/dtaborda/enterprise-platform-template/commit/2eb0029dc7e769d6d898356e70df1e24a6d249c2))
+* **ci:** use PAT for release-please to trigger CI on release PRs ([#63](https://github.com/dtaborda/enterprise-platform-template/issues/63)) ([b272034](https://github.com/dtaborda/enterprise-platform-template/commit/b272034881d0b89332e7261c7c8f148b6ed00c2d))
+* **docs:** replace JSX components with standard markdown and add supabase db reset instructions ([050c2bd](https://github.com/dtaborda/enterprise-platform-template/commit/050c2bd84238cdbb0c09878c5cd9f960449ae266))
+* **e2e:** use getByRole heading to avoid strict mode violation on detail page ([8bedc12](https://github.com/dtaborda/enterprise-platform-template/commit/8bedc1228c282803302a992e03ea1167f4592619))
+* **e2e:** use getByText.first() for detail page title assertion ([5cfc3f6](https://github.com/dtaborda/enterprise-platform-template/commit/5cfc3f679e4f77ab58410fac1ddda73581cc88d4))
+* **release:** remove component from release-please-config to fix PR title mismatch ([7f389ea](https://github.com/dtaborda/enterprise-platform-template/commit/7f389eafebc47daef3d39955871816649f7a65ad))
+* **release:** restore manifest to 1.1.2 and sync with missing GitHub tag ([#26](https://github.com/dtaborda/enterprise-platform-template/issues/26)) ([9c73dd0](https://github.com/dtaborda/enterprise-platform-template/commit/9c73dd02f4f8fb8705da7b2fac07aab86606fe25))
+* **release:** sync manifest version to last existing tag v1.1.1 ([dda6511](https://github.com/dtaborda/enterprise-platform-template/commit/dda65112310d3c046f85b742c64c52485cffd48c))
+* **skills:** add tracking enforcement and commit missing form-validation skill ([#39](https://github.com/dtaborda/enterprise-platform-template/issues/39)) ([20ef402](https://github.com/dtaborda/enterprise-platform-template/commit/20ef402133ce9df2b289603257cad644f2d7baf4))
+* **skills:** wire repo-local skills into runtime discovery ([780273c](https://github.com/dtaborda/enterprise-platform-template/commit/780273cda7b0b17592234df80eb9f9094a549712))
+
+
+### ♻️ Refactoring
+
+* migrate platform services to ServiceResult pattern and centralize auth logic ([#27](https://github.com/dtaborda/enterprise-platform-template/issues/27)) ([29b8e69](https://github.com/dtaborda/enterprise-platform-template/commit/29b8e695f4a84f356efd6c2b829ce4b5ba838e9d))
+* normalize RLS claims to app_metadata and redesign docs ([a013e87](https://github.com/dtaborda/enterprise-platform-template/commit/a013e87b5bb7d72faa38c27da3e03c74c477f65d))
+* restructure AGENTS.md hierarchy for clarity and reduced duplication ([#28](https://github.com/dtaborda/enterprise-platform-template/issues/28)) ([2f6f184](https://github.com/dtaborda/enterprise-platform-template/commit/2f6f184885f185a06c87911df37fe902e888f03b))
+
 ## [1.1.2](https://github.com/dtaborda/enterprise-platform-template/compare/v1.1.1...v1.1.2) (2026-04-21)
 
 
