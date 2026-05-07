@@ -1,5 +1,12 @@
 # Enterprise Platform — Agent Instructions
 
+## How to Use This Guide
+
+- Start here for cross-workspace norms. This is the **constitutional root** — it defines rules that ALL workspaces follow.
+- Each workspace has its own `AGENTS.md` (e.g., `ui/AGENTS.md`, `packages/core/AGENTS.md`) with specific rules.
+- Workspace docs **specialize** but NEVER contradict this file. If you find a conflict, this file wins.
+- Skills provide detailed patterns. Use the auto-invoke table below or load by file context.
+
 ## Project Overview
 
 Enterprise Platform is a multi-tenant SaaS template: full-stack, Supabase-powered, deployed on Vercel.
@@ -75,9 +82,40 @@ ALL business logic MUST live in `packages/core/src/services/`. Server Actions ar
 3. Create thin Server Actions in `ui/features/{feature}/actions.ts`
 4. Use `AuditService.log()` or an equivalent platform logging abstraction for create/update/delete operations
 
-## Skills
+## Available Skills
 
-Repo-local skills require runtime wiring. Run `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so OpenCode can discover `.agents/skills` before relying on local skills such as `drizzle`, `supabase`, `sentry`, and the design-system skills.
+Use these skills for detailed patterns on-demand. The runtime resolves them automatically — load by file context or via the auto-invoke table below.
+
+### Generic Skills (Any TypeScript Project)
+
+| Skill | Description |
+|-------|-------------|
+| `typescript` | Const types, flat interfaces, utility types |
+| `react-19` | React Compiler, no useMemo/useCallback |
+| `nextjs-15` | App Router, Server Actions, streaming |
+| `tailwind-4` | cn() utility, no var() in className |
+| `playwright` | Page Object Model, MCP workflow, selectors |
+| `zustand-5` | Persist, selectors, slices |
+| `zod-4` | New API (z.email(), z.uuid()) |
+| `ai-sdk-5` | UIMessage, streaming, LangChain |
+
+### Platform-Specific Skills
+
+| Skill | Description |
+|-------|-------------|
+| `drizzle` | Schema definition, RLS, migrations, pgvector |
+| `supabase` | Auth, SSR cookies, clients, Edge Functions |
+| `supabase-postgres-best-practices` | Query optimization, indexing, EXPLAIN |
+| `sentry` | Error tracking, boundaries, PII filtering |
+| `design-components` | shadcn/ui composition patterns |
+| `design-rules` | Glass Rule, Surface Hierarchy, motion |
+| `design-tokens` | Color system, typography, spacing |
+| `skill-creator` | Create new AI agent skills |
+| `skill-sync` | Sync skill metadata to AGENTS.md tables |
+
+### Setup
+
+Repo-local skills require runtime wiring. Run `pnpm skills:setup` (or `./skills/setup.sh --opencode`) so OpenCode can discover `.agents/skills` before relying on local skills.
 
 Skills not yet auto-synced (available globally or without metadata): `issue-creation`, `branch-pr`, `pr-review`. These are invoked by context from each workspace's own AGENTS.md auto-invoke table.
 

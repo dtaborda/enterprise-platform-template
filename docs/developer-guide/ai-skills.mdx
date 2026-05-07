@@ -1,41 +1,187 @@
 ---
-title: "AI Skills"
+title: "AI Skills System"
 description: "How to configure AI coding assistants to use the project's repo-local skills for architecture-aware code generation."
 owner: "Engineering"
-lastUpdated: "2026-05-05"
+lastUpdated: "2026-05-06"
 ---
 
-# AI Skills
+# AI Skills System
 
-## Purpose
+This guide explains the AI Skills system that provides on-demand context and patterns to AI agents working with the Enterprise Platform codebase.
 
-This template includes repo-local AI skills under `skills/` that teach AI coding assistants the project's architecture, conventions, and patterns. When configured, assistants automatically follow the project's design system, testing strategy, and coding standards.
-
-## Scope
-
-- Included: Setup for all supported runtimes, skill sync, creating new skills, troubleshooting
-- Excluded: Writing skill content (see the `skill-creator` skill for that)
+> **What are AI Skills?** Skills are structured Markdown instructions (`SKILL.md`) that teach AI agents (OpenCode, Claude Code, Cursor, Copilot, etc.) the project's architecture, conventions, and patterns — so they generate correct code on the first try.
 
 ---
 
-## What Are Skills?
+## Architecture Overview
 
-Skills are Markdown files (`SKILL.md`) that provide domain-specific instructions to AI assistants. Each skill covers a focused topic — Drizzle ORM patterns, Sentry instrumentation, Playwright testing, etc.
+```mermaid
+graph LR
+    subgraph FLOW["AI Skills Architecture"]
+        A["AI Agent"] -->|"1. matches trigger"| B["AGENTS.md"]
+        B -->|"2. loads"| C["Skill"]
+        C -->|"3. provides"| D["Patterns<br/>Decision Trees<br/>Critical Rules"]
+        C -->|"4. references"| E["Local Docs"]
+        D --> F["Correct Output"]
+        E --> F
+    end
 
-The `AGENTS.md` files at each workspace level reference these skills via "Auto-invoke" tables. When an AI assistant works on a file that matches a skill's trigger, it loads the skill automatically.
+    style A fill:#1e3a5f,stroke:#4a9eff,color:#fff
+    style B fill:#5c4d1a,stroke:#ffd700,color:#fff
+    style C fill:#1a4d1a,stroke:#4caf50,color:#fff
+    style E fill:#4a1a4d,stroke:#ba68c8,color:#fff
+    style F fill:#1a4d2e,stroke:#66bb6a,color:#fff
+```
+
+---
+
+## How It Works
+
+```mermaid
+sequenceDiagram
+    participant U as Developer
+    participant A as AI Agent
+    participant R as AGENTS.md
+    participant S as Skill
+    participant D as Local Docs
+
+    U->>A: "Add a new feature with Server Action"
+
+    Note over A: Analyze request context
+
+    A->>R: Find matching skill trigger
+    R-->>A: nextjs-15, supabase, typescript match
+
+    A->>S: Load SKILL.md files
+    S-->>A: Patterns, critical rules, decision trees
+
+    Note over A: Need architecture details?
+
+    A->>D: Read docs/architecture/service-layer.md
+    D-->>A: Full documentation context
+
+    Note over A: Execute with full context
+
+    A->>U: Creates feature following all conventions
+```
+
+---
+
+## Complete Architecture
+
+```mermaid
+flowchart TB
+    subgraph ENTRY["ENTRY POINTS"]
+        ROOT["AGENTS.md (root)<br/>━━━━━━━━━━━━━━━━━<br/>• Constitutional rules<br/>• Dependency direction<br/>• Available skills registry<br/>• QA Checklist"]
+
+        WORKSPACE["Workspace AGENTS.md<br/>━━━━━━━━━━━━━━━━━<br/>• Critical Rules (ALWAYS/NEVER)<br/>• Decision Trees<br/>• Code Patterns<br/>• Auto-invoke tables"]
+    end
+
+    subgraph SKILLS["SKILLS LIBRARY"]
+        direction TB
+
+        subgraph GENERIC["Generic Skills (Any TypeScript Project)"]
+            G1["typescript"]
+            G2["react-19"]
+            G3["nextjs-15"]
+            G4["tailwind-4"]
+            G5["playwright"]
+            G6["zod-4"]
+            G7["zustand-5"]
+        end
+
+        subgraph PLATFORM["Platform Skills (Enterprise-Specific)"]
+            P1["drizzle"]
+            P2["supabase"]
+            P3["supabase-postgres-<br/>best-practices"]
+            P4["sentry"]
+            P5["design-components"]
+            P6["design-rules"]
+            P7["design-tokens"]
+        end
+
+        subgraph META["Meta Skills"]
+            M1["skill-creator"]
+            M2["skill-sync"]
+        end
+    end
+
+    subgraph WORKSPACES["WORKSPACE AGENTS.md FILES"]
+        direction LR
+        W1["ui/AGENTS.md<br/>Server Actions<br/>Features, E2E"]
+        W2["packages/core/<br/>Service layer<br/>Supabase clients"]
+        W3["packages/db/<br/>Schema, migrations<br/>RLS policies"]
+        W4["packages/ui/<br/>Components, tokens<br/>Theme system"]
+        W5["packages/contracts/<br/>Zod schemas<br/>DTOs, types"]
+    end
+
+    subgraph STRUCTURE["SKILL STRUCTURE"]
+        direction LR
+        SKILLMD["SKILL.md<br/>━━━━━━━━━━━━━━<br/>• Frontmatter metadata<br/>• Critical patterns<br/>• Decision trees<br/>• Code examples<br/>• Commands"]
+
+        ASSETS["assets/<br/>━━━━━━━━━━━━━━<br/>• Code templates<br/>• JSON schemas<br/>• Config files"]
+
+        REFS["references/<br/>━━━━━━━━━━━━━━<br/>• Local doc paths<br/>• No web URLs<br/>• Single source"]
+    end
+
+    subgraph DOCS["DOCUMENTATION"]
+        direction TB
+        DD["docs/"]
+        D1["architecture/"]
+        D2["developer-guide/"]
+        D3["adr/"]
+
+        DD --> D1
+        DD --> D2
+        DD --> D3
+    end
+
+    ROOT --> WORKSPACE
+    WORKSPACE --> SKILLS
+    ROOT --> WORKSPACES
+    SKILLS --> STRUCTURE
+    SKILLMD --> ASSETS
+    SKILLMD --> REFS
+    REFS -.->|"points to"| DOCS
+
+    style ENTRY fill:#1e3a5f,stroke:#4a9eff,color:#fff
+    style GENERIC fill:#5c4d1a,stroke:#ffd700,color:#fff
+    style PLATFORM fill:#1a4d1a,stroke:#66bb6a,color:#fff
+    style META fill:#4a1a4d,stroke:#ba68c8,color:#fff
+    style WORKSPACES fill:#4d1a3d,stroke:#f06292,color:#fff
+    style STRUCTURE fill:#5c3d1a,stroke:#ffb74d,color:#fff
+    style DOCS fill:#1a3d4d,stroke:#4dd0e1,color:#fff
+```
+
+---
+
+## Key Design Decisions
+
+1. **Constitutional hierarchy** — Root `AGENTS.md` is the supreme law; workspace files specialize but never contradict
+2. **Self-contained skills** — Critical patterns inline (ALWAYS/NEVER rules) so agents work even if skill loading fails
+3. **Decision trees over prose** — Algorithmic placement rules that agents execute as-is
+4. **Local doc references** — Skills point to `docs/` files, no web URLs, single source of truth
+5. **On-demand loading** — AI loads only skills that match the current task context
+
+---
+
+## Skills Included
+
+| Type | Skills |
+|------|--------|
+| **Generic** | typescript, react-19, nextjs-15, tailwind-4, playwright, zod-4, zustand-5 |
+| **Platform** | drizzle, supabase, supabase-postgres-best-practices, sentry, design-components, design-rules, design-tokens |
+| **Meta** | skill-creator, skill-sync |
+
+## Skill Structure
+
+Each skill follows the [Agent Skills spec](https://agentskills.io):
 
 ```
-skills/
-├── drizzle/SKILL.md          → Database schema patterns
-├── nextjs-15/SKILL.md        → App Router conventions
-├── playwright/SKILL.md       → E2E testing patterns
-├── react-19/SKILL.md         → React 19 component patterns
-├── sentry/SKILL.md           → Error tracking instrumentation
-├── skill-sync/               → Auto-invoke table generator
-├── supabase/SKILL.md         → Auth, RLS, client patterns
-├── tailwind-4/SKILL.md       → Styling conventions
-├── zod-4/SKILL.md            → Validation patterns
-└── ...
+skills/{skill-name}/
+├── SKILL.md          # Patterns, rules, decision trees
+├── assets/           # Code templates, schemas (optional)
+└── references/       # Links to local docs (optional)
 ```
 
 ---
@@ -197,4 +343,4 @@ If you also use OpenCode, keep the equivalent project MCP definitions in `openco
 
 ---
 
-*Last updated: 2026-05-05*
+*Last updated: 2026-05-06*
