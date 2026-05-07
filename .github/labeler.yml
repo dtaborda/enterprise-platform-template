@@ -1,0 +1,42 @@
+web:
+  - changed-files:
+      - any-glob-to-any-file: "ui/**"
+
+core:
+  - changed-files:
+      - any-glob-to-any-file: "packages/core/**"
+
+db:
+  - changed-files:
+      - any-glob-to-any-file: "packages/db/**"
+
+contracts:
+  - changed-files:
+      - any-glob-to-any-file: "packages/contracts/**"
+
+ui-components:
+  - changed-files:
+      - any-glob-to-any-file: "packages/ui/**"
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
+          - "!CHANGELOG.md"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: ".github/**"
+
+skills:
+  - changed-files:
+      - any-glob-to-any-file: "skills/**"
+
+e2e:
+  - changed-files:
+      - any-glob-to-any-file: "ui/e2e/**"
+
+database-migrations:
+  - changed-files:
+      - any-glob-to-any-file: "supabase/migrations/**"

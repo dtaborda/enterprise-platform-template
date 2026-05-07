@@ -1,0 +1,75 @@
+name: "🐛 Bug Report"
+description: Report a bug or unexpected behavior
+labels: ["type:bug"]
+
+body:
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Duplicate check
+      options:
+        - label: I have searched existing issues and this bug has not been reported yet
+          required: true
+
+  - type: dropdown
+    id: workspace
+    attributes:
+      label: Which workspace is affected?
+      multiple: true
+      options:
+        - Web App (ui/)
+        - Core Services (packages/core/)
+        - Database (packages/db/)
+        - Contracts (packages/contracts/)
+        - UI Components (packages/ui/)
+        - Documentation
+        - CI/CD
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Detailed steps to reproduce the behavior
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened. Include screenshots or logs if applicable.
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      placeholder: "node --version"
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 15, Ubuntu 24.04, Windows 11..."
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other information that might help diagnose the issue

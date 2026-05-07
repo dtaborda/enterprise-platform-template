@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "📖 Documentation"
+    url: https://github.com/dtaborda/enterprise-platform-template/tree/main/docs
+    about: Check the project documentation for guides and setup instructions
+  - name: "💬 Discussions"
+    url: https://github.com/dtaborda/enterprise-platform-template/discussions
+    about: Ask questions and discuss with the community
