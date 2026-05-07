@@ -10,7 +10,8 @@
     "./lib/*": "./src/lib/*.ts",
     "./theme/context": "./src/theme/context.ts",
     "./theme/provider": "./src/theme/provider.tsx",
-    "./theme/toggle": "./src/theme/toggle.tsx"
+    "./theme/toggle": "./src/theme/toggle.tsx",
+    "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
     "build:theme": "tsx scripts/build-theme.ts",
