@@ -1,0 +1,120 @@
+name: PR Conflict Checker
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  check-conflicts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout PR head
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Fetch base ref
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: git fetch --depth=1 origin "${BASE_REF}"
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+
+      - name: Check for conflict markers
+        id: conflict-check
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          echo "Checking for conflict markers in changed files..."
+
+          CONFLICT_FILES=""
+          HAS_CONFLICTS=false
+
+          for file in ${ALL_CHANGED_FILES}; do
+            if [ -f "$file" ]; then
+              if grep -qE '^(<<<<<<<|=======|>>>>>>>)' "$file" 2>/dev/null; then
+                echo "Conflict markers found in: $file"
+                CONFLICT_FILES="${CONFLICT_FILES}- \`${file}\`"$'\n'
+                HAS_CONFLICTS=true
+              fi
+            fi
+          done
+
+          if [ "$HAS_CONFLICTS" = true ]; then
+            echo "has_conflicts=true" >> $GITHUB_OUTPUT
+            {
+              echo "conflict_files<<EOF"
+              echo "$CONFLICT_FILES"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          else
+            echo "has_conflicts=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Find existing comment
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
+        id: find-comment
+        if: always()
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- conflict-checker -->'
+
+      - name: Create or update comment
+        if: steps.conflict-check.outputs.has_conflicts == 'true'
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            <!-- conflict-checker -->
+            ⚠️ **Conflict Markers Detected**
+
+            This PR contains unresolved conflict markers in:
+
+            ${{ steps.conflict-check.outputs.conflict_files }}
+
+            Please resolve conflicts by removing `<<<<<<<`, `=======`, and `>>>>>>>` markers.
+
+      - name: Remove comment if conflicts resolved
+        if: steps.conflict-check.outputs.has_conflicts == 'false' && steps.find-comment.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            <!-- conflict-checker -->
+            ✅ **Conflict markers resolved.** All clear.
+
+      - name: Fail if conflicts detected
+        if: steps.conflict-check.outputs.has_conflicts == 'true'
+        run: |
+          echo "::error::Conflict markers detected in PR"
+          exit 1

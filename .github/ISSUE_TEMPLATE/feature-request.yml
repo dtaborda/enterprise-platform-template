@@ -1,0 +1,59 @@
+name: "💡 Feature Request"
+description: Suggest a new feature or improvement
+labels: ["type:feature"]
+
+body:
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Duplicate check
+      options:
+        - label: I have searched existing issues and this feature has not been requested yet
+          required: true
+
+  - type: dropdown
+    id: workspace
+    attributes:
+      label: Which workspace would this affect?
+      multiple: true
+      options:
+        - Web App (ui/)
+        - Core Services (packages/core/)
+        - Database (packages/db/)
+        - Contracts (packages/contracts/)
+        - UI Components (packages/ui/)
+        - Documentation
+        - New workspace/package
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem does this feature solve? Why is it needed?
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should this work? Be as specific as possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you think about?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, mockups, or references that help explain the request
