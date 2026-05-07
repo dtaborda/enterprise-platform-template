@@ -110,6 +110,9 @@ Use these skills for detailed patterns on-demand. The runtime resolves them auto
 | `design-components` | shadcn/ui composition patterns |
 | `design-rules` | Glass Rule, Surface Hierarchy, motion |
 | `design-tokens` | Color system, typography, spacing |
+| `enterprise-commit` | Conventional commits with project scopes |
+| `enterprise-docs` | Documentation style guide and writing standards |
+| `enterprise-pr` | PR creation workflow and template |
 | `skill-creator` | Create new AI agent skills |
 | `skill-sync` | Sync skill metadata to AGENTS.md tables |
 
@@ -128,6 +131,10 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Adding error tracking to Server Actions | `sentry` |
 | After creating/modifying a skill | `skill-sync` |
 | App Router / Server Actions | `nextjs-15` |
+| Committing changes | `enterprise-commit` |
+| Creating a git commit | `enterprise-commit` |
+| Creating a pull request | `enterprise-pr` |
+| Writing documentation | `enterprise-docs` |
 | Configuring RLS at client level | `supabase` |
 | Configuring database connections | `supabase-postgres-best-practices` |
 | Creating new skills | `skill-creator` |
@@ -190,7 +197,10 @@ See `ui/AGENTS.md` for E2E test rules and conventions.
 - [ ] CUD operations use `AuditService.log()` or an equivalent audit abstraction
 - [ ] App URL uses `getAppUrl()`, NOT direct env var access
 
-## Commit Conventions
+## Commit & PR Conventions
 
-Use conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`
+Use conventional commits: `type(scope): description`. See the `enterprise-commit` skill for scopes, decision trees, and examples.
+
+PR template at `.github/PULL_REQUEST_TEMPLATE.md`. See the `enterprise-pr` skill for the full workflow.
+
 Never add AI attribution or Co-Authored-By headers.
