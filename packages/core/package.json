@@ -25,17 +25,17 @@
   "dependencies": {
     "@enterprise/contracts": "workspace:*",
     "@enterprise/db": "workspace:*",
-    "@supabase/ssr": "^0.10.0",
-    "@supabase/supabase-js": "^2.50.0",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.105.3",
     "zod": "^3.25.0"
   },
   "devDependencies": {
-    "next": "^15.5.15",
-    "react": "^19.0.0",
+    "next": "^15.5.18",
+    "react": "^19.2.6",
     "typescript": "^5.7.0"
   },
   "peerDependencies": {
-    "next": "^15.5.15",
-    "react": "^19.0.0"
+    "next": "^15.5.18",
+    "react": "^19.2.6"
   }
 }
