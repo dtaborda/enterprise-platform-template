@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  type ActionResult,
   loginDto,
   registrationMetadataSchema,
   resetPasswordDto,
@@ -39,7 +40,10 @@ export async function signIn(email: string, password: string, redirectTo?: strin
   redirect(normalizeSafeRedirectPath(redirectTo, resolveRoleRedirect(result.data.role)));
 }
 
-export async function signInAction(formData: FormData) {
+export async function signInAction(
+  _prevState: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
   const parsedInput = loginDto.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -51,21 +55,37 @@ export async function signInAction(formData: FormData) {
       : null;
 
   if (!parsedInput.success) {
-    redirect("/sign-in");
+    return {
+      success: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Please fix the errors below.",
+        details: parsedInput.error.flatten().fieldErrors as Record<string, unknown>,
+      },
+    };
   }
 
   const { email, password } = parsedInput.data;
   const result = await signIn(email, password, redirectTo);
 
   if (result?.error) {
-    const fallbackPath = redirectTo
-      ? `/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`
-      : "/sign-in";
-    redirect(fallbackPath);
+    return {
+      success: false,
+      error: {
+        code: "AUTH_ERROR",
+        message: "Invalid email or password.",
+      },
+    };
   }
+
+  // signIn redirects on success — this is unreachable but satisfies TS
+  return { success: true };
 }
 
-export async function signUpAction(formData: FormData) {
+export async function signUpAction(
+  _prevState: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
   const parsedInput = signUpDto.safeParse({
     name: formData.get("name") || undefined,
     email: formData.get("email"),
@@ -73,7 +93,14 @@ export async function signUpAction(formData: FormData) {
   });
 
   if (!parsedInput.success) {
-    redirect("/sign-up?error=validation");
+    return {
+      success: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Please fix the errors below.",
+        details: parsedInput.error.flatten().fieldErrors as Record<string, unknown>,
+      },
+    };
   }
 
   const metadata = registrationMetadataSchema.parse({
@@ -89,7 +116,13 @@ export async function signUpAction(formData: FormData) {
   });
 
   if (!result.success) {
-    redirect("/sign-up?error=failed");
+    return {
+      success: false,
+      error: {
+        code: "AUTH_ERROR",
+        message: result.error ?? "We could not create your account. Please try again.",
+      },
+    };
   }
 
   await signOutService(supabase);
@@ -97,13 +130,23 @@ export async function signUpAction(formData: FormData) {
   redirect("/sign-in?registered=1");
 }
 
-export async function forgotPasswordAction(formData: FormData) {
+export async function forgotPasswordAction(
+  _prevState: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
   const parsedInput = resetPasswordDto.safeParse({
     email: formData.get("email"),
   });
 
   if (!parsedInput.success) {
-    redirect("/forgot-password?error=validation");
+    return {
+      success: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Please fix the errors below.",
+        details: parsedInput.error.flatten().fieldErrors as Record<string, unknown>,
+      },
+    };
   }
 
   const supabase = await getServerClient();
@@ -115,7 +158,13 @@ export async function forgotPasswordAction(formData: FormData) {
   });
 
   if (!result.success) {
-    redirect("/forgot-password?error=failed");
+    return {
+      success: false,
+      error: {
+        code: "AUTH_ERROR",
+        message: "We could not process your request. Please try again.",
+      },
+    };
   }
 
   redirect("/forgot-password?sent=1");
@@ -128,14 +177,25 @@ export async function signOut() {
   redirect("/sign-in");
 }
 
-export async function updatePasswordAction(formData: FormData) {
+export async function updatePasswordAction(
+  _prevState: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
   const parsedInput = updatePasswordDto.safeParse({
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
   });
 
   if (!parsedInput.success) {
-    redirect("/reset-password?error=validation");
+    const fieldErrors = parsedInput.error.flatten().fieldErrors;
+    return {
+      success: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Please fix the errors below.",
+        details: fieldErrors as Record<string, unknown>,
+      },
+    };
   }
 
   const supabase = await getServerClient();
@@ -144,7 +204,13 @@ export async function updatePasswordAction(formData: FormData) {
   });
 
   if (!result.success) {
-    redirect("/reset-password?error=failed");
+    return {
+      success: false,
+      error: {
+        code: "AUTH_ERROR",
+        message: "We could not update your password. Please request a new link and try again.",
+      },
+    };
   }
 
   await signOutService(supabase);

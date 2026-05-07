@@ -1,4 +1,3 @@
-import { Button } from "@enterprise/ui/components/button";
 import {
   Card,
   CardContent,
@@ -6,10 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@enterprise/ui/components/card";
-import { Input } from "@enterprise/ui/components/input";
-import { Label } from "@enterprise/ui/components/label";
 import Link from "next/link";
-import { signInAction } from "@/features/auth/actions";
+import { SignInForm } from "@/features/auth/components/sign-in-form";
 
 export const metadata = { title: "Sign In" };
 
@@ -48,32 +45,16 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           </p>
         ) : null}
 
-        <form action={signInAction} className="flex flex-col gap-4">
-          <input type="hidden" name="redirectTo" value={params.redirectTo ?? ""} />
+        <SignInForm redirectTo={params.redirectTo} />
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="you@example.com" required />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" type="password" required />
-          </div>
-
-          <Button type="submit" className="w-full">
-            Sign In
-          </Button>
-
-          <div className="flex items-center justify-between text-sm">
-            <Link href="/forgot-password" className="text-primary hover:underline">
-              Forgot password?
-            </Link>
-            <Link href="/sign-up" className="text-primary hover:underline">
-              Create account
-            </Link>
-          </div>
-        </form>
+        <div className="mt-4 flex items-center justify-between text-sm">
+          <Link href="/forgot-password" className="text-primary hover:underline">
+            Forgot password?
+          </Link>
+          <Link href="/sign-up" className="text-primary hover:underline">
+            Create account
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );

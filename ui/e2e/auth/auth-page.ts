@@ -59,8 +59,8 @@ export class AuthPage {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       await this.waitForHydratedForm("Sign In");
 
-      await this.page.getByLabel("Email").fill(email);
-      await this.page.getByLabel("Password").fill(password);
+      await this.page.getByLabel("Email *").fill(email);
+      await this.page.getByLabel("Password *").fill(password);
       await this.page.getByRole("button", { name: "Sign In" }).click();
 
       try {
@@ -75,10 +75,15 @@ export class AuthPage {
     }
   }
 
+  async submitEmptySignIn(): Promise<void> {
+    await this.waitForHydratedForm("Sign In");
+    await this.page.getByRole("button", { name: "Sign In" }).click();
+  }
+
   async signUp(name: string, email: string, password: string): Promise<void> {
     await this.page.getByLabel("Full name").fill(name);
-    await this.page.getByLabel("Email").fill(email);
-    await this.page.getByLabel("Password").fill(password);
+    await this.page.getByLabel("Email *").fill(email);
+    await this.page.getByLabel("Password *").fill(password);
     await this.page.getByRole("button", { name: "Create account" }).click();
   }
 
@@ -88,21 +93,27 @@ export class AuthPage {
     password: string,
   ): Promise<void> {
     await this.page.getByLabel("Full name").fill(name);
-    await this.page.getByLabel("Email").fill(email);
-    await this.page.getByLabel("Password").fill(password);
+    await this.page.getByLabel("Email *").fill(email);
+    await this.page.getByLabel("Password *").fill(password);
     await this.page.locator("form").evaluate((form) => {
       (form as HTMLFormElement).submit();
     });
   }
 
   async requestPasswordReset(email: string): Promise<void> {
-    await this.page.getByLabel("Email").fill(email);
+    await this.page.getByLabel("Email *").fill(email);
     await this.page.getByRole("button", { name: "Send reset link" }).click();
   }
 
+  async submitMismatchedPasswords(password: string, confirmPassword: string): Promise<void> {
+    await this.page.getByLabel("New password *").fill(password);
+    await this.page.getByLabel("Confirm password *").fill(confirmPassword);
+    await this.page.getByRole("button", { name: "Update password" }).click();
+  }
+
   async completePasswordReset(password: string): Promise<void> {
-    await this.page.getByLabel("New password").fill(password);
-    await this.page.getByLabel("Confirm password").fill(password);
+    await this.page.getByLabel("New password *").fill(password);
+    await this.page.getByLabel("Confirm password *").fill(password);
     await this.page.getByRole("button", { name: "Update password" }).click();
   }
 
