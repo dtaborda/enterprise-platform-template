@@ -202,6 +202,7 @@ See `ui/AGENTS.md` for E2E test rules and conventions.
 - [ ] Auth metadata uses typed schemas from `@enterprise/contracts`
 - [ ] CUD operations use `AuditService.log()` or an equivalent audit abstraction
 - [ ] App URL uses `getAppUrl()`, NOT direct env var access
+- [ ] New skills are committed to `skills/` (verify with `pnpm skills:check`)
 
 ## Commit & PR Conventions
 
