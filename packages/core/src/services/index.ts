@@ -1,12 +1,12 @@
 // Platform service layer - base services for multi-tenant operations
 // These are meant to be extended by domain-specific services
 
-export { ConsoleInvitationEmailAdapter } from "./adapters/console-invitation-email-adapter.js";
-export { ResendInvitationEmailAdapter } from "./adapters/resend-invitation-email-adapter.js";
-export * from "./auth-service.js";
-export type { InvitationEmailParams, InvitationEmailPort } from "./ports/invitation-email-port.js";
-export * from "./resource-service.js";
-export * from "./tenant-team-service.js";
+export { ConsoleInvitationEmailAdapter } from "./adapters/console-invitation-email-adapter";
+export { ResendInvitationEmailAdapter } from "./adapters/resend-invitation-email-adapter";
+export * from "./auth-service";
+export type { InvitationEmailParams, InvitationEmailPort } from "./ports/invitation-email-port";
+export * from "./resource-service";
+export * from "./tenant-team-service";
 
 import type { NewAuditLogEntry } from "@enterprise/db";
 import type { SupabaseClient } from "@supabase/supabase-js";
