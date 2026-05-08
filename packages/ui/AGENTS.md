@@ -15,8 +15,10 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Building mobile-first UI | `design-components` |
 | Choosing between border and tonal shift | `design-rules` |
 | Choosing colors for components | `design-tokens` |
+| Committing changes | `enterprise-commit` |
 | Composing layout structure | `design-rules` |
 | Composing shadcn components for a screen | `design-components` |
+| Creating a git commit | `enterprise-commit` |
 | Creating cards, panels, or containers | `design-rules` |
 | Creating feature components | `design-components` |
 | Creating navigation or layout components | `design-components` |
