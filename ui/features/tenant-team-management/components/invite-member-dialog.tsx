@@ -24,6 +24,7 @@ import {
 } from "@enterprise/ui/components/select";
 import { SubmitButton } from "@enterprise/ui/components/submit-button";
 import { UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { inviteMemberAction } from "@/features/tenant-team-management/actions";
 
@@ -34,6 +35,7 @@ const ASSIGNABLE_ROLES = [
 ] as const;
 
 export function InviteMemberDialog() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   async function boundAction(
@@ -47,6 +49,7 @@ export function InviteMemberDialog() {
 
     if (result.success) {
       setOpen(false);
+      router.refresh();
     }
 
     return result;

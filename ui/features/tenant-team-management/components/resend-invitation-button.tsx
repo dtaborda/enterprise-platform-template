@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@enterprise/ui/components/button";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { resendInvitationAction } from "@/features/tenant-team-management/actions";
 
@@ -9,6 +10,7 @@ interface ResendInvitationButtonProps {
 }
 
 export function ResendInvitationButton({ invitationId }: ResendInvitationButtonProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -26,6 +28,7 @@ export function ResendInvitationButton({ invitationId }: ResendInvitationButtonP
       }
 
       setSuccess(true);
+      router.refresh();
     });
   }
 

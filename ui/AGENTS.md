@@ -92,6 +92,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 - ALWAYS: Validate with Zod → get authenticated client → call service → return `ActionResult<T>`
 - ALWAYS: Use **subpath imports** in `"use server"` files: `from "@enterprise/core/services"`, `from "@enterprise/core/supabase/server"`, etc.
 - NEVER: Import from the barrel `from "@enterprise/core"` in Server Actions — the `next-flight-action-entry-loader` cannot resolve internal `.js` re-exports in CI
+- ALWAYS: When a Client Component mutation changes data rendered by a Server Component list/table, call `router.refresh()` on success (unless you implement an explicit optimistic update)
 - NEVER: Business logic inside Server Actions (service layer only)
 - NEVER: Direct DB queries in actions (go through `@enterprise/core` services)
 

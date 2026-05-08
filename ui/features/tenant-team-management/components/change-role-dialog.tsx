@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@enterprise/ui/components/select";
 import { SubmitButton } from "@enterprise/ui/components/submit-button";
+import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { changeMemberRoleAction } from "@/features/tenant-team-management/actions";
 
@@ -37,6 +38,7 @@ const ASSIGNABLE_ROLES = [
 ] as const;
 
 export function ChangeRoleDialog({ memberId, currentRole, memberName }: ChangeRoleDialogProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   async function boundAction(
@@ -50,6 +52,7 @@ export function ChangeRoleDialog({ memberId, currentRole, memberName }: ChangeRo
 
     if (result.success) {
       setOpen(false);
+      router.refresh();
     }
 
     return result;

@@ -559,11 +559,12 @@ export async function removeTenantMember(
     return { success: false, error: deleteError.message, code: "MEMBER_REMOVE_FAILED" };
   }
 
-  // Revoke active sessions via admin client (non-fatal)
-  const { error: signOutError } = await adminClient.auth.admin.signOut(targetUserId);
-  if (signOutError) {
-    console.error("[removeTenantMember] Failed to revoke sessions:", signOutError);
-  }
+  // NOTE: supabase-js does not support revoking ANOTHER user's sessions via
+  // auth.admin.signOut(userId). That API signs out the CURRENT session scope,
+  // and passing a user ID yields bad_jwt in CI/runtime. If cross-user session
+  // revocation becomes a hard requirement, implement it through a verified admin
+  // flow instead of calling signOut() with a target user ID.
+  void adminClient;
 
   // Audit
   void writeAuditLog(client, tenantId, requesterId, "member.removed", targetUserId, {

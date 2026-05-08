@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@enterprise/ui/components/button";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { cancelInvitationAction } from "@/features/tenant-team-management/actions";
 
@@ -9,6 +10,7 @@ interface CancelInvitationButtonProps {
 }
 
 export function CancelInvitationButton({ invitationId }: CancelInvitationButtonProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +22,10 @@ export function CancelInvitationButton({ invitationId }: CancelInvitationButtonP
 
       if (!result.success) {
         setError(result.error?.message ?? "Failed to cancel invitation. Please try again.");
+        return;
       }
+
+      router.refresh();
     });
   }
 

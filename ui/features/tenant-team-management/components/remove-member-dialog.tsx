@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@enterprise/ui/components/dialog";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { removeMemberAction } from "@/features/tenant-team-management/actions";
 
@@ -20,6 +21,7 @@ interface RemoveMemberDialogProps {
 }
 
 export function RemoveMemberDialog({ memberId, memberName }: RemoveMemberDialogProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +38,7 @@ export function RemoveMemberDialog({ memberId, memberName }: RemoveMemberDialogP
       }
 
       setOpen(false);
+      router.refresh();
     });
   }
 
