@@ -1,4 +1,4 @@
-import { acceptTenantInvitation } from "@enterprise/core";
+import { acceptTenantInvitation } from "@enterprise/core/services";
 import { getAdminClient } from "@enterprise/core/supabase/admin";
 import Link from "next/link";
 

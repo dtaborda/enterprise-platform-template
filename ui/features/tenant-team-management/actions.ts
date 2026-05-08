@@ -19,7 +19,7 @@ import {
   removeTenantMember,
   resendTenantInvitation,
   revokeTenantInvitation,
-} from "@enterprise/core";
+} from "@enterprise/core/services";
 import { getAdminClient } from "@enterprise/core/supabase/admin";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { getAppUrl } from "@enterprise/core/utils/env";
