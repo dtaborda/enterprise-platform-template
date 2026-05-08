@@ -293,27 +293,27 @@ FROM (
     (
       'f1b2c3d4-e5f6-7890-abcd-ef1234567891'::uuid,
       'pending@enterprise.dev',
-      'member'::text,
+      'member'::public.user_role,
       'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-      'pending'::text,
+      'pending'::public.invitation_status,
       NULL::uuid,
       NOW() + INTERVAL '72 hours'
     ),
     (
       'f1b2c3d4-e5f6-7890-abcd-ef1234567892'::uuid,
       'accepted@enterprise.dev',
-      'admin'::text,
+      'admin'::public.user_role,
       'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3',
-      'accepted'::text,
+      'accepted'::public.invitation_status,
       'b1b2c3d4-e5f6-7890-abcd-ef1234567890',
       NOW() + INTERVAL '24 hours'
     ),
     (
       'f1b2c3d4-e5f6-7890-abcd-ef1234567893'::uuid,
       'expired@enterprise.dev',
-      'guest'::text,
+      'guest'::public.user_role,
       'b94d27b9934d3e08a52e52d7da7dabfac484efe04294e576f6ae8f79c2e06a6a',
-      'pending'::text,
+      'pending'::public.invitation_status,
       NULL::uuid,
       NOW() - INTERVAL '48 hours'
     )
