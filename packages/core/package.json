@@ -15,7 +15,12 @@
     "./supabase/storage-paths": "./src/supabase/storage-paths.ts",
     "./utils/env": "./src/utils/env.ts",
     "./services": "./src/services/index.ts",
-    "./services/auth-service": "./src/services/auth-service.ts"
+    "./services/auth-service": "./src/services/auth-service.ts",
+    "./services/resource-service": "./src/services/resource-service.ts",
+    "./services/tenant-team-service": "./src/services/tenant-team-service.ts",
+    "./services/ports/invitation-email-port": "./src/services/ports/invitation-email-port.ts",
+    "./services/adapters/console-invitation-email-adapter": "./src/services/adapters/console-invitation-email-adapter.ts",
+    "./services/adapters/resend-invitation-email-adapter": "./src/services/adapters/resend-invitation-email-adapter.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
