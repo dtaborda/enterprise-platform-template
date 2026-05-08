@@ -168,8 +168,9 @@ export const profiles = pgTable("profiles", {
 3. **Timestamps**: Every table has `createdAt` and `updatedAt` with timezone
 4. **Column naming**: snake_case for DB columns, camelCase for TypeScript fields
 5. **RLS required**: Every tenant-scoped table MUST have RLS policies and call `.enableRLS()`
-6. **Type exports**: Export `$inferSelect` and `$inferInsert` for each table
-7. **Domain files**: One schema file per domain — don't put everything in `platform.ts`
+6. **Mutation parity**: If a feature supports delete/remove in the service or UI, the underlying tenant-scoped table MUST define a matching `DELETE` RLS policy. Do not assume `SELECT`/`UPDATE` policies are enough.
+7. **Type exports**: Export `$inferSelect` and `$inferInsert` for each table
+8. **Domain files**: One schema file per domain — don't put everything in `platform.ts`
 
 ---
 

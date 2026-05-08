@@ -112,6 +112,12 @@ export const profiles = pgTable(
       using: sql`(${tenantClaimMatchesColumn} AND ${adminRoleClaim})`,
       withCheck: sql`(${tenantClaimMatchesColumn} AND ${adminRoleClaim})`,
     }),
+    pgPolicy("profiles_delete", {
+      as: "permissive",
+      for: "delete",
+      to: authenticatedRole,
+      using: sql`(${tenantClaimMatchesColumn} AND ${adminRoleClaim})`,
+    }),
   ],
 ).enableRLS();
 

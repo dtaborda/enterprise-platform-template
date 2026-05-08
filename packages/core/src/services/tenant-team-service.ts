@@ -549,14 +549,24 @@ export async function removeTenantMember(
   }
 
   // Delete profile
-  const { error: deleteError } = await client
+  const { data: deletedProfile, error: deleteError } = await client
     .from("profiles")
     .delete()
     .eq("id", targetUserId)
-    .eq("tenant_id", tenantId);
+    .eq("tenant_id", tenantId)
+    .select("id")
+    .maybeSingle();
 
   if (deleteError) {
     return { success: false, error: deleteError.message, code: "MEMBER_REMOVE_FAILED" };
+  }
+
+  if (!deletedProfile) {
+    return {
+      success: false,
+      error: "Member could not be removed",
+      code: "MEMBER_REMOVE_FAILED",
+    };
   }
 
   // NOTE: supabase-js does not support revoking ANOTHER user's sessions via
