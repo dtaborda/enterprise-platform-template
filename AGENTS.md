@@ -113,6 +113,7 @@ Use these skills for detailed patterns on-demand. The runtime resolves them auto
 | `enterprise-commit` | Conventional commits with project scopes |
 | `enterprise-docs` | Documentation style guide and writing standards |
 | `enterprise-pr` | PR creation workflow and template |
+| `feature-readiness` | Feature traceability readiness — audit events, Sentry, seed data, E2E, adapters |
 | `form-validation` | Form validation patterns — useActionState, ActionResult, inline errors, accessibility |
 | `skill-creator` | Create new AI agent skills |
 | `skill-sync` | Sync skill metadata to AGENTS.md tables |
@@ -129,7 +130,6 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 | Action | Skill |
 |--------|-------|
-| Adding form validation or error handling | `form-validation` |
 | Adding developer guides | `enterprise-docs` |
 | Adding error tracking to Server Actions | `sentry` |
 | After creating/modifying a skill | `skill-sync` |
@@ -138,6 +138,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Configuring RLS at client level | `supabase` |
 | Configuring database connections | `supabase-postgres-best-practices` |
 | Creating MDX pages | `enterprise-docs` |
+| Creating SDD proposals for features | `feature-readiness` |
 | Creating a git commit | `enterprise-commit` |
 | Creating a pull request | `enterprise-pr` |
 | Creating new skills | `skill-creator` |
@@ -146,8 +147,10 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Optimizing Postgres queries | `supabase-postgres-best-practices` |
 | Preparing changes for review | `enterprise-pr` |
 | Regenerate AGENTS.md Auto-invoke tables (sync.sh) | `skill-sync` |
+| Reviewing a feature PRD or RFC | `feature-readiness` |
 | Reviewing schema performance | `supabase-postgres-best-practices` |
 | Setting up Supabase SSR cookies | `supabase` |
+| Starting feature implementation | `feature-readiness` |
 | Troubleshoot why a skill is missing from AGENTS.md auto-invoke | `skill-sync` |
 | Using Zustand stores | `zustand-5` |
 | Using captureException or captureActionError | `sentry` |
@@ -158,6 +161,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Writing Playwright E2E tests | `playwright` |
 | Writing React components | `react-19` |
 | Writing TypeScript types/interfaces | `typescript` |
+| Writing a feature PRD or RFC | `feature-readiness` |
 | Writing documentation | `enterprise-docs` |
 
 ## Language Policy (ENFORCED)
@@ -203,6 +207,7 @@ See `ui/AGENTS.md` for E2E test rules and conventions.
 - [ ] CUD operations use `AuditService.log()` or an equivalent audit abstraction
 - [ ] App URL uses `getAppUrl()`, NOT direct env var access
 - [ ] New skills are committed to `skills/` (verify with `pnpm skills:check`)
+- [ ] Features with mutations include traceability section in PRD/RFC (see `feature-readiness` skill)
 
 ## Commit & PR Conventions
 

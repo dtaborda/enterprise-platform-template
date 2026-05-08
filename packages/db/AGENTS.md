@@ -11,15 +11,21 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Action | Skill |
 |--------|-------|
 | Adding RLS policies | `drizzle` |
+| Committing changes | `enterprise-commit` |
 | Configuring database connections | `supabase-postgres-best-practices` |
+| Creating SDD proposals for features | `feature-readiness` |
+| Creating a git commit | `enterprise-commit` |
 | Creating database relations | `drizzle` |
 | Creating database schemas | `drizzle` |
 | Defining auth-related database schemas or RLS policies | `drizzle` |
 | Defining table columns and types | `drizzle` |
 | Implementing pgvector/embeddings | `drizzle` |
 | Optimizing Postgres queries | `supabase-postgres-best-practices` |
+| Reviewing a feature PRD or RFC | `feature-readiness` |
 | Reviewing schema performance | `supabase-postgres-best-practices` |
 | Running migrations | `drizzle` |
+| Starting feature implementation | `feature-readiness` |
+| Writing a feature PRD or RFC | `feature-readiness` |
 | Writing database queries | `drizzle` |
 
 ---

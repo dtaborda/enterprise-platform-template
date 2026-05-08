@@ -22,6 +22,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Composing layout structure | `design-rules` |
 | Composing shadcn components for a screen | `design-components` |
 | Configuring RLS at client level | `supabase` |
+| Creating SDD proposals for features | `feature-readiness` |
 | Creating a git commit | `enterprise-commit` |
 | Creating cards, panels, or containers | `design-rules` |
 | Creating database relations | `drizzle` |
@@ -34,9 +35,11 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Implementing auth flows | `supabase` |
 | Implementing pgvector/embeddings | `drizzle` |
 | Modifying globals.css or @theme tokens | `design-tokens` |
+| Reviewing a feature PRD or RFC | `feature-readiness` |
 | Running migrations | `drizzle` |
 | Setting typography font families or weights | `design-tokens` |
 | Setting up Supabase SSR cookies | `supabase` |
+| Starting feature implementation | `feature-readiness` |
 | Styling component visual hierarchy | `design-rules` |
 | Using Zustand stores | `zustand-5` |
 | Using captureException or captureActionError | `sentry` |
@@ -47,6 +50,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Writing Playwright E2E tests | `playwright` |
 | Writing React components | `react-19` |
 | Writing TypeScript types/interfaces | `typescript` |
+| Writing a feature PRD or RFC | `feature-readiness` |
 | Writing database queries | `drizzle` |
 
 ---

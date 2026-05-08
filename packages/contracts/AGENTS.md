@@ -10,12 +10,12 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 | Action | Skill |
 |--------|-------|
-| Writing Zod validation schemas | `typescript` |
-| TypeScript types, DTO exports, strict-mode fixes | `typescript` |
-| Making permission or role-based decisions | `typescript` |
-| Defining enums or const objects | `typescript` |
-
-Project uses **Zod 3.24**. A `zod-4` skill exists for future migration reference. Current validation patterns follow the rules below.
+| Committing changes | `enterprise-commit` |
+| Creating SDD proposals for features | `feature-readiness` |
+| Creating a git commit | `enterprise-commit` |
+| Reviewing a feature PRD or RFC | `feature-readiness` |
+| Starting feature implementation | `feature-readiness` |
+| Writing a feature PRD or RFC | `feature-readiness` |
 
 ---
 

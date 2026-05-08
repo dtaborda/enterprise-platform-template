@@ -11,8 +11,11 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Action | Skill |
 |--------|-------|
 | Adding RLS policies | `drizzle` |
+| Committing changes | `enterprise-commit` |
 | Configuring RLS at client level | `supabase` |
 | Configuring database connections | `supabase-postgres-best-practices` |
+| Creating SDD proposals for features | `feature-readiness` |
+| Creating a git commit | `enterprise-commit` |
 | Creating database relations | `drizzle` |
 | Creating database schemas | `drizzle` |
 | Defining auth-related database schemas or RLS policies | `drizzle` |
@@ -20,11 +23,14 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Implementing auth flows | `supabase` |
 | Implementing pgvector/embeddings | `drizzle` |
 | Optimizing Postgres queries | `supabase-postgres-best-practices` |
+| Reviewing a feature PRD or RFC | `feature-readiness` |
 | Reviewing schema performance | `supabase-postgres-best-practices` |
 | Running migrations | `drizzle` |
 | Setting up Supabase SSR cookies | `supabase` |
+| Starting feature implementation | `feature-readiness` |
 | Using getUser or getSession | `supabase` |
 | Working with Supabase clients | `supabase` |
+| Writing a feature PRD or RFC | `feature-readiness` |
 | Writing database queries | `drizzle` |
 
 ---
