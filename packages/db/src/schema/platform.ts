@@ -185,6 +185,69 @@ export const auditLog = pgTable(
 ).enableRLS();
 
 // ============================================================================
+// Tenant Invitations Table
+// ============================================================================
+
+/** Invitation status enum */
+export const invitationStatusEnum = pgEnum("invitation_status", [
+  "pending",
+  "accepted",
+  "revoked",
+  "expired",
+]);
+
+/** Tenant invitations - tracks pending and processed team invitations */
+export const tenantInvitations = pgTable(
+  "tenant_invitations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: userRoleEnum("role").notNull().default("member"),
+    tokenHash: text("token_hash").notNull(),
+    status: invitationStatusEnum("status").notNull().default("pending"),
+    invitedBy: uuid("invited_by").notNull(),
+    acceptedBy: uuid("accepted_by"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("invitations_tenant_idx").on(table.tenantId),
+    index("invitations_email_idx").on(table.email),
+    index("invitations_token_hash_idx").on(table.tokenHash),
+    index("invitations_status_idx").on(table.status),
+    pgPolicy("invitations_select", {
+      as: "permissive",
+      for: "select",
+      to: authenticatedRole,
+      using: sql`(${tenantClaimMatchesColumn} AND ${adminRoleClaim})`,
+    }),
+    pgPolicy("invitations_insert", {
+      as: "permissive",
+      for: "insert",
+      to: authenticatedRole,
+      withCheck: sql`(${tenantClaimMatchesColumn} AND ${adminRoleClaim})`,
+    }),
+    pgPolicy("invitations_update", {
+      as: "permissive",
+      for: "update",
+      to: authenticatedRole,
+      using: sql`(${tenantClaimMatchesColumn} AND ${adminRoleClaim})`,
+      withCheck: sql`(${tenantClaimMatchesColumn} AND ${adminRoleClaim})`,
+    }),
+    pgPolicy("invitations_delete", {
+      as: "permissive",
+      for: "delete",
+      to: serviceRole,
+      using: sql`true`,
+    }),
+  ],
+).enableRLS();
+
+// ============================================================================
 // Type Exports (for use in services)
 // ============================================================================
 
@@ -196,3 +259,5 @@ export type UserRole = typeof userRoles.$inferSelect;
 export type NewUserRole = typeof userRoles.$inferInsert;
 export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type NewAuditLogEntry = typeof auditLog.$inferInsert;
+export type TenantInvitation = typeof tenantInvitations.$inferSelect;
+export type NewTenantInvitation = typeof tenantInvitations.$inferInsert;
