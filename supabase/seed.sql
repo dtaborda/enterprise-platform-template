@@ -256,6 +256,69 @@ WHERE p.id IN (
   'e1b2c3d4-e5f6-7890-abcd-ef1234567890'
 );
 
+-- Sample tenant invitations for E2E testing (pending, accepted, expired).
+-- Uses admin tenant's tenant_id and admin user as invited_by.
+WITH admin_tenant AS (
+  SELECT tenant_id
+  FROM public.profiles
+  WHERE id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+)
+INSERT INTO public.tenant_invitations (
+  id,
+  tenant_id,
+  email,
+  role,
+  token_hash,
+  status,
+  invited_by,
+  accepted_by,
+  expires_at,
+  created_at,
+  updated_at
+)
+SELECT
+  id,
+  (SELECT tenant_id FROM admin_tenant),
+  email,
+  role,
+  token_hash,
+  status,
+  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  accepted_by,
+  expires_at,
+  NOW(),
+  NOW()
+FROM (
+  VALUES
+    (
+      'f1b2c3d4-e5f6-7890-abcd-ef1234567891'::uuid,
+      'pending@enterprise.dev',
+      'member'::public.user_role,
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      'pending'::public.invitation_status,
+      NULL::uuid,
+      NOW() + INTERVAL '72 hours'
+    ),
+    (
+      'f1b2c3d4-e5f6-7890-abcd-ef1234567892'::uuid,
+      'accepted@enterprise.dev',
+      'admin'::public.user_role,
+      'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3',
+      'accepted'::public.invitation_status,
+      'b1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      NOW() + INTERVAL '24 hours'
+    ),
+    (
+      'f1b2c3d4-e5f6-7890-abcd-ef1234567893'::uuid,
+      'expired@enterprise.dev',
+      'guest'::public.user_role,
+      'b94d27b9934d3e08a52e52d7da7dabfac484efe04294e576f6ae8f79c2e06a6a',
+      'pending'::public.invitation_status,
+      NULL::uuid,
+      NOW() - INTERVAL '48 hours'
+    )
+) AS inv(id, email, role, token_hash, status, accepted_by, expires_at);
+
 -- Ensure JWT claims include tenant_id + role for RLS-protected profile queries.
 WITH seeded_roles AS (
   SELECT *
