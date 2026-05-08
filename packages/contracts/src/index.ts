@@ -6,6 +6,7 @@ export { z } from "zod";
 // DTOs
 export * from "./dto/platform";
 export * from "./dto/resources";
+export * from "./dto/tenant-team";
 export type {
   InvitationMetadata,
   PaginationParams,
