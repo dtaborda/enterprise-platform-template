@@ -38,23 +38,34 @@ async function writeAuditLog(
   client: SupabaseClient,
   tenantId: string,
   userId: string,
-  action: string,
+  event: string,
   resourceId?: string,
   metadata?: Record<string, unknown>,
 ): Promise<void> {
+  const action =
+    event === "member.invited" || event === "member.joined"
+      ? "create"
+      : event === "member.role_changed" ||
+          event === "invitation.revoked" ||
+          event === "invitation.resent"
+        ? "update"
+        : event === "member.removed"
+          ? "delete"
+          : "custom";
+
   const { error } = await client.from("audit_log").insert({
     tenant_id: tenantId,
     user_id: userId,
     action,
     resource: "team",
     resource_id: resourceId ?? null,
-    metadata: metadata ? JSON.stringify(metadata) : null,
+    metadata: JSON.stringify({ event, ...(metadata ?? {}) }),
     ip_address: null,
     user_agent: null,
   });
 
   if (error) {
-    console.error(`[audit_log] Failed to write [${action}]:`, error);
+    console.error(`[audit_log] Failed to write [${event} -> ${action}]:`, error);
   }
 }
 

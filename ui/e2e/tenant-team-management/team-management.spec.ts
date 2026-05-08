@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { login } from "../helpers/auth";
 import { deleteRows, seedRows, supabaseRequest } from "../helpers/supabase-rest";
@@ -150,7 +151,7 @@ test.describe("Team Management", () => {
       // Seed a user profile to remove (use service role via REST helper)
       const userRows = await seedRows("profiles", [
         {
-          id: `00000000-0000-4000-8000-${Date.now().toString().padEnd(12, "0")}`,
+          id: randomUUID(),
           tenant_id: adminContext.tenantId,
           email: removeEmail,
           role: "member",

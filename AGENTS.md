@@ -173,6 +173,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 - **Naming**: kebab-case for files, PascalCase for components, camelCase for functions/variables
 - **Exports**: Named exports only. No default exports except Next.js pages/layouts
 - **Imports**: Use workspace aliases (`@enterprise/ui`, `@enterprise/core`, `@enterprise/contracts`), path aliases (`@/` in ui)
+- **Server Action imports**: In `"use server"` files, ALWAYS use subpath imports (`from "@enterprise/core/services"`) — NEVER the barrel (`from "@enterprise/core"`). The `next-flight-action-entry-loader` cannot resolve internal `.js` re-exports from the barrel in CI.
 - **Actions**: Return `ActionResult<T>` type from `@enterprise/contracts`
 - **Schemas**: Suffix with `Schema` (e.g., `createResourceSchema`). Colocate in `@enterprise/contracts`
 - **DB Schema**: Drizzle tables in `@enterprise/db`, types exported via `$inferSelect`/`$inferInsert`
