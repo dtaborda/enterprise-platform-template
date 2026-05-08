@@ -12,20 +12,26 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 |--------|-------|
 | Adding hover states or transitions | `design-rules` |
 | Building dashboard cards or panels | `design-components` |
+| Building forms with validation | `form-validation` |
 | Building mobile-first UI | `design-components` |
 | Choosing between border and tonal shift | `design-rules` |
 | Choosing colors for components | `design-tokens` |
 | Committing changes | `enterprise-commit` |
 | Composing layout structure | `design-rules` |
 | Composing shadcn components for a screen | `design-components` |
+| Creating Server Actions that validate input | `form-validation` |
 | Creating a git commit | `enterprise-commit` |
 | Creating cards, panels, or containers | `design-rules` |
 | Creating feature components | `design-components` |
 | Creating navigation or layout components | `design-components` |
 | Defining spacing or border radius values | `design-tokens` |
+| Displaying inline validation errors | `form-validation` |
+| Handling form errors in UI | `form-validation` |
 | Modifying globals.css or @theme tokens | `design-tokens` |
 | Setting typography font families or weights | `design-tokens` |
 | Styling component visual hierarchy | `design-rules` |
+| Using useActionState | `form-validation` |
+| Working with ActionResult error details | `form-validation` |
 
 ---
 

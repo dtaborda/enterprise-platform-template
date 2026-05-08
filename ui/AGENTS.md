@@ -15,6 +15,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Adding hover states or transitions | `design-rules` |
 | App Router / Server Actions | `nextjs-15` |
 | Building dashboard cards or panels | `design-components` |
+| Building forms with validation | `form-validation` |
 | Building mobile-first UI | `design-components` |
 | Choosing between border and tonal shift | `design-rules` |
 | Choosing colors for components | `design-tokens` |
@@ -23,6 +24,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Composing shadcn components for a screen | `design-components` |
 | Configuring RLS at client level | `supabase` |
 | Creating SDD proposals for features | `feature-readiness` |
+| Creating Server Actions that validate input | `form-validation` |
 | Creating a git commit | `enterprise-commit` |
 | Creating cards, panels, or containers | `design-rules` |
 | Creating database relations | `drizzle` |
@@ -32,6 +34,8 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Defining auth-related database schemas or RLS policies | `drizzle` |
 | Defining spacing or border radius values | `design-tokens` |
 | Defining table columns and types | `drizzle` |
+| Displaying inline validation errors | `form-validation` |
+| Handling form errors in UI | `form-validation` |
 | Implementing auth flows | `supabase` |
 | Implementing pgvector/embeddings | `drizzle` |
 | Modifying globals.css or @theme tokens | `design-tokens` |
@@ -44,6 +48,8 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Using Zustand stores | `zustand-5` |
 | Using captureException or captureActionError | `sentry` |
 | Using getUser or getSession | `supabase` |
+| Using useActionState | `form-validation` |
+| Working with ActionResult error details | `form-validation` |
 | Working with Supabase clients | `supabase` |
 | Working with Tailwind classes | `tailwind-4` |
 | Working with error boundaries | `sentry` |

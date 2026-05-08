@@ -11,11 +11,9 @@ metadata:
   author: gentleman-programming
   version: "1.0"
   scope:
-    - "ui/features/**/components/*form*"
-    - "ui/features/**/actions.ts"
-    - "packages/ui/src/components/form-*"
-    - "packages/ui/src/hooks/use-form-*"
-    - "packages/contracts/src/types/form.ts"
+    - ui
+    - packages/ui
+    - packages/contracts
   auto_invoke:
     - action: "Building forms with validation"
     - action: "Creating Server Actions that validate input"
