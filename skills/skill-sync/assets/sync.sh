@@ -87,6 +87,7 @@ extract_metadata() {
                 if (line ~ /^[[:space:]]*-[[:space:]]*/) {
                     sub(/^[[:space:]]*-[[:space:]]*/, "", line)
                     line = trim(line)
+                    sub(/^action:[[:space:]]*/, "", line)
                     gsub(/^["\047]|["\047]$/, "", line)
                     if (line != "") {
                         if (out == "") out = line
@@ -115,7 +116,7 @@ while IFS= read -r skill_file; do
     auto_invoke_raw=$(extract_metadata "$skill_file" "auto_invoke")
     auto_invoke=${auto_invoke_raw//|/;;}
     [ -z "$scope_raw" ] || [ -z "$auto_invoke" ] && continue
-    IFS=', ' read -ra scopes <<< "$scope_raw"
+    IFS=',| ' read -ra scopes <<< "$scope_raw"
     for scope in "${scopes[@]}"; do
         scope=$(echo "$scope" | tr -d '[:space:]')
         [ -z "$scope" ] && continue
