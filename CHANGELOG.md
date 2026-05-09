@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/dtaborda/enterprise-platform-template/compare/v1.2.0...v1.3.0) (2026-05-09)
+
+
+### ✨ Features
+
+* add tenant team contracts, DB schema, and migration ([#71](https://github.com/dtaborda/enterprise-platform-template/issues/71)) ([1f01fa6](https://github.com/dtaborda/enterprise-platform-template/commit/1f01fa69956333cd6fa93a014ef8d5246ca3cbc4))
+* **core:** add tenant team service with email adapters ([#72](https://github.com/dtaborda/enterprise-platform-template/issues/72)) ([7d99668](https://github.com/dtaborda/enterprise-platform-template/commit/7d996683e100c02253fec069dcaafd9490268cab))
+* **ui:** add tenant team management pages and E2E tests ([#74](https://github.com/dtaborda/enterprise-platform-template/issues/74)) ([cf095b7](https://github.com/dtaborda/enterprise-platform-template/commit/cf095b76a6288e8cd5130f501f265bf5884bd966))
+
+
+### 🐛 Bug Fixes
+
+* **skills:** resolve scope parsing and action prefix in skill-sync ([#69](https://github.com/dtaborda/enterprise-platform-template/issues/69)) ([d6f7a87](https://github.com/dtaborda/enterprise-platform-template/commit/d6f7a87fc083b215cec9ff07a58b2ea33a36ed06))
+
 ## [1.2.0](https://github.com/dtaborda/enterprise-platform-template/compare/v1.1.2...v1.2.0) (2026-05-07)
 
 
