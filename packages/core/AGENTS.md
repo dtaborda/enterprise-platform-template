@@ -43,6 +43,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 - NEVER: Use `getSession()` for auth checks (trusts JWT without validation)
 - NEVER: Expose `SUPABASE_SERVICE_ROLE_KEY` in any client-accessible code
 - NEVER: Use the admin client in code paths reachable from the browser
+- NEVER: Assume `auth.admin.signOut(userId)` revokes ANOTHER user's sessions — verify the admin API contract first. Cross-user session revocation needs a dedicated, documented admin flow.
 
 ### Service Layer
 

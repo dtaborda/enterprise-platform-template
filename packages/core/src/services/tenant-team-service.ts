@@ -38,23 +38,34 @@ async function writeAuditLog(
   client: SupabaseClient,
   tenantId: string,
   userId: string,
-  action: string,
+  event: string,
   resourceId?: string,
   metadata?: Record<string, unknown>,
 ): Promise<void> {
+  const action =
+    event === "member.invited" || event === "member.joined"
+      ? "create"
+      : event === "member.role_changed" ||
+          event === "invitation.revoked" ||
+          event === "invitation.resent"
+        ? "update"
+        : event === "member.removed"
+          ? "delete"
+          : "custom";
+
   const { error } = await client.from("audit_log").insert({
     tenant_id: tenantId,
     user_id: userId,
     action,
     resource: "team",
     resource_id: resourceId ?? null,
-    metadata: metadata ? JSON.stringify(metadata) : null,
+    metadata: JSON.stringify({ event, ...(metadata ?? {}) }),
     ip_address: null,
     user_agent: null,
   });
 
   if (error) {
-    console.error(`[audit_log] Failed to write [${action}]:`, error);
+    console.error(`[audit_log] Failed to write [${event} -> ${action}]:`, error);
   }
 }
 
@@ -538,21 +549,32 @@ export async function removeTenantMember(
   }
 
   // Delete profile
-  const { error: deleteError } = await client
+  const { data: deletedProfile, error: deleteError } = await client
     .from("profiles")
     .delete()
     .eq("id", targetUserId)
-    .eq("tenant_id", tenantId);
+    .eq("tenant_id", tenantId)
+    .select("id")
+    .maybeSingle();
 
   if (deleteError) {
     return { success: false, error: deleteError.message, code: "MEMBER_REMOVE_FAILED" };
   }
 
-  // Revoke active sessions via admin client (non-fatal)
-  const { error: signOutError } = await adminClient.auth.admin.signOut(targetUserId);
-  if (signOutError) {
-    console.error("[removeTenantMember] Failed to revoke sessions:", signOutError);
+  if (!deletedProfile) {
+    return {
+      success: false,
+      error: "Member could not be removed",
+      code: "MEMBER_REMOVE_FAILED",
+    };
   }
+
+  // NOTE: supabase-js does not support revoking ANOTHER user's sessions via
+  // auth.admin.signOut(userId). That API signs out the CURRENT session scope,
+  // and passing a user ID yields bad_jwt in CI/runtime. If cross-user session
+  // revocation becomes a hard requirement, implement it through a verified admin
+  // flow instead of calling signOut() with a target user ID.
+  void adminClient;
 
   // Audit
   void writeAuditLog(client, tenantId, requesterId, "member.removed", targetUserId, {
