@@ -685,7 +685,9 @@ describe("removeTenantMember", () => {
               eq: vi.fn(() => ({
                 eq: vi.fn(() => ({
                   select: vi.fn(() => ({
-                    maybeSingle: vi.fn().mockResolvedValue({ data: { id: TARGET_ID }, error: null }),
+                    maybeSingle: vi
+                      .fn()
+                      .mockResolvedValue({ data: { id: TARGET_ID }, error: null }),
                   })),
                 })),
               })),
