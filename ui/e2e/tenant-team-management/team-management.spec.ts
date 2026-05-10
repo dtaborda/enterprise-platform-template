@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { login } from "../helpers/auth";
+import { ROUTES } from "../helpers/routes";
 import { deleteRows, seedRows, supabaseRequest } from "../helpers/supabase-rest";
 import { TeamManagementPage } from "./team-management-page";
 
@@ -55,9 +56,9 @@ async function teardownTestMembers(): Promise<void> {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 test.describe("Team Management", () => {
-  test("unauthenticated request to /dashboard/team redirects to sign-in", async ({ page }) => {
+  test(`unauthenticated request to ${ROUTES.team} redirects to sign-in`, async ({ page }) => {
     const teamPage = new TeamManagementPage(page);
-    await page.goto("/dashboard/team");
+    await page.goto(ROUTES.team);
     await teamPage.expectRedirectedToSignIn();
   });
 

@@ -15,6 +15,7 @@ import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteResourceAction } from "@/features/resources/actions";
+import { ROUTES } from "@/lib/routes";
 
 interface DeleteResourceButtonProps {
   id: string;
@@ -38,7 +39,7 @@ export function DeleteResourceButton({ id }: DeleteResourceButtonProps) {
       }
 
       setOpen(false);
-      router.push("/dashboard/resources");
+      router.push(ROUTES.resources.root);
     });
   }
 

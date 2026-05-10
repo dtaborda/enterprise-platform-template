@@ -48,19 +48,22 @@ export interface UserRoleServiceData {
   role: UserRole;
 }
 
+// Sync with: ui/lib/routes.ts → ROUTES.dashboard
+const DASHBOARD_HOME = "/dashboard";
+
 const ROLE_HOME_PATHS: Record<UserRole, string> = {
-  owner: "/dashboard",
-  admin: "/dashboard",
-  member: "/dashboard",
+  owner: DASHBOARD_HOME,
+  admin: DASHBOARD_HOME,
+  member: DASHBOARD_HOME,
   guest: "/",
 };
 
 export function resolveRoleRedirectPath(role: UserRole | null | undefined): string {
   if (!role) {
-    return "/dashboard";
+    return DASHBOARD_HOME;
   }
 
-  return ROLE_HOME_PATHS[role] ?? "/dashboard";
+  return ROLE_HOME_PATHS[role] ?? DASHBOARD_HOME;
 }
 
 export async function getUserRoleService(

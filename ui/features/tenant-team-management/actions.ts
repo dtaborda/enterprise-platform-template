@@ -24,9 +24,8 @@ import { getAdminClient } from "@enterprise/core/supabase/admin";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { getAppUrl } from "@enterprise/core/utils/env";
 import { revalidatePath } from "next/cache";
+import { ROUTES } from "@/lib/routes";
 import { captureActionError } from "@/lib/sentry";
-
-const TEAM_PATH = "/dashboard/team";
 
 async function getAuthContext(supabase: Awaited<ReturnType<typeof getServerClient>>) {
   const {
@@ -94,7 +93,7 @@ export async function inviteMemberAction(
       };
     }
 
-    revalidatePath(TEAM_PATH);
+    revalidatePath(ROUTES.team);
 
     return { success: true, data: result.data };
   } catch (err) {
@@ -162,7 +161,7 @@ export async function changeMemberRoleAction(
       };
     }
 
-    revalidatePath(TEAM_PATH);
+    revalidatePath(ROUTES.team);
 
     return { success: true, data: result.data };
   } catch (err) {
@@ -230,7 +229,7 @@ export async function removeMemberAction(
       };
     }
 
-    revalidatePath(TEAM_PATH);
+    revalidatePath(ROUTES.team);
 
     return { success: true, data: null };
   } catch (err) {
@@ -291,7 +290,7 @@ export async function cancelInvitationAction(
       };
     }
 
-    revalidatePath(TEAM_PATH);
+    revalidatePath(ROUTES.team);
 
     return { success: true, data: null };
   } catch (err) {
@@ -361,7 +360,7 @@ export async function resendInvitationAction(
       };
     }
 
-    revalidatePath(TEAM_PATH);
+    revalidatePath(ROUTES.team);
 
     return { success: true, data: result.data };
   } catch (err) {

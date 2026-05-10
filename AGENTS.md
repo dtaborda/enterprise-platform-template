@@ -211,6 +211,15 @@ See `ui/AGENTS.md` for E2E test rules and conventions.
 - [ ] New skills are committed to `skills/` (verify with `pnpm skills:check`)
 - [ ] Features with mutations include traceability section in PRD/RFC (see `feature-readiness` skill)
 
+## Route Grouping Policy
+
+1. Every new feature MUST have its own top-level URL segment (e.g., `/billing`, `/reports`).
+2. Features MUST be placed under `ui/app/(protected)/` — never under `(protected)/dashboard/`.
+3. `/dashboard` is the home page ONLY — no feature pages are nested under it.
+4. All path strings MUST be added to `ui/lib/routes.ts` (ROUTES object) — never hardcoded.
+5. E2E tests MUST import paths from `ui/e2e/helpers/routes.ts`.
+6. `packages/core` services MUST NOT import from `ui/lib/routes.ts`; they keep a local constant with a sync comment (`// Sync with: ui/lib/routes.ts → ROUTES.dashboard`).
+
 ## Commit & PR Conventions
 
 Use conventional commits: `type(scope): description`. See the `enterprise-commit` skill for scopes, decision trees, and examples.

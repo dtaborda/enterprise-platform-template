@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@enterprise/ui/components/select";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ROUTES } from "@/lib/routes";
 
 const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
   product: "Product",
@@ -46,7 +47,7 @@ export function ResourceFilters() {
 
     params.delete("offset");
 
-    router.push(`/dashboard/resources?${params.toString()}`);
+    router.push(`${ROUTES.resources.root}?${params.toString()}`);
   }
 
   const currentType = searchParams.get("type") ?? "";

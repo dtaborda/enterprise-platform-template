@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { ROUTES } from "../helpers/routes";
 import { AuthPage } from "./auth-page";
 
 const OWNER_EMAIL = "admin@enterprise.dev";
@@ -40,12 +41,12 @@ test.describe("Auth flows", () => {
     await expect(page.getByRole("alert").first()).toBeVisible();
   });
 
-  test("sign-in with redirectTo=/dashboard/settings lands on /dashboard/settings", async ({
+  test(`sign-in with redirectTo=${ROUTES.settings} lands on ${ROUTES.settings}`, async ({
     page,
   }) => {
     const authPage = new AuthPage(page);
 
-    await authPage.gotoSignIn("/dashboard/settings");
+    await authPage.gotoSignIn(ROUTES.settings);
     await authPage.signIn(OWNER_EMAIL, OWNER_PASSWORD);
 
     await authPage.expectOnDashboardSettings();
@@ -134,11 +135,13 @@ test.describe("Auth flows", () => {
     await authPage.expectSettingsCards();
   });
 
-  test("unauthenticated access to protected route /dashboard/settings redirects to /sign-in?redirectTo=/dashboard/settings", async ({
+  test(`unauthenticated access to protected route ${ROUTES.settings} redirects to /sign-in?redirectTo=${ROUTES.settings}`, async ({
     page,
   }) => {
-    await page.goto("/dashboard/settings");
+    await page.goto(ROUTES.settings);
 
-    await expect(page).toHaveURL(/\/sign-in\?redirectTo=%2Fdashboard%2Fsettings/);
+    await expect(page).toHaveURL(
+      new RegExp(`/sign-in\\?redirectTo=${encodeURIComponent(ROUTES.settings)}`),
+    );
   });
 });

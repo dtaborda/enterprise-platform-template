@@ -1,11 +1,12 @@
 import { expect, type Page } from "@playwright/test";
+import { ROUTES } from "../helpers/routes";
 
 export class TeamManagementPage {
   constructor(private readonly page: Page) {}
 
   async goto(): Promise<void> {
-    await this.page.goto("/dashboard/team");
-    await this.page.waitForURL(/\/dashboard\/team/);
+    await this.page.goto(ROUTES.team);
+    await this.page.waitForURL(new RegExp(ROUTES.team));
   }
 
   // ─── Invite Member ─────────────────────────────────────────────────────────

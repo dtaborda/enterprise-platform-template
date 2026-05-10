@@ -6,6 +6,7 @@ import { createMiddlewareClient, updateSession } from "@enterprise/core/supabase
 import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_ROUTES = [
+  "/",
   "/sign-in",
   "/sign-up",
   "/forgot-password",
@@ -14,7 +15,6 @@ const PUBLIC_ROUTES = [
   "/auth/callback",
 ];
 const AUTH_COMPLETION_ROUTES = ["/auth/callback", "/reset-password"];
-const PROTECTED_ROUTES = ["/dashboard"];
 
 const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const supabaseAnonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
@@ -39,9 +39,6 @@ export async function middleware(request: NextRequest) {
   const isAuthCompletionRoute = AUTH_COMPLETION_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
-  const isProtectedRoute = PROTECTED_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`),
-  );
 
   const supabase = createMiddlewareClient(request, middlewareSupabaseConfig);
 
@@ -49,7 +46,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && isProtectedRoute) {
+  if (!user && !isPublicRoute && !isAuthCompletionRoute) {
     const signInUrl = new URL("/sign-in", request.url);
     signInUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(signInUrl);

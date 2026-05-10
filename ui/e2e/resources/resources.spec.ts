@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { login } from "../helpers/auth";
+import { ROUTES } from "../helpers/routes";
 import { ResourcesPage } from "./resources-page";
 import {
   getAdminTenantId,
@@ -9,20 +10,22 @@ import {
 } from "./resources-seed";
 
 test.describe("Resources", () => {
-  test("unauthenticated request to /dashboard/resources redirects to sign-in", async ({ page }) => {
-    const resourcesPage = new ResourcesPage(page);
-
-    await page.goto("/dashboard/resources");
-
-    await resourcesPage.expectRedirectedToSignIn();
-  });
-
-  test("unauthenticated request to /dashboard/resources/new redirects to sign-in", async ({
+  test(`unauthenticated request to ${ROUTES.resources.root} redirects to sign-in`, async ({
     page,
   }) => {
     const resourcesPage = new ResourcesPage(page);
 
-    await page.goto("/dashboard/resources/new");
+    await page.goto(ROUTES.resources.root);
+
+    await resourcesPage.expectRedirectedToSignIn();
+  });
+
+  test(`unauthenticated request to ${ROUTES.resources.new} redirects to sign-in`, async ({
+    page,
+  }) => {
+    const resourcesPage = new ResourcesPage(page);
+
+    await page.goto(ROUTES.resources.new);
 
     await resourcesPage.expectRedirectedToSignIn();
   });
@@ -109,7 +112,7 @@ test.describe("Resources", () => {
 
       await resourcesPage.expectResourceInTable(targetResource.title);
       await resourcesPage.clickViewResource(targetResource.title);
-      await expect(page).toHaveURL(/\/dashboard\/resources\/[0-9a-f-]+$/);
+      await expect(page).toHaveURL(new RegExp(`${ROUTES.resources.root}/[0-9a-f-]+$`));
       // CardTitle renders a <div>, not a semantic heading, so use getByText
       // with .first() to avoid strict mode violation (title also appears in breadcrumb).
       await expect(page.getByText(targetResource.title).first()).toBeVisible();
@@ -133,7 +136,7 @@ test.describe("Resources", () => {
 
       await resourcesPage.expectResourceInTable(resourceToEdit.title);
       await resourcesPage.clickEditResource(resourceToEdit.title);
-      await expect(page).toHaveURL(/\/dashboard\/resources\/[0-9a-f-]+\/edit/);
+      await expect(page).toHaveURL(new RegExp(`${ROUTES.resources.root}/[0-9a-f-]+/edit`));
 
       await page.getByLabel("Title").fill(editedTitle);
       await resourcesPage.submitForm();

@@ -207,7 +207,7 @@ const form = useForm({ resolver: zodResolver(createResourceSchema) });
 ```typescript
 export class FeaturePage extends BasePage {
   readonly submitBtn = this.page.getByRole("button", { name: "Submit" });
-  async goto() { await super.goto("/dashboard/feature"); }
+  async goto() { await super.goto("/feature"); }
   async submit() { await this.submitBtn.click(); }
 }
 
@@ -215,7 +215,7 @@ test("creates resource", { tag: ["@critical"] }, async ({ page }) => {
   const p = new FeaturePage(page);
   await p.goto();
   await p.submit();
-  await expect(page).toHaveURL("/dashboard/feature/success");
+  await expect(page).toHaveURL("/feature/success");
 });
 ```
 
@@ -233,6 +233,15 @@ test("creates resource", { tag: ["@critical"] }, async ({ page }) => {
 
 ---
 
+## Route Grouping Policy
+
+1. Every new feature MUST have its own top-level URL segment (e.g., `/billing`, `/reports`).
+2. Features MUST be placed under `ui/app/(protected)/` — never under `(protected)/dashboard/`.
+3. `/dashboard` is the home page ONLY — no feature pages are nested under it.
+4. All path strings MUST be added to `ui/lib/routes.ts` (ROUTES object) — never hardcoded.
+5. E2E tests MUST import paths from `ui/e2e/helpers/routes.ts`.
+6. `packages/core` services MUST NOT import from `ui/lib/routes.ts`; they keep a local constant with a sync comment (`// Sync with: ui/lib/routes.ts → ROUTES.dashboard`).
+
 ## Project Structure
 
 ```
@@ -240,7 +249,11 @@ ui/
 ├── app/
 │   ├── (auth)/              # Auth pages (login, register, forgot-password)
 │   ├── (marketing)/         # Public landing pages (SSR)
-│   └── (dashboard)/         # Authenticated app (Server Components + Client)
+│   └── (protected)/         # Authenticated app (Server Components + Client)
+│       ├── dashboard/        # Home page only (/dashboard)
+│       ├── settings/         # Settings feature (/settings)
+│       ├── team/             # Team management feature (/team)
+│       └── resources/        # Resources feature (/resources, /resources/new, etc.)
 ├── features/                # Feature modules (THE primary code location)
 │   └── {feature}/
 │       ├── actions.ts       # Server Actions (thin wrappers)
@@ -250,7 +263,10 @@ ui/
 │       └── hooks/           # Feature-specific hooks
 ├── components/              # Shared app-level components (used by 2+ features)
 ├── lib/                     # App-level utilities (Sentry helpers, shared hooks)
+│   └── routes.ts            # Centralized ROUTES constant — single source of truth for all paths
 ├── e2e/                     # Playwright E2E test suites
+│   ├── helpers/
+│   │   └── routes.ts        # Re-exports ROUTES for use in Playwright tests
 │   └── {feature}/
 │       └── {feature}.spec.ts
 ├── test-utils/              # Shared test utilities and helpers

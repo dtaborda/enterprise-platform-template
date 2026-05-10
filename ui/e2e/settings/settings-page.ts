@@ -1,11 +1,12 @@
 import { expect, type Page } from "@playwright/test";
+import { ROUTES } from "../helpers/routes";
 
 export class SettingsPage {
   constructor(private readonly page: Page) {}
 
   async gotoSettings(): Promise<void> {
-    await this.page.goto("/dashboard/settings");
-    await this.page.waitForURL(/\/dashboard\/settings(?:\?.*)?$/, { timeout: 10_000 });
+    await this.page.goto(ROUTES.settings);
+    await this.page.waitForURL(new RegExp(`${ROUTES.settings}(?:\\?.*)?$`), { timeout: 10_000 });
   }
 
   async expectSettingsHeading(): Promise<void> {

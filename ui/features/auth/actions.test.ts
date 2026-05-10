@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ROUTES } from "../../lib/routes";
 import { createRedirectError, REDIRECT_SENTINEL } from "../../test-utils/redirect";
 
 const {
@@ -118,16 +119,16 @@ describe("actions", () => {
       const { signIn } = await loadActions();
 
       mockSignInWithPasswordService.mockResolvedValue({ success: true, data: { role: "member" } });
-      mockNormalizeSafeRedirectPath.mockReturnValueOnce("/dashboard/settings");
+      mockNormalizeSafeRedirectPath.mockReturnValueOnce(ROUTES.settings);
 
       await expect(
-        signIn("member@enterprise.dev", "password123", "/dashboard/settings"),
+        signIn("member@enterprise.dev", "password123", ROUTES.settings),
       ).rejects.toSatisfy((error: unknown) => {
         expect(mockNormalizeSafeRedirectPath).toHaveBeenCalledWith(
-          "/dashboard/settings",
-          "/dashboard",
+          ROUTES.settings,
+          ROUTES.dashboard,
         );
-        expectRedirectDigest(error, "/dashboard/settings");
+        expectRedirectDigest(error, ROUTES.settings);
         return true;
       });
     });
@@ -203,12 +204,12 @@ describe("actions", () => {
         error: "Invalid credentials",
         code: "INVALID_CREDENTIALS",
       });
-      mockNormalizeSafeRedirectPath.mockReturnValueOnce("/dashboard/settings");
+      mockNormalizeSafeRedirectPath.mockReturnValueOnce(ROUTES.settings);
 
       const formData = buildFormData({
         email: "member@enterprise.dev",
         password: "wrong-password",
-        redirectTo: "/dashboard/settings",
+        redirectTo: ROUTES.settings,
       });
 
       const result = await signInAction(null, formData);

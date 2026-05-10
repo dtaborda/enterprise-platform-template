@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { ROUTES } from "../helpers/routes";
 
 export class SmokePage {
   constructor(private readonly page: Page) {}
@@ -20,7 +21,7 @@ export class SmokePage {
   }
 
   async gotoDashboardSettings(): Promise<void> {
-    await this.page.goto("/dashboard/settings");
+    await this.page.goto(ROUTES.settings);
   }
 
   async expectSignInFormVisible(): Promise<void> {

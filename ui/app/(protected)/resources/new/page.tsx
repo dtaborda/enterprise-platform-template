@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAuth } from "@/features/auth/queries";
 import { ResourceForm } from "@/features/resources/components/resource-form";
+import { ROUTES } from "@/lib/routes";
 
 export const metadata = { title: "New Resource" };
 
@@ -19,7 +20,7 @@ export default async function NewResourcePage() {
   return (
     <div className="flex flex-col gap-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/dashboard/resources" className="hover:text-foreground hover:underline">
+        <Link href={ROUTES.resources.root} className="hover:text-foreground hover:underline">
           Resources
         </Link>
         <span>/</span>

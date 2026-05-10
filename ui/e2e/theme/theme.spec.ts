@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { login } from "../helpers/auth";
+import { ROUTES } from "../helpers/routes";
 
 /**
  * Theme E2E Tests — T4.10
@@ -42,7 +43,7 @@ test.describe("Theme System", () => {
   test.describe("Dashboard theme toggle (requires auth)", () => {
     test.beforeEach(async ({ page }) => {
       await login(page);
-      await page.waitForURL(/\/dashboard/);
+      await page.waitForURL(new RegExp(ROUTES.dashboard));
     });
 
     test("theme toggle button is visible in dashboard header", async ({ page }) => {
@@ -91,7 +92,7 @@ test.describe("Theme System", () => {
       });
 
       // Navigate to another dashboard page
-      await page.goto("/dashboard/settings");
+      await page.goto(ROUTES.settings);
       await page.waitForLoadState("networkidle");
 
       // data-theme should be restored to light from localStorage

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAuth } from "@/features/auth/queries";
 import { ResourceForm } from "@/features/resources/components/resource-form";
 import { getResourceById } from "@/features/resources/queries";
+import { ROUTES } from "@/lib/routes";
 
 export const metadata = { title: "Edit Resource" };
 
@@ -32,11 +33,11 @@ export default async function EditResourcePage({ params }: EditResourcePageProps
   return (
     <div className="flex flex-col gap-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/dashboard/resources" className="hover:text-foreground hover:underline">
+        <Link href={ROUTES.resources.root} className="hover:text-foreground hover:underline">
           Resources
         </Link>
         <span>/</span>
-        <Link href={`/dashboard/resources/${id}`} className="hover:text-foreground hover:underline">
+        <Link href={ROUTES.resources.detail(id)} className="hover:text-foreground hover:underline">
           {resource.title}
         </Link>
         <span>/</span>

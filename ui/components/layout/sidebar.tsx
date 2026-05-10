@@ -6,6 +6,7 @@ import type { LucideIcon } from "lucide-react";
 import { LayoutDashboard, Package, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ROUTES } from "@/lib/routes";
 
 interface NavItem {
   label: string;
@@ -15,9 +16,9 @@ interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Resources", href: "/dashboard/resources", icon: Package },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Dashboard", href: ROUTES.dashboard, icon: LayoutDashboard },
+  { label: "Resources", href: ROUTES.resources.root, icon: Package },
+  { label: "Settings", href: ROUTES.settings, icon: Settings },
 ];
 
 interface SidebarProps {
@@ -42,8 +43,8 @@ export function Sidebar({ userRole, userLabel }: SidebarProps) {
       <nav className="flex flex-col gap-1 p-2">
         {items.map((item) => {
           const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
+            item.href === ROUTES.dashboard
+              ? pathname === ROUTES.dashboard
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (

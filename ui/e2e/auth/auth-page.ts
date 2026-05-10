@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { ROUTES } from "../helpers/routes";
 
 export class AuthPage {
   constructor(private readonly page: Page) {}
@@ -64,7 +65,7 @@ export class AuthPage {
       await this.page.getByRole("button", { name: "Sign In" }).click();
 
       try {
-        await this.page.waitForURL(/\/dashboard/, { timeout: 4_000 });
+        await this.page.waitForURL(new RegExp(ROUTES.dashboard), { timeout: 4_000 });
         return;
       } catch {
         // Retry if the page is still on sign-in (native submit race before hydration).
@@ -136,11 +137,11 @@ export class AuthPage {
   }
 
   async expectOnDashboard(): Promise<void> {
-    await expect(this.page).toHaveURL(/\/dashboard(?:\?.*)?$/);
+    await expect(this.page).toHaveURL(new RegExp(`${ROUTES.dashboard}(?:\\?.*)?$`));
   }
 
   async expectOnDashboardSettings(): Promise<void> {
-    await expect(this.page).toHaveURL(/\/dashboard\/settings(?:\?.*)?$/);
+    await expect(this.page).toHaveURL(new RegExp(`${ROUTES.settings}(?:\\?.*)?$`));
   }
 
   async expectRegistrationSuccessNotice(): Promise<void> {

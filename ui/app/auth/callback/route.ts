@@ -1,6 +1,7 @@
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
 import { normalizeSafeRedirectPath } from "../../../features/auth/redirects";
+import { ROUTES } from "../../../lib/routes";
 
 const EMAIL_OTP_TYPE = {
   SIGNUP: "signup",
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const type = request.nextUrl.searchParams.get("type");
   const next = request.nextUrl.searchParams.get("next");
-  const fallbackPath = type === EMAIL_OTP_TYPE.RECOVERY ? "/reset-password" : "/dashboard";
+  const fallbackPath = type === EMAIL_OTP_TYPE.RECOVERY ? "/reset-password" : ROUTES.dashboard;
   const successPath = normalizeSafeRedirectPath(next, fallbackPath);
   const supabase = await getServerClient();
 

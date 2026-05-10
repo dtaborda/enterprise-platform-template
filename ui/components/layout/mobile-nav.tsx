@@ -14,6 +14,7 @@ import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { ROUTES } from "@/lib/routes";
 import { NAV_ITEMS } from "./sidebar";
 
 interface MobileNavProps {
@@ -39,8 +40,8 @@ export function MobileNav({ userRole }: MobileNavProps) {
         <nav className="flex flex-col gap-1 p-2">
           {items.map((item) => {
             const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
+              item.href === ROUTES.dashboard
+                ? pathname === ROUTES.dashboard
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
