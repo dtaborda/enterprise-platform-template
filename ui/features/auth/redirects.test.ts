@@ -1,24 +1,25 @@
 import { describe, expect, it } from "vitest";
+import { ROUTES } from "../../lib/routes";
 import { normalizeSafeRedirectPath } from "./redirects";
 
 describe("normalizeSafeRedirectPath", () => {
   it("null and undefined input return fallback", () => {
-    expect(normalizeSafeRedirectPath(null)).toBe("/dashboard");
-    expect(normalizeSafeRedirectPath(undefined)).toBe("/dashboard");
+    expect(normalizeSafeRedirectPath(null)).toBe(ROUTES.dashboard);
+    expect(normalizeSafeRedirectPath(undefined)).toBe(ROUTES.dashboard);
   });
 
   it("empty or whitespace-only input returns fallback", () => {
-    expect(normalizeSafeRedirectPath("")).toBe("/dashboard");
-    expect(normalizeSafeRedirectPath("   ")).toBe("/dashboard");
+    expect(normalizeSafeRedirectPath("")).toBe(ROUTES.dashboard);
+    expect(normalizeSafeRedirectPath("   ")).toBe(ROUTES.dashboard);
   });
 
   it("backslash injection (/\\path) returns fallback", () => {
-    expect(normalizeSafeRedirectPath("/\\path")).toBe("/dashboard");
+    expect(normalizeSafeRedirectPath("/\\path")).toBe(ROUTES.dashboard);
   });
 
   it("newline/carriage-return injection returns fallback", () => {
-    expect(normalizeSafeRedirectPath("/dashboard\n/evil")).toBe("/dashboard");
-    expect(normalizeSafeRedirectPath("/dashboard\r/evil")).toBe("/dashboard");
+    expect(normalizeSafeRedirectPath(`${ROUTES.dashboard}\n/evil`)).toBe(ROUTES.dashboard);
+    expect(normalizeSafeRedirectPath(`${ROUTES.dashboard}\r/evil`)).toBe(ROUTES.dashboard);
   });
 
   it("invalid value with custom fallback returns the custom fallback", () => {

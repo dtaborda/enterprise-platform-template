@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { ROUTES } from "../helpers/routes";
 
 export interface ResourceFormData {
   title?: string;
@@ -16,21 +17,21 @@ export class ResourcesPage {
     // Use page.waitForURL() for App Router SPA navigation.
     // NEVER use page.waitForFunction(() => window.location...) — it's unreliable
     // with Next.js prefetching in production builds.
-    await this.page.goto("/dashboard/resources");
-    await this.page.waitForURL(/\/dashboard\/resources/);
+    await this.page.goto(ROUTES.resources.root);
+    await this.page.waitForURL(new RegExp(ROUTES.resources.root));
   }
 
   async gotoNew(): Promise<void> {
     // Use page.waitForURL() for App Router SPA navigation.
     // NEVER use page.waitForFunction(() => window.location...) — it's unreliable
     // with Next.js prefetching in production builds.
-    await this.page.goto("/dashboard/resources/new");
-    await this.page.waitForURL(/\/dashboard\/resources\/new/);
+    await this.page.goto(ROUTES.resources.new);
+    await this.page.waitForURL(new RegExp(ROUTES.resources.new));
   }
 
   async navigateToList(): Promise<void> {
     await this.page.getByRole("link", { name: "Resources" }).click();
-    await this.page.waitForURL(/\/dashboard\/resources/, { timeout: 10_000 });
+    await this.page.waitForURL(new RegExp(ROUTES.resources.root), { timeout: 10_000 });
   }
 
   async fillForm(data: ResourceFormData): Promise<void> {
@@ -91,19 +92,19 @@ export class ResourcesPage {
     await this.clickViewResource(title);
     await this.page.getByRole("button", { name: "Archive" }).click();
     await this.page.getByRole("button", { name: "Archive Resource" }).click();
-    await this.page.waitForURL(/\/dashboard\/resources(?!\/)/, { timeout: 15_000 });
+    await this.page.waitForURL(new RegExp(`${ROUTES.resources.root}(?!\\/)`), { timeout: 15_000 });
   }
 
   async filterByType(type: string): Promise<void> {
     await this.page.getByLabel("Type").click();
     await this.page.getByRole("option", { name: type, exact: true }).click();
-    await this.page.waitForURL(/\/dashboard\/resources/);
+    await this.page.waitForURL(new RegExp(ROUTES.resources.root));
   }
 
   async filterByStatus(status: string): Promise<void> {
     await this.page.getByLabel("Status").click();
     await this.page.getByRole("option", { name: status, exact: true }).click();
-    await this.page.waitForURL(/\/dashboard\/resources/);
+    await this.page.waitForURL(new RegExp(ROUTES.resources.root));
   }
 
   async expectRedirectedToSignIn(): Promise<void> {

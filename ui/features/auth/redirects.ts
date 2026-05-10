@@ -1,4 +1,6 @@
-const SAFE_REDIRECT_FALLBACK = "/dashboard";
+import { ROUTES } from "../../lib/routes";
+
+const SAFE_REDIRECT_FALLBACK = ROUTES.dashboard;
 
 function canUseInternalPath(path: string): boolean {
   if (!path.startsWith("/") || path.startsWith("//")) {

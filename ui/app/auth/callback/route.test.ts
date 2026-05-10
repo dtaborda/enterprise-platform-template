@@ -102,10 +102,10 @@ describe("auth callback route", () => {
     const { GET } = await loadRoute();
 
     const response = await GET(
-      createRequest("/auth/callback?token_hash=token&type=recovery&next=/dashboard/settings"),
+      createRequest("/auth/callback?token_hash=token&type=recovery&next=/settings"),
     );
 
-    expect(new URL(response.headers.get("location") ?? "").pathname).toBe("/dashboard/settings");
+    expect(new URL(response.headers.get("location") ?? "").pathname).toBe("/settings");
   });
 
   it("type=signup success redirects to /dashboard when next missing", async () => {

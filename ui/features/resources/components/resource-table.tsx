@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@enterprise/ui/components/table";
 import Link from "next/link";
+import { ROUTES } from "@/lib/routes";
 
 interface ResourceTableProps {
   items: ResourceEntity[];
@@ -85,13 +86,13 @@ export function ResourceTable({ items, total }: ResourceTableProps) {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link
-                      href={`/dashboard/resources/${resource.id}`}
+                      href={ROUTES.resources.detail(resource.id)}
                       className="text-sm text-primary hover:underline"
                     >
                       View
                     </Link>
                     <Link
-                      href={`/dashboard/resources/${resource.id}/edit`}
+                      href={ROUTES.resources.edit(resource.id)}
                       className="text-sm text-primary hover:underline"
                     >
                       Edit

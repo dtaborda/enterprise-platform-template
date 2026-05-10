@@ -5,6 +5,7 @@ import { requireAuth } from "@/features/auth/queries";
 import { ResourceFilters } from "@/features/resources/components/resource-filters";
 import { ResourceTable } from "@/features/resources/components/resource-table";
 import { getResources } from "@/features/resources/queries";
+import { ROUTES } from "@/lib/routes";
 
 export const metadata = { title: "Resources" };
 
@@ -48,7 +49,7 @@ export default async function ResourcesPage({ searchParams }: ResourcesPageProps
         </div>
         {isAdminOrOwner && (
           <Button asChild>
-            <Link href="/dashboard/resources/new">New Resource</Link>
+            <Link href={ROUTES.resources.new}>New Resource</Link>
           </Button>
         )}
       </div>
@@ -66,7 +67,7 @@ export default async function ResourcesPage({ searchParams }: ResourcesPageProps
             {canGoBack && (
               <Button variant="outline" size="sm" asChild>
                 <Link
-                  href={`/dashboard/resources?${new URLSearchParams({
+                  href={`${ROUTES.resources.root}?${new URLSearchParams({
                     ...(typeParam ? { type: typeParam } : {}),
                     ...(statusParam ? { status: statusParam } : {}),
                     offset: String(currentOffset - ITEMS_PER_PAGE),
@@ -79,7 +80,7 @@ export default async function ResourcesPage({ searchParams }: ResourcesPageProps
             {canGoForward && (
               <Button variant="outline" size="sm" asChild>
                 <Link
-                  href={`/dashboard/resources?${new URLSearchParams({
+                  href={`${ROUTES.resources.root}?${new URLSearchParams({
                     ...(typeParam ? { type: typeParam } : {}),
                     ...(statusParam ? { status: statusParam } : {}),
                     offset: String(currentOffset + ITEMS_PER_PAGE),

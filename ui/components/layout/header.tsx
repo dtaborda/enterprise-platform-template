@@ -15,6 +15,7 @@ import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/features/auth/actions";
+import { ROUTES } from "@/lib/routes";
 import { MobileNav } from "./mobile-nav";
 
 interface HeaderProps {
@@ -26,7 +27,7 @@ export function Header({ userRole, userLabel }: HeaderProps) {
   const avatarLabel = userLabel.trim().charAt(0).toUpperCase() || "U";
   const pathname = usePathname();
 
-  const pageTitle = pathname.startsWith("/dashboard/settings") ? "Settings" : "Dashboard";
+  const pageTitle = pathname.startsWith(ROUTES.settings) ? "Settings" : "Dashboard";
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm lg:px-6">
@@ -51,7 +52,7 @@ export function Header({ userRole, userLabel }: HeaderProps) {
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings">
+              <Link href={ROUTES.settings}>
                 <Settings className="mr-2 size-4" />
                 Settings
               </Link>

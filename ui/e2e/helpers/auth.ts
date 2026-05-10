@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { ROUTES } from "./routes";
 
 /** Default test credentials from seed.sql */
 const DEFAULT_EMAIL = "admin@enterprise.dev";
@@ -61,7 +62,7 @@ export async function login(
 
     try {
       // Keep strict behavior: auth must redirect into dashboard route.
-      await page.waitForURL(/\/dashboard/, { timeout: 10_000 });
+      await page.waitForURL(new RegExp(ROUTES.dashboard), { timeout: 10_000 });
       return;
     } catch {
       if (!page.url().includes("/sign-in")) {

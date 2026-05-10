@@ -15,8 +15,7 @@ import {
 } from "@enterprise/core/services/resource-service";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { revalidatePath } from "next/cache";
-
-const RESOURCES_PATH = "/dashboard/resources";
+import { ROUTES } from "@/lib/routes";
 
 async function getAuthContext(supabase: Awaited<ReturnType<typeof getServerClient>>) {
   const {
@@ -73,7 +72,7 @@ export async function createResourceAction(
     };
   }
 
-  revalidatePath(RESOURCES_PATH);
+  revalidatePath(ROUTES.resources.root);
 
   return { success: true, data: result.data };
 }
@@ -114,8 +113,8 @@ export async function updateResourceAction(
     };
   }
 
-  revalidatePath(RESOURCES_PATH);
-  revalidatePath(`${RESOURCES_PATH}/${id}`);
+  revalidatePath(ROUTES.resources.root);
+  revalidatePath(ROUTES.resources.detail(id));
 
   return { success: true, data: result.data };
 }
@@ -149,7 +148,7 @@ export async function deleteResourceAction(id: string): Promise<ActionResult<nul
     };
   }
 
-  revalidatePath(RESOURCES_PATH);
+  revalidatePath(ROUTES.resources.root);
 
   return { success: true, data: null };
 }

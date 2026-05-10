@@ -5,6 +5,7 @@ import { requireAuth } from "@/features/auth/queries";
 import { DeleteResourceButton } from "@/features/resources/components/delete-resource-button";
 import { ResourceDetail } from "@/features/resources/components/resource-detail";
 import { getResourceById } from "@/features/resources/queries";
+import { ROUTES } from "@/lib/routes";
 
 export const metadata = { title: "Resource Detail" };
 
@@ -27,7 +28,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
   return (
     <div className="flex flex-col gap-6">
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/dashboard/resources" className="hover:text-foreground hover:underline">
+        <Link href={ROUTES.resources.root} className="hover:text-foreground hover:underline">
           Resources
         </Link>
         <span>/</span>
@@ -37,7 +38,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
       {isAdminOrOwner && (
         <div className="flex justify-end gap-3">
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/dashboard/resources/${id}/edit`}>Edit</Link>
+            <Link href={ROUTES.resources.edit(id)}>Edit</Link>
           </Button>
           <DeleteResourceButton id={id} />
         </div>
