@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { expect, test } from "@playwright/test";
+import { AuthPage } from "../auth/auth-page";
 import { login } from "../helpers/auth";
 import { ROUTES } from "../helpers/routes";
 import { WorkspaceAdminPage } from "./workspace-admin-page";
@@ -208,9 +209,11 @@ test.describe("Workspace Admin Settings", () => {
     });
 
     test("guest navigates to /settings → redirected to /dashboard", async ({ page }) => {
+      const authPage = new AuthPage(page);
       const settingsPage = new WorkspaceAdminPage(page);
 
-      await login(page, GUEST_EMAIL, PASSWORD);
+      await authPage.gotoSignIn();
+      await authPage.signIn(GUEST_EMAIL, PASSWORD);
       await page.goto(ROUTES.settings);
 
       await settingsPage.expectRedirectedToDashboard();
