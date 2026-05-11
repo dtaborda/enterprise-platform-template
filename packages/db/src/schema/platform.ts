@@ -2,7 +2,16 @@
 // These are reusable across any enterprise app built on the platform
 
 import { sql } from "drizzle-orm";
-import { boolean, index, pgEnum, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  pgEnum,
+  pgPolicy,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { authenticatedRole, serviceRole } from "drizzle-orm/supabase";
 
 // ============================================================================
