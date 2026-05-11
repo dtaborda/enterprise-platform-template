@@ -7,6 +7,7 @@ export * from "./auth-service";
 export type { InvitationEmailParams, InvitationEmailPort } from "./ports/invitation-email-port";
 export * from "./resource-service";
 export * from "./tenant-team-service";
+export * from "./workspace-settings-service";
 
 import type { NewAuditLogEntry } from "@enterprise/db";
 import type { SupabaseClient } from "@supabase/supabase-js";
