@@ -110,7 +110,7 @@ describe("middleware auth flow", () => {
     expect(result.headers.get("location")).toBeNull();
   });
 
-  it("authenticated request to / redirects to role home (/dashboard for owner/admin/member, / for guest)", async () => {
+  it("authenticated request to / redirects to role home except guest already on /", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
 
     const { middleware } = await loadMiddleware();
@@ -121,7 +121,7 @@ describe("middleware auth flow", () => {
 
     mockGetUserRoleService.mockResolvedValueOnce({ success: true, data: { role: "guest" } });
     const guestResult = await middleware(createRequest("/"));
-    expectRedirectPath(guestResult, "/");
+    expect(guestResult.headers.get("location")).toBeNull();
   });
 
   it("authenticated request with missing profile defaults to guest and redirects to / for public-entry routes", async () => {

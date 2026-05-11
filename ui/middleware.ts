@@ -65,6 +65,10 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  if (pathname === roleHome) {
+    return response;
+  }
+
   if (pathname === "/" || (isPublicRoute && !isAuthCompletionRoute)) {
     return NextResponse.redirect(new URL(roleHome, request.url));
   }
