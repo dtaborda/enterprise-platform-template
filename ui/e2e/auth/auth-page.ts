@@ -175,11 +175,12 @@ export class AuthPage {
     await expect(this.page.getByText("Workspace")).toBeVisible();
   }
 
-  async expectSettingsCards(): Promise<void> {
+  async expectWorkspaceAdminSettings(): Promise<void> {
     await expect(
       this.page.getByRole("main").getByRole("heading", { name: "Settings" }),
     ).toBeVisible();
-    await expect(this.page.getByText("Account", { exact: true })).toBeVisible();
-    await expect(this.page.getByText("Workspace", { exact: true })).toBeVisible();
+    await expect(this.page.getByText("Workspace Profile", { exact: true })).toBeVisible();
+    await expect(this.page.getByText("Regional Settings", { exact: true })).toBeVisible();
+    await expect(this.page.getByText("Security Settings", { exact: true })).toBeVisible();
   }
 }
