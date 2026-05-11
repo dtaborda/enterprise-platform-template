@@ -196,7 +196,6 @@ describe("updateWorkspaceSlug", () => {
         if (table === "tenants") {
           // First call: uniqueness check (maybeSingle)
           // Second call: update (single)
-          let tenantCallCount = 0;
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
@@ -216,8 +215,6 @@ describe("updateWorkspaceSlug", () => {
               })),
             })),
           };
-
-          void tenantCallCount;
         }
         return { insert: auditInsertMock };
       }),
@@ -264,13 +261,9 @@ describe("updateWorkspaceSlug", () => {
   });
 
   it("admin rejected — returns FORBIDDEN", async () => {
-    const result = await updateWorkspaceSlug(
-      {} as SupabaseClient,
-      TENANT_ID,
-      USER_ID,
-      "admin",
-      { slug: "some-slug" },
-    );
+    const result = await updateWorkspaceSlug({} as SupabaseClient, TENANT_ID, USER_ID, "admin", {
+      slug: "some-slug",
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -326,8 +319,12 @@ describe("uploadWorkspaceLogo", () => {
 
   it("success — file validated, Storage upload called, DB updated, audit logged", async () => {
     const auditInsertMock = vi.fn().mockResolvedValue({ data: null, error: null });
-    const uploadMock = vi.fn().mockResolvedValue({ data: { path: `${TENANT_ID}/logo.png` }, error: null });
-    const getPublicUrlMock = vi.fn().mockReturnValue({ data: { publicUrl: "https://example.com/logo.png" } });
+    const uploadMock = vi
+      .fn()
+      .mockResolvedValue({ data: { path: `${TENANT_ID}/logo.png` }, error: null });
+    const getPublicUrlMock = vi
+      .fn()
+      .mockReturnValue({ data: { publicUrl: "https://example.com/logo.png" } });
 
     const mockAuthClient = {
       storage: {
@@ -426,7 +423,6 @@ describe("removeWorkspaceLogo", () => {
         if (table === "tenants") {
           // First call: select logo_path
           // Second call: update logo_path = null
-          let callCount = 0;
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
@@ -440,8 +436,6 @@ describe("removeWorkspaceLogo", () => {
               eq: vi.fn().mockResolvedValue({ data: null, error: null }),
             })),
           };
-
-          void callCount;
         }
         return { insert: auditInsertMock };
       }),
@@ -484,13 +478,10 @@ describe("updateWorkspaceRegional", () => {
       }),
     } as unknown as SupabaseClient;
 
-    const result = await updateWorkspaceRegional(
-      mockAdminClient,
-      TENANT_ID,
-      USER_ID,
-      "owner",
-      { timezone: "America/New_York", locale: "en-US" },
-    );
+    const result = await updateWorkspaceRegional(mockAdminClient, TENANT_ID, USER_ID, "owner", {
+      timezone: "America/New_York",
+      locale: "en-US",
+    });
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -520,13 +511,10 @@ describe("updateWorkspaceRegional", () => {
       }),
     } as unknown as SupabaseClient;
 
-    const result = await updateWorkspaceRegional(
-      mockAdminClient,
-      TENANT_ID,
-      USER_ID,
-      "admin",
-      { timezone: "Europe/London", locale: "en-GB" },
-    );
+    const result = await updateWorkspaceRegional(mockAdminClient, TENANT_ID, USER_ID, "admin", {
+      timezone: "Europe/London",
+      locale: "en-GB",
+    });
 
     expect(result.success).toBe(true);
   });
@@ -571,13 +559,9 @@ describe("updateWorkspaceSecurity", () => {
       }),
     } as unknown as SupabaseClient;
 
-    const result = await updateWorkspaceSecurity(
-      mockAdminClient,
-      TENANT_ID,
-      USER_ID,
-      "owner",
-      { allowAdminInvites: false },
-    );
+    const result = await updateWorkspaceSecurity(mockAdminClient, TENANT_ID, USER_ID, "owner", {
+      allowAdminInvites: false,
+    });
 
     expect(result.success).toBe(true);
     if (result.success) {
