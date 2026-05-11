@@ -54,7 +54,7 @@ describe("updateWorkspaceSlugSchema", () => {
 
   it("accepts a valid 50-character slug", () => {
     // 50 chars: starts and ends with alphanumeric
-    const result = updateWorkspaceSlugSchema.safeParse({ slug: "a" + "b".repeat(48) + "c" });
+    const result = updateWorkspaceSlugSchema.safeParse({ slug: `a${"b".repeat(48)}c` });
     expect(result.success).toBe(true);
   });
 
