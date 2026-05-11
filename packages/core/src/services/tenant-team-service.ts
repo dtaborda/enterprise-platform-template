@@ -155,10 +155,32 @@ export async function inviteTenantMember(
   client: SupabaseClient,
   tenantId: string,
   invitedBy: string,
+  userRole: string,
   input: InviteMemberDto,
   emailPort: InvitationEmailPort,
   opts?: { appUrl?: string; tenantName?: string; inviterName?: string },
 ): Promise<ServiceResult<TenantInvitationOutput>> {
+  // Guard: allow_admin_invites flag
+  if (userRole === "admin") {
+    const { data: tenant } = await client
+      .from("tenants")
+      .select("allow_admin_invites")
+      .eq("id", tenantId)
+      .single();
+
+    const allowAdminInvites = (tenant as Record<string, unknown> | null)?.["allow_admin_invites"] as
+      | boolean
+      | undefined;
+
+    if (allowAdminInvites === false) {
+      return {
+        success: false,
+        error: "Admin invitations are disabled by the workspace owner",
+        code: "ADMIN_INVITES_DISABLED",
+      };
+    }
+  }
+
   // Guard: duplicate pending invitation
   const { data: existingInvite } = await client
     .from("tenant_invitations")

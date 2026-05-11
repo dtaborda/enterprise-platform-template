@@ -81,6 +81,7 @@ export async function inviteMemberAction(
       supabase,
       auth.tenantId,
       auth.userId,
+      auth.role ?? "member",
       parsed.data,
       emailAdapter,
       { appUrl: getAppUrl() },
