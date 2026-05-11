@@ -2,7 +2,7 @@
 // These are reusable across any enterprise app built on the platform
 
 import { sql } from "drizzle-orm";
-import { index, pgEnum, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, pgEnum, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { authenticatedRole, serviceRole } from "drizzle-orm/supabase";
 
 // ============================================================================
@@ -45,6 +45,10 @@ export const tenants = pgTable(
     slug: text("slug").notNull().unique(),
     status: tenantStatusEnum("status").notNull().default("active"),
     settings: text("settings"), // JSONB stored as text
+    logoPath: text("logo_path"),
+    timezone: text("timezone").notNull().default("UTC"),
+    locale: text("locale").notNull().default("en-US"),
+    allowAdminInvites: boolean("allow_admin_invites").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
