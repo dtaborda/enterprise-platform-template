@@ -2,11 +2,12 @@
 -- Applied automatically after migrations on `supabase db reset`
 --
 -- Deterministic test user credentials:
---   admin@enterprise.dev   / password123 (owner)
---   member@enterprise.dev  / password123 (member)
---   guest@enterprise.dev   / password123 (guest)
---   reset@enterprise.dev   / password123 (member, dedicated reset flow)
---   reset2@enterprise.dev  / password123 (member, retry backup)
+--   admin@enterprise.dev      / password123 (owner)
+--   member@enterprise.dev     / password123 (member)
+--   guest@enterprise.dev      / password123 (guest)
+--   reset@enterprise.dev      / password123 (member, dedicated reset flow)
+--   reset2@enterprise.dev     / password123 (member, retry backup)
+--   admin-role@enterprise.dev / password123 (admin — workspace-admin E2E)
 --
 -- The INSERT into auth.users triggers handle_new_user() which
 -- auto-creates the tenant ("Enterprise Demo") and profile (owner role).
@@ -168,6 +169,32 @@ VALUES
     '',
     FALSE,
     FALSE
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    'a2b2c3d4-e5f6-7890-abcd-ef1234567890',
+    'authenticated',
+    'authenticated',
+    'admin-role@enterprise.dev',
+    crypt('password123', gen_salt('bf')),
+    NOW(),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"full_name":"Admin Role Demo","company_name":"Admin Role Org","slug":"admin-role-org"}',
+    NOW(),
+    NOW(),
+    '',
+    '',
+    '',
+    '',
+    '',
+    0,
+    '+10000000006',
+    '',
+    '',
+    '',
+    FALSE,
+    FALSE
   );
 
 -- Matching identities for all seeded users.
@@ -231,9 +258,20 @@ VALUES
     NOW(),
     NOW(),
     NOW()
+  ),
+  (
+    'a2b2c3d4-e5f6-7890-abcd-ef1234567890',
+    'a2b2c3d4-e5f6-7890-abcd-ef1234567890',
+    'admin-role@enterprise.dev',
+    '{"sub":"a2b2c3d4-e5f6-7890-abcd-ef1234567890","email":"admin-role@enterprise.dev","email_verified":true}',
+    'email',
+    NOW(),
+    NOW(),
+    NOW()
   );
 
 -- Align all non-owner users to the admin tenant and deterministic roles after trigger execution.
+-- admin-role@enterprise.dev is assigned role='admin' on the demo tenant.
 WITH admin_tenant AS (
   SELECT tenant_id
   FROM public.profiles
@@ -247,13 +285,15 @@ SET
     WHEN p.id = 'c1b2c3d4-e5f6-7890-abcd-ef1234567890' THEN 'guest'
     WHEN p.id = 'd1b2c3d4-e5f6-7890-abcd-ef1234567890' THEN 'member'
     WHEN p.id = 'e1b2c3d4-e5f6-7890-abcd-ef1234567890' THEN 'member'
+    WHEN p.id = 'a2b2c3d4-e5f6-7890-abcd-ef1234567890' THEN 'admin'
     ELSE p.role
   END
 WHERE p.id IN (
   'b1b2c3d4-e5f6-7890-abcd-ef1234567890',
   'c1b2c3d4-e5f6-7890-abcd-ef1234567890',
   'd1b2c3d4-e5f6-7890-abcd-ef1234567890',
-  'e1b2c3d4-e5f6-7890-abcd-ef1234567890'
+  'e1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  'a2b2c3d4-e5f6-7890-abcd-ef1234567890'
 );
 
 -- Sample tenant invitations for E2E testing (pending, accepted, expired).
@@ -320,6 +360,7 @@ FROM (
 ) AS inv(id, email, role, token_hash, status, accepted_by, expires_at);
 
 -- Ensure JWT claims include tenant_id + role for RLS-protected profile queries.
+-- All users (including admin-role@enterprise.dev) get their claims updated here.
 WITH seeded_roles AS (
   SELECT *
   FROM (
@@ -328,7 +369,8 @@ WITH seeded_roles AS (
       ('b1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid, 'member'::text),
       ('c1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid, 'guest'::text),
       ('d1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid, 'member'::text),
-      ('e1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid, 'member'::text)
+      ('e1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid, 'member'::text),
+      ('a2b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid, 'admin'::text)
   ) AS role_map(id, role)
 )
 UPDATE auth.users u
@@ -345,3 +387,16 @@ SET raw_app_meta_data = jsonb_build_object(
 FROM public.profiles p
 JOIN seeded_roles ON seeded_roles.id = p.id
 WHERE u.id = seeded_roles.id;
+
+-- Set workspace-admin columns explicitly on the demo tenant (clarity over relying on defaults).
+WITH demo_tenant AS (
+  SELECT tenant_id
+  FROM public.profiles
+  WHERE id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+)
+UPDATE public.tenants
+SET
+  timezone = 'UTC',
+  locale = 'en-US',
+  allow_admin_invites = TRUE
+WHERE id = (SELECT tenant_id FROM demo_tenant);
