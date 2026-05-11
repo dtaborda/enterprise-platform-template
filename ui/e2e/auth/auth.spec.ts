@@ -124,7 +124,7 @@ test.describe("Auth flows", () => {
     await authPage.expectDashboardFacts(OWNER_EMAIL, "owner");
   });
 
-  test("authenticated settings access shows Account and Workspace cards", async ({ page }) => {
+  test("authenticated settings access shows workspace admin sections", async ({ page }) => {
     const authPage = new AuthPage(page);
 
     await authPage.gotoSignIn();
@@ -132,7 +132,7 @@ test.describe("Auth flows", () => {
     await authPage.goToSettingsFromMenu();
 
     await authPage.expectOnDashboardSettings();
-    await authPage.expectSettingsCards();
+    await authPage.expectWorkspaceAdminSettings();
   });
 
   test(`unauthenticated access to protected route ${ROUTES.settings} redirects to /sign-in?redirectTo=${ROUTES.settings}`, async ({
