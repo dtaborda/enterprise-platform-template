@@ -168,6 +168,7 @@ describe("inviteTenantMember", () => {
       mockClient,
       TENANT_ID,
       REQUESTER_ID,
+      "owner",
       { email: "new@tenant.com", role: "member" },
       emailPort,
     );
@@ -223,6 +224,7 @@ describe("inviteTenantMember", () => {
       mockClient,
       TENANT_ID,
       REQUESTER_ID,
+      "owner",
       { email: "dup@tenant.com", role: "member" },
       emailPort,
     );
@@ -274,6 +276,7 @@ describe("inviteTenantMember", () => {
       mockClient,
       TENANT_ID,
       REQUESTER_ID,
+      "owner",
       { email: "existing@tenant.com", role: "member" },
       emailPort,
     );
@@ -345,6 +348,7 @@ describe("inviteTenantMember", () => {
       mockClient,
       TENANT_ID,
       REQUESTER_ID,
+      "owner",
       { email: "new@tenant.com", role: "member" },
       emailPort,
     );
@@ -353,6 +357,199 @@ describe("inviteTenantMember", () => {
     expect(result.success).toBe(true);
     // Audit log called at least twice: member.invited + email_delivery_failed
     expect(auditInsertMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("admin blocked when allow_admin_invites = false — returns ADMIN_INVITES_DISABLED", async () => {
+    const emailPort = createMockEmailPort();
+
+    const mockClient = {
+      from: vi.fn((table: string) => {
+        if (table === "tenants") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn().mockResolvedValue({
+                  data: { allow_admin_invites: false },
+                  error: null,
+                }),
+              })),
+            })),
+          };
+        }
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+              })),
+            })),
+          })),
+        };
+      }),
+    } as unknown as SupabaseClient;
+
+    const result = await inviteTenantMember(
+      mockClient,
+      TENANT_ID,
+      REQUESTER_ID,
+      "admin",
+      { email: "new@tenant.com", role: "member" },
+      emailPort,
+    );
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe("ADMIN_INVITES_DISABLED");
+    }
+    expect(emailPort.send).not.toHaveBeenCalled();
+  });
+
+  it("admin allowed when allow_admin_invites = true — proceeds normally", async () => {
+    const emailPort = createMockEmailPort();
+
+    const mockClient = {
+      from: vi.fn((table: string) => {
+        if (table === "tenants") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn().mockResolvedValue({
+                  data: { allow_admin_invites: true },
+                  error: null,
+                }),
+              })),
+            })),
+          };
+        }
+        if (table === "tenant_invitations") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                eq: vi.fn(() => ({
+                  eq: vi.fn(() => ({
+                    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+                  })),
+                })),
+              })),
+            })),
+            insert: vi.fn(() => ({
+              select: vi.fn(() => ({
+                single: vi.fn().mockResolvedValue({
+                  data: {
+                    id: INVITATION_ID,
+                    tenant_id: TENANT_ID,
+                    email: "new@tenant.com",
+                    role: "member",
+                    token_hash: "hash",
+                    status: "pending",
+                    invited_by: REQUESTER_ID,
+                    accepted_by: null,
+                    expires_at: FUTURE_DATE.toISOString(),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  },
+                  error: null,
+                }),
+              })),
+            })),
+          };
+        }
+        if (table === "profiles") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                eq: vi.fn(() => ({
+                  maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+                })),
+              })),
+            })),
+          };
+        }
+        // audit_log
+        return { insert: vi.fn().mockResolvedValue({ data: null, error: null }) };
+      }),
+    } as unknown as SupabaseClient;
+
+    const result = await inviteTenantMember(
+      mockClient,
+      TENANT_ID,
+      REQUESTER_ID,
+      "admin",
+      { email: "new@tenant.com", role: "member" },
+      emailPort,
+    );
+
+    expect(result.success).toBe(true);
+    expect(emailPort.send).toHaveBeenCalledOnce();
+  });
+
+  it("owner invite unaffected regardless of allow_admin_invites value", async () => {
+    const emailPort = createMockEmailPort();
+
+    // allow_admin_invites = false, but owner invites → should NOT hit the guard
+    const mockClient = {
+      from: vi.fn((table: string) => {
+        // tenants table should NOT be queried for owner role
+        if (table === "tenant_invitations") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                eq: vi.fn(() => ({
+                  eq: vi.fn(() => ({
+                    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+                  })),
+                })),
+              })),
+            })),
+            insert: vi.fn(() => ({
+              select: vi.fn(() => ({
+                single: vi.fn().mockResolvedValue({
+                  data: {
+                    id: INVITATION_ID,
+                    tenant_id: TENANT_ID,
+                    email: "invited@tenant.com",
+                    role: "member",
+                    token_hash: "hash",
+                    status: "pending",
+                    invited_by: REQUESTER_ID,
+                    accepted_by: null,
+                    expires_at: FUTURE_DATE.toISOString(),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  },
+                  error: null,
+                }),
+              })),
+            })),
+          };
+        }
+        if (table === "profiles") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                eq: vi.fn(() => ({
+                  maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+                })),
+              })),
+            })),
+          };
+        }
+        // audit_log
+        return { insert: vi.fn().mockResolvedValue({ data: null, error: null }) };
+      }),
+    } as unknown as SupabaseClient;
+
+    const result = await inviteTenantMember(
+      mockClient,
+      TENANT_ID,
+      REQUESTER_ID,
+      "owner",
+      { email: "invited@tenant.com", role: "member" },
+      emailPort,
+    );
+
+    expect(result.success).toBe(true);
+    expect(emailPort.send).toHaveBeenCalledOnce();
   });
 });
 
