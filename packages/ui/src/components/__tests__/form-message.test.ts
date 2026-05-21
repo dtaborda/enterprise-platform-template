@@ -1,22 +1,17 @@
 /**
  * FormMessage — unit tests
  *
- * Tests the exported FormMessage component's render logic.
- * Since the ui project runs in a node environment without a DOM,
- * we test the module exports and confirm the component is exported correctly.
- * The core logic (returns null when children is falsy) is a conditional return —
- * validated here by confirming the component is a function with the right shape.
+ * The component has simple conditional render logic.
+ * We invoke it directly as a function (valid in React 19 / RSC-style testing)
+ * and inspect the returned React element's props.
+ *
+ * No DOM required — node environment is sufficient.
  */
 import { describe, expect, it } from "vitest";
 import { FormMessage } from "../form-message";
 
 describe("FormMessage", () => {
-  it("is a named export and a function", () => {
-    expect(typeof FormMessage).toBe("function");
-  });
-
   it("returns null when children is falsy (empty string)", () => {
-    // Invoke component function directly — no DOM needed for null-return check
     const result = FormMessage({ children: "" });
     expect(result).toBeNull();
   });
@@ -26,9 +21,28 @@ describe("FormMessage", () => {
     expect(result).toBeNull();
   });
 
-  it("returns a React element when children is a non-empty string", () => {
-    const result = FormMessage({ children: "Required" });
+  it("returns null when children is false", () => {
+    const result = FormMessage({ children: false });
+    expect(result).toBeNull();
+  });
+
+  it("returns a React element with role='alert' when children is a non-empty string", () => {
+    const result = FormMessage({ children: "This field is required." });
     expect(result).not.toBeNull();
-    expect(result).toBeDefined();
+    // React element is a plain object with { type, props, ... }
+    expect(result).toMatchObject({ props: { role: "alert" } });
+  });
+
+  it("returned element has text-xs and text-destructive classes", () => {
+    const result = FormMessage({ children: "Error text" });
+    expect(result).not.toBeNull();
+    const className: string = (result as { props: { className: string } }).props.className;
+    expect(className).toContain("text-xs");
+    expect(className).toContain("text-destructive");
+  });
+
+  it("passes id prop to the rendered element", () => {
+    const result = FormMessage({ children: "Error", id: "email-error" });
+    expect(result).toMatchObject({ props: { id: "email-error" } });
   });
 });
