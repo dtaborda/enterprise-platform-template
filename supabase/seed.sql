@@ -400,3 +400,169 @@ SET
   locale = 'en-US',
   allow_admin_invites = TRUE
 WHERE id = (SELECT tenant_id FROM demo_tenant);
+
+-- ─── Billing: plans ──────────────────────────────────────────────────────────
+--
+-- 3 deterministic plans seeded for E2E tests.
+-- UUIDs use the b0000001-… prefix to avoid collisions with other seed records.
+-- Idempotent: ON CONFLICT DO NOTHING prevents duplicates on repeated resets.
+
+INSERT INTO public.plans (
+  id,
+  name,
+  slug,
+  description,
+  price_monthly,
+  price_yearly,
+  currency,
+  features,
+  limits,
+  is_active,
+  display_order,
+  trial_days,
+  created_at,
+  updated_at
+)
+VALUES
+  (
+    'b0000001-0000-0000-0000-000000000001'::uuid,
+    'Free',
+    'free',
+    'Get started for free with core features.',
+    0,
+    0,
+    'usd',
+    '{"core": true}',
+    '{"seats": 3, "storage_gb": 1}',
+    TRUE,
+    1,
+    0,
+    NOW(),
+    NOW()
+  ),
+  (
+    'b0000001-0000-0000-0000-000000000002'::uuid,
+    'Pro',
+    'pro',
+    'Everything in Free, plus advanced features and priority support.',
+    2900,
+    29000,
+    'usd',
+    '{"core": true, "ai": true, "analytics": true}',
+    '{"seats": 20, "storage_gb": 50}',
+    TRUE,
+    2,
+    14,
+    NOW(),
+    NOW()
+  ),
+  (
+    'b0000001-0000-0000-0000-000000000003'::uuid,
+    'Enterprise',
+    'enterprise',
+    'Unlimited scale with dedicated support and SLA.',
+    9900,
+    99000,
+    'usd',
+    '{"core": true, "ai": true, "analytics": true, "sso": true, "audit_logs": true}',
+    '{"seats": -1, "storage_gb": -1}',
+    TRUE,
+    3,
+    14,
+    NOW(),
+    NOW()
+  )
+ON CONFLICT (slug) DO NOTHING;
+
+-- ─── Billing: demo subscription ─────────────────────────────────────────────
+--
+-- Links the demo tenant (owner: admin@enterprise.dev) to the Pro plan.
+-- Idempotent: ON CONFLICT (tenant_id) DO NOTHING — one subscription per tenant.
+
+INSERT INTO public.tenant_subscriptions (
+  id,
+  tenant_id,
+  plan_id,
+  status,
+  billing_cycle,
+  current_period_start,
+  current_period_end,
+  cancel_at_period_end,
+  external_subscription_id,
+  external_customer_id,
+  created_at,
+  updated_at
+)
+SELECT
+  'b0000001-0000-0000-0001-000000000001'::uuid,
+  p.tenant_id,
+  'b0000001-0000-0000-0000-000000000002'::uuid,
+  'active'::subscription_status,
+  'monthly'::billing_cycle,
+  NOW() - INTERVAL '15 days',
+  NOW() + INTERVAL '15 days',
+  FALSE,
+  'local_sub_demo',
+  'local_demo_tenant',
+  NOW() - INTERVAL '15 days',
+  NOW() - INTERVAL '15 days'
+FROM public.profiles p
+WHERE p.id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+ON CONFLICT (tenant_id) DO NOTHING;
+
+-- ─── Billing: demo billing events ────────────────────────────────────────────
+--
+-- 3 sample events linked to the demo subscription for history table E2E tests.
+-- Idempotent: ON CONFLICT (external_event_id) DO NOTHING.
+
+INSERT INTO public.billing_events (
+  id,
+  tenant_id,
+  subscription_id,
+  event_type,
+  provider,
+  external_event_id,
+  payload,
+  processed_at,
+  created_at
+)
+SELECT
+  event_data.id,
+  p.tenant_id,
+  'b0000001-0000-0000-0001-000000000001'::uuid,
+  event_data.event_type,
+  event_data.provider,
+  event_data.external_event_id,
+  event_data.payload,
+  NOW(),
+  event_data.created_at
+FROM public.profiles p
+CROSS JOIN (
+  VALUES
+    (
+      'b0000001-0000-0000-0002-000000000001'::uuid,
+      'subscription.created',
+      'local',
+      'seed_evt_001',
+      '{"plan": "pro", "cycle": "monthly"}',
+      NOW() - INTERVAL '15 days'
+    ),
+    (
+      'b0000001-0000-0000-0002-000000000002'::uuid,
+      'payment.succeeded',
+      'local',
+      'seed_evt_002',
+      '{"amount": 2900, "currency": "usd"}',
+      NOW() - INTERVAL '15 days'
+    ),
+    (
+      'b0000001-0000-0000-0002-000000000003'::uuid,
+      'plan.upgraded',
+      'local',
+      'seed_evt_003',
+      '{"from": "free", "to": "pro"}',
+      NOW() - INTERVAL '10 days'
+    )
+) AS event_data(id, event_type, provider, external_event_id, payload, created_at)
+WHERE p.id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+ON CONFLICT (external_event_id) DO NOTHING;
