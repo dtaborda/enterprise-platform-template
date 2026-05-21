@@ -4,6 +4,7 @@
 export { ConsoleInvitationEmailAdapter } from "./adapters/console-invitation-email-adapter";
 export { ResendInvitationEmailAdapter } from "./adapters/resend-invitation-email-adapter";
 export * from "./auth-service";
+export * from "./billing-service";
 export type { InvitationEmailParams, InvitationEmailPort } from "./ports/invitation-email-port";
 export * from "./resource-service";
 export * from "./tenant-team-service";
