@@ -1,5 +1,6 @@
 export const ROUTES = {
   dashboard: "/dashboard",
+  billing: "/billing",
   settings: "/settings",
   team: "/team",
   resources: {
