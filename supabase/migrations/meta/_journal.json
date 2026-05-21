@@ -8,6 +8,13 @@
       "when": 1776909061381,
       "tag": "0000_late_scorpion",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779396142849,
+      "tag": "0001_happy_the_renegades",
+      "breakpoints": true
     }
   ]
 }
