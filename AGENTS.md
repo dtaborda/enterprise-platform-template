@@ -132,6 +132,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 |--------|-------|
 | Adding developer guides | `enterprise-docs` |
 | Adding error tracking to Server Actions | `sentry` |
+| Adding form validation or error handling | `form-validation` |
 | After creating/modifying a skill | `skill-sync` |
 | App Router / Server Actions | `nextjs-15` |
 | Committing changes | `enterprise-commit` |
@@ -139,6 +140,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Configuring database connections | `supabase-postgres-best-practices` |
 | Creating MDX pages | `enterprise-docs` |
 | Creating SDD proposals for features | `feature-readiness` |
+| Creating Server Actions that validate input | `form-validation` |
 | Creating a git commit | `enterprise-commit` |
 | Creating a pull request | `enterprise-pr` |
 | Creating new skills | `skill-creator` |
@@ -152,9 +154,11 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Setting up Supabase SSR cookies | `supabase` |
 | Starting feature implementation | `feature-readiness` |
 | Troubleshoot why a skill is missing from AGENTS.md auto-invoke | `skill-sync` |
+| Using useActionState | `form-validation` |
 | Using Zustand stores | `zustand-5` |
 | Using captureException or captureActionError | `sentry` |
 | Using getUser or getSession | `supabase` |
+| Working with ActionResult error details | `form-validation` |
 | Working with Supabase clients | `supabase` |
 | Working with Tailwind classes | `tailwind-4` |
 | Working with error boundaries | `sentry` |
