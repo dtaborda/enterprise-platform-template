@@ -15,7 +15,10 @@
     "./supabase/storage-paths": "./src/supabase/storage-paths.ts",
     "./utils/env": "./src/utils/env.ts",
     "./services": "./src/services/index.ts",
-    "./services/auth-service": "./src/services/auth-service.ts"
+    "./services/auth-service": "./src/services/auth-service.ts",
+    "./services/billing-service": "./src/services/billing-service.ts",
+    "./services/ports/payment-provider-port": "./src/services/ports/payment-provider-port.ts",
+    "./services/adapters/payment-adapter-factory": "./src/services/adapters/payment-adapter-factory.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -27,6 +30,7 @@
     "@enterprise/db": "workspace:*",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.50.0",
+    "stripe": "^17.7.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
