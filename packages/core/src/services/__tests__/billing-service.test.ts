@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
-import type { PaymentProviderPort } from "../ports/payment-provider-port";
 import {
   cancelSubscription,
   changePlan,
@@ -9,6 +8,7 @@ import {
   processWebhookEvent,
   resumeSubscription,
 } from "../billing-service";
+import type { PaymentProviderPort } from "../ports/payment-provider-port";
 
 // ─── Mock Helpers ──────────────────────────────────────────────────────────────
 
@@ -211,9 +211,7 @@ describe("changePlan", () => {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
-                maybeSingle: vi
-                  .fn()
-                  .mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
+                maybeSingle: vi.fn().mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
               })),
             })),
           };
@@ -271,9 +269,7 @@ describe("changePlan", () => {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
-                maybeSingle: vi
-                  .fn()
-                  .mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
+                maybeSingle: vi.fn().mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
               })),
             })),
           };
@@ -316,9 +312,7 @@ describe("changePlan", () => {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
-                maybeSingle: vi
-                  .fn()
-                  .mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
+                maybeSingle: vi.fn().mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
               })),
             })),
           };
@@ -370,9 +364,7 @@ describe("cancelSubscription", () => {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
-                maybeSingle: vi
-                  .fn()
-                  .mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
+                maybeSingle: vi.fn().mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
               })),
             })),
           };
@@ -431,9 +423,7 @@ describe("cancelSubscription", () => {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
-                maybeSingle: vi
-                  .fn()
-                  .mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
+                maybeSingle: vi.fn().mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
               })),
             })),
           };
@@ -449,9 +439,7 @@ describe("cancelSubscription", () => {
             update: vi.fn(() => ({
               eq: vi.fn(() => ({
                 select: vi.fn(() => ({
-                  single: vi
-                    .fn()
-                    .mockResolvedValue({ data: immediateCanceledSub, error: null }),
+                  single: vi.fn().mockResolvedValue({ data: immediateCanceledSub, error: null }),
                 })),
               })),
             })),
@@ -517,7 +505,13 @@ describe("resumeSubscription", () => {
       }),
     } as unknown as SupabaseClient;
 
-    const result = await resumeSubscription(mockClient, mockAdminClient, TENANT_ID, USER_ID, adapter);
+    const result = await resumeSubscription(
+      mockClient,
+      mockAdminClient,
+      TENANT_ID,
+      USER_ID,
+      adapter,
+    );
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -538,9 +532,7 @@ describe("resumeSubscription", () => {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
                 // cancel_at_period_end = false → no-op
-                maybeSingle: vi
-                  .fn()
-                  .mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
+                maybeSingle: vi.fn().mockResolvedValue({ data: ACTIVE_SUBSCRIPTION, error: null }),
               })),
             })),
           };
