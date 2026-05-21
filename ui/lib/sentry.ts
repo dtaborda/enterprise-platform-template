@@ -3,7 +3,14 @@ import * as Sentry from "@sentry/nextjs";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type SentryArea = "auth" | "dashboard" | "resources" | "settings" | "team" | "webhook";
+export type SentryArea =
+  | "auth"
+  | "billing"
+  | "dashboard"
+  | "resources"
+  | "settings"
+  | "team"
+  | "webhook";
 
 export interface ActionErrorContext {
   actionName: string;
