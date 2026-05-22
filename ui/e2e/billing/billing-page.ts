@@ -24,7 +24,9 @@ export class BillingPage {
   // ─── Plan card ─────────────────────────────────────────────────────────────
 
   async expectPlanCardVisible(): Promise<void> {
-    await expect(this.page.getByText("Current plan").first()).toBeVisible();
+    // The card shows the plan name (e.g. "Pro") when a subscription exists,
+    // or "Current plan" title when no subscription. Look for the card container.
+    await expect(this.page.locator("[data-slot='card']").first()).toBeVisible();
   }
 
   // ─── Status badge ──────────────────────────────────────────────────────────
