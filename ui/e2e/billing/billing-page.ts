@@ -18,13 +18,13 @@ export class BillingPage {
   // ─── Page heading ──────────────────────────────────────────────────────────
 
   async expectHeadingVisible(): Promise<void> {
-    await expect(this.page.getByRole("heading", { name: "Billing" })).toBeVisible();
+    await expect(this.page.getByRole("heading", { name: "Billing", exact: true })).toBeVisible();
   }
 
   // ─── Plan card ─────────────────────────────────────────────────────────────
 
   async expectPlanCardVisible(): Promise<void> {
-    await expect(this.page.getByText("Current plan")).toBeVisible();
+    await expect(this.page.getByText("Current plan").first()).toBeVisible();
   }
 
   // ─── Status badge ──────────────────────────────────────────────────────────
