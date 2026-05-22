@@ -2,7 +2,7 @@
 title: "Feature roadmap"
 description: "Defines the implementation priority order for planned feature work in the multi-tenant SaaS template."
 owner: "Engineering"
-lastUpdated: "2026-05-12"
+lastUpdated: "2026-05-22"
 ---
 
 # Feature roadmap
@@ -27,7 +27,7 @@ Define the canonical implementation priority for planned features in this templa
 | 3 | P0 | Form validation | Done | Shared FormField/FormMessage, useActionState + ActionResult, inline error UX. |
 | 4 | P0 | Tenant team management | Done | Completes the core multi-tenant member lifecycle. |
 | 5 | P0 | Workspace admin | Done | Makes tenant operations usable in day-to-day product workflows. |
-| 6 | P0 | Billing and plans | Planned | Enables SaaS monetization and plan-based packaging. |
+| 6 | P0 | Billing and plans | Done | Enables SaaS monetization and plan-based packaging. |
 | 7 | P1 | Notifications | Planned | Supports invites, billing events, and critical product communication. |
 | 8 | P1 | Public API and API keys | Planned | Unlocks integrations and external automation. |
 | 9 | P1 | Webhooks | Planned | Completes outbound integration workflows for technical adopters. |
@@ -82,4 +82,4 @@ Define the canonical implementation priority for planned features in this templa
 
 ---
 
-*Last updated: 2026-05-12*
+*Last updated: 2026-05-22*
