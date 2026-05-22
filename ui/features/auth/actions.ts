@@ -9,6 +9,7 @@ import {
   type UserRole,
   updatePasswordDto,
 } from "@enterprise/contracts";
+import { createPaymentAdapter } from "@enterprise/core/services/adapters/payment-adapter-factory";
 import {
   requestPasswordResetService,
   resolveRoleRedirectPath,
@@ -17,6 +18,8 @@ import {
   signUpService,
   updatePasswordService,
 } from "@enterprise/core/services/auth-service";
+import { initializeSubscription } from "@enterprise/core/services/billing-service";
+import { getAdminClient } from "@enterprise/core/supabase/admin";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { getAppUrl } from "@enterprise/core/utils/env";
 import { redirect } from "next/navigation";
@@ -123,6 +126,25 @@ export async function signUpAction(
         message: result.error ?? "We could not create your account. Please try again.",
       },
     };
+  }
+
+  // Initialize Free plan subscription for the new tenant.
+  // The DB trigger handle_new_user() already created the tenant by this point.
+  // This MUST NOT block signup — failures are logged but ignored.
+  try {
+    const adminClient = getAdminClient();
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("tenant_id")
+      .eq("user_id", result.data.userId)
+      .maybeSingle<{ tenant_id: string }>();
+
+    if (profile?.tenant_id) {
+      await initializeSubscription(adminClient, profile.tenant_id, createPaymentAdapter());
+    }
+  } catch {
+    // Billing init failure must never block signup
+    console.error("[auth] billing init failed for user:", result.data.userId);
   }
 
   await signOutService(supabase);
