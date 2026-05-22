@@ -1,11 +1,13 @@
 "use server";
 
-import type { ActionResult } from "@enterprise/contracts";
+import type { ActionResult, BillingHistoryQueryDto } from "@enterprise/contracts";
 import { cancelSubscriptionSchema, changePlanSchema } from "@enterprise/contracts";
 import { createPaymentAdapter } from "@enterprise/core/services/adapters/payment-adapter-factory";
+import type { BillingEventRecord } from "@enterprise/core/services/billing-service";
 import {
   cancelSubscription,
   changePlan,
+  getBillingHistory,
   getSubscription,
   resumeSubscription,
 } from "@enterprise/core/services/billing-service";
@@ -297,4 +299,18 @@ export async function getPortalUrlAction(): Promise<ActionResult<{ url: string }
       error: { code: "UNEXPECTED_ERROR", message: "An unexpected error occurred" },
     };
   }
+}
+
+// ---------------------------------------------------------------------------
+// Billing History (pagination from Client Component)
+// ---------------------------------------------------------------------------
+
+export async function fetchBillingHistoryAction(
+  tenantId: string,
+  query: BillingHistoryQueryDto,
+): Promise<BillingEventRecord[]> {
+  const supabase = await getServerClient();
+  const result = await getBillingHistory(supabase, tenantId, query);
+  if (!result.success) return [];
+  return result.data;
 }

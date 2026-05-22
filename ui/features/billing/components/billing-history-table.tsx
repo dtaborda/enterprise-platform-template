@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@enterprise/ui/components/table";
 import { useState } from "react";
-import { getBillingHistoryQuery } from "@/features/billing/queries";
+import { fetchBillingHistoryAction } from "@/features/billing/actions";
 
 const PAGE_SIZE = 50;
 
@@ -30,7 +30,7 @@ export function BillingHistoryTable({ initialHistory, tenantId }: BillingHistory
   async function loadPage(newOffset: number) {
     setIsLoading(true);
     try {
-      const data = await getBillingHistoryQuery(tenantId, {
+      const data = await fetchBillingHistoryAction(tenantId, {
         limit: PAGE_SIZE,
         offset: newOffset,
       });
