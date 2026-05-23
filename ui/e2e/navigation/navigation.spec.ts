@@ -6,6 +6,7 @@ import { NavigationPage } from "./navigation-page";
 const OWNER_EMAIL = "admin@enterprise.dev";
 const ADMIN_EMAIL = "admin-role@enterprise.dev";
 const MEMBER_EMAIL = "member@enterprise.dev";
+const GUEST_EMAIL = "guest@enterprise.dev";
 const PASSWORD = "password123";
 
 test.describe("Navigation", () => {
@@ -27,6 +28,19 @@ test.describe("Navigation", () => {
       const navigationPage = new NavigationPage(page);
 
       await login(page, MEMBER_EMAIL, PASSWORD);
+      await navigationPage.gotoDashboard();
+
+      await expect(navigationPage.sidebarLink("Dashboard")).toBeVisible();
+      await expect(navigationPage.sidebarLink("Resources")).toBeVisible();
+      await expect(navigationPage.sidebarLink("Team")).toBeVisible();
+      await expect(navigationPage.sidebarLink("Billing")).toHaveCount(0);
+      await expect(navigationPage.sidebarLink("Settings")).toHaveCount(0);
+    });
+
+    test("guest sees only public sidebar links", async ({ page }) => {
+      const navigationPage = new NavigationPage(page);
+
+      await login(page, GUEST_EMAIL, PASSWORD);
       await navigationPage.gotoDashboard();
 
       await expect(navigationPage.sidebarLink("Dashboard")).toBeVisible();
