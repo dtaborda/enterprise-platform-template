@@ -47,6 +47,24 @@ test.describe("Workspace Admin Settings", () => {
   // ─── Owner flows ────────────────────────────────────────────────────────────
 
   test.describe("Owner flows", () => {
+    test("settings tabs keep stable URL and no secondary sidebar", async ({ page }) => {
+      const settingsPage = new WorkspaceAdminPage(page);
+
+      await login(page, OWNER_EMAIL, PASSWORD);
+      await settingsPage.goto();
+
+      await settingsPage.expectSettingsUrlStable();
+      await settingsPage.expectSecondarySettingsSidebarAbsent();
+
+      await settingsPage.clickTab("regional");
+      await settingsPage.expectTabActive("regional");
+      await settingsPage.expectSettingsUrlStable();
+
+      await settingsPage.clickTab("logo");
+      await settingsPage.expectTabActive("logo");
+      await settingsPage.expectSettingsUrlStable();
+    });
+
     test("owner updates workspace name", { tag: ["@critical"] }, async ({ page }) => {
       const settingsPage = new WorkspaceAdminPage(page);
       const newName = `E2E Workspace ${Date.now()}`;
