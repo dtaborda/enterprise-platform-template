@@ -2,7 +2,7 @@
 title: "Feature roadmap"
 description: "Defines the implementation priority order for planned feature work in the multi-tenant SaaS template."
 owner: "Engineering"
-lastUpdated: "2026-05-22"
+lastUpdated: "2026-05-23"
 ---
 
 # Feature roadmap
@@ -28,19 +28,22 @@ Define the canonical implementation priority for planned features in this templa
 | 4 | P0 | Tenant team management | Done | Completes the core multi-tenant member lifecycle. |
 | 5 | P0 | Workspace admin | Done | Makes tenant operations usable in day-to-day product workflows. |
 | 6 | P0 | Billing and plans | Done | Enables SaaS monetization and plan-based packaging. |
-| 7 | P1 | Notifications | Planned | Supports invites, billing events, and critical product communication. |
-| 8 | P1 | Public API and API keys | Planned | Unlocks integrations and external automation. |
-| 9 | P1 | Webhooks | Planned | Completes outbound integration workflows for technical adopters. |
-| 10 | P1 | Usage limits and quotas | Planned | Enforces plan value and protects shared resources. |
-| 11 | P1 | Brand abstraction layer | Planned | Enables multi-brand support from a single codebase with provider-agnostic branding. |
-| 12 | P1 | Brand isolation package | Planned | Enforces brand code boundaries and prevents brand logic leaks into shared packages. |
-| 13 | P1 | Backend provider decoupling | Planned | Introduces port/adapter interfaces to decouple @enterprise/core from Supabase. |
-| 14 | P2 | Tenant onboarding | Planned | Improves activation and first-run time-to-value. |
-| 15 | P2 | File storage module | Planned | Covers a common SaaS need for tenant-scoped file handling. |
-| 16 | P2 | i18n and regional settings | Planned | Expands reuse across regions and teams. |
-| 17 | P2 | Deployment provider decoupling | Planned | Adds Docker support and deployment-target abstraction for non-Vercel hosting. |
-| 18 | P3 | Feature flags | Planned | Adds rollout and packaging control after the core platform exists. |
-| 19 | P3 | Secure impersonation | Planned | Adds advanced support tooling after admin and audit flows mature. |
+| 7 | P0 | Platform UX foundations | Planned | Fixes hidden navigation, broken scroll layout, and settings double sidebar. |
+| 8 | P0 | Design system consistency | Planned | Standardizes page templates, empty states, loading skeletons, and visual patterns. |
+| 9 | P0 | Landing page | Planned | Public marketing page with hero, features, pricing, and sign-in/sign-up access. |
+| 10 | P1 | Notifications | Planned | Supports invites, billing events, and critical product communication. |
+| 11 | P1 | Public API and API keys | Planned | Unlocks integrations and external automation. |
+| 12 | P1 | Webhooks | Planned | Completes outbound integration workflows for technical adopters. |
+| 13 | P1 | Usage limits and quotas | Planned | Enforces plan value and protects shared resources. |
+| 14 | P1 | Brand abstraction layer | Planned | Enables multi-brand support from a single codebase with provider-agnostic branding. |
+| 15 | P1 | Brand isolation package | Planned | Enforces brand code boundaries and prevents brand logic leaks into shared packages. |
+| 16 | P1 | Backend provider decoupling | Planned | Introduces port/adapter interfaces to decouple @enterprise/core from Supabase. |
+| 17 | P2 | Tenant onboarding | Planned | Improves activation and first-run time-to-value. |
+| 18 | P2 | File storage module | Planned | Covers a common SaaS need for tenant-scoped file handling. |
+| 19 | P2 | i18n and regional settings | Planned | Expands reuse across regions and teams. |
+| 20 | P2 | Deployment provider decoupling | Planned | Adds Docker support and deployment-target abstraction for non-Vercel hosting. |
+| 21 | P3 | Feature flags | Planned | Adds rollout and packaging control after the core platform exists. |
+| 22 | P3 | Secure impersonation | Planned | Adds advanced support tooling after admin and audit flows mature. |
 
 ---
 
@@ -74,6 +77,9 @@ Define the canonical implementation priority for planned features in this templa
 - [Tenant team management PRD](./tenant-team-management/prd.md)
 - [Workspace admin PRD](./workspace-admin/prd.md)
 - [Billing and plans PRD](./billing-and-plans/prd.md)
+- [Platform UX foundations PRD](./platform-ux-foundations/prd.md)
+- [Design system consistency PRD](./design-system-consistency/prd.md)
+- [Landing page PRD](./landing-page/prd.md)
 - [Public API and API keys PRD](./public-api-and-api-keys/prd.md)
 - [Brand abstraction layer PRD](./brand-abstraction-layer/prd.md)
 - [Brand isolation package PRD](./brand-isolation-package/prd.md)
@@ -82,4 +88,4 @@ Define the canonical implementation priority for planned features in this templa
 
 ---
 
-*Last updated: 2026-05-22*
+*Last updated: 2026-05-23*
