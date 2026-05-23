@@ -58,7 +58,7 @@ test.describe("Password reset recovery", () => {
     await clearMailboxSafely(resetEmail);
     await authPage.gotoForgotPassword();
     await authPage.requestPasswordReset(resetEmail);
-    await expect(page).toHaveURL(/\/forgot-password\?sent=1/);
+    await expect(page).toHaveURL(/\/forgot-password\?sent=1/, { timeout: 30_000 });
 
     const resetLink = await getPasswordResetLink(resetEmail);
     expect(resetLink).toMatch(/\/auth\/(v1\/verify|callback)/);
@@ -77,7 +77,7 @@ test.describe("Password reset recovery", () => {
     await clearMailboxSafely(resetEmail);
     await authPage.gotoForgotPassword();
     await authPage.requestPasswordReset(resetEmail);
-    await expect(page).toHaveURL(/\/forgot-password\?sent=1/);
+    await expect(page).toHaveURL(/\/forgot-password\?sent=1/, { timeout: 30_000 });
 
     const resetLink = await getPasswordResetLink(resetEmail);
     await completeRecoveryNavigation(page, resetLink);

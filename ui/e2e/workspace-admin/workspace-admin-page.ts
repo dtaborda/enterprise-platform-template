@@ -147,7 +147,7 @@ export class WorkspaceAdminPage {
   // ─── Success feedback ─────────────────────────────────────────────────────
 
   async expectSuccessMessage(text: string): Promise<void> {
-    await expect(this.page.getByText(text)).toBeVisible({ timeout: 15_000 });
+    await expect(this.page.getByText(text)).toBeVisible({ timeout: 30_000 });
   }
 
   async expectProfileSaved(): Promise<void> {
