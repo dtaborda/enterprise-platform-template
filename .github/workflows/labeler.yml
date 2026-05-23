@@ -29,7 +29,15 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Checkout configuration
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          sparse-checkout: .github/labeler.yml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Apply labels to PR
         uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 # v6.1.0
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           sync-labels: true
