@@ -4,7 +4,7 @@ import { ErrorState } from "@enterprise/ui/components/error-state";
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
-export default function SettingsError({
+export default function DashboardError({
   error,
   reset,
 }: {
@@ -17,7 +17,7 @@ export default function SettingsError({
 
   return (
     <ErrorState
-      message="An error occurred while loading settings. Please try again."
+      message="An error occurred while loading the dashboard. Please try again."
       onReset={reset}
     />
   );
