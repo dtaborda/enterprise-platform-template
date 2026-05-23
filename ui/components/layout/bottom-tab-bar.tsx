@@ -89,7 +89,12 @@ export function BottomTabBar({ userRole, userLabel }: BottomTabBarProps) {
               <span>More</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl" showCloseButton={false}>
+          <SheetContent
+            side="bottom"
+            className="rounded-t-2xl"
+            showCloseButton={false}
+            data-testid="bottom-tab-more-drawer"
+          >
             <SheetHeader>
               <SheetTitle>More</SheetTitle>
               <SheetDescription>Workspace actions and account shortcuts</SheetDescription>

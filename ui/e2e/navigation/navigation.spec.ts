@@ -4,6 +4,7 @@ import { ROUTES } from "../helpers/routes";
 import { NavigationPage } from "./navigation-page";
 
 const OWNER_EMAIL = "admin@enterprise.dev";
+const ADMIN_EMAIL = "admin-role@enterprise.dev";
 const MEMBER_EMAIL = "member@enterprise.dev";
 const PASSWORD = "password123";
 
@@ -76,6 +77,16 @@ test.describe("Navigation", () => {
       await expect(navigationPage.bottomTabItem("Billing")).toBeVisible();
     });
 
+    test("owner Billing bottom tab navigates to billing route", async ({ page }) => {
+      const navigationPage = new NavigationPage(page);
+
+      await login(page, OWNER_EMAIL, PASSWORD);
+      await navigationPage.gotoDashboard();
+
+      await navigationPage.bottomTabItem("Billing").click();
+      await expect(page).toHaveURL(new RegExp(ROUTES.billing));
+    });
+
     test("member hides Billing and Settings in mobile nav", { tag: ["@critical"] }, async ({
       page,
     }) => {
@@ -99,6 +110,30 @@ test.describe("Navigation", () => {
       await expect(page.getByTestId("bottom-tab-more-settings")).toBeVisible();
       await expect(page.getByTestId("bottom-tab-more-sign-out")).toBeVisible();
       await expect(page.getByTestId("bottom-tab-tenant-info")).toBeVisible();
+    });
+
+    test("admin sees Settings action in More drawer", async ({ page }) => {
+      const navigationPage = new NavigationPage(page);
+
+      await login(page, ADMIN_EMAIL, PASSWORD);
+      await navigationPage.gotoDashboard();
+      await navigationPage.openMoreDrawer();
+
+      await expect(page.getByTestId("bottom-tab-more-settings")).toBeVisible();
+    });
+  });
+
+  test.describe("Auth pages", () => {
+    test.use({ viewport: { width: 375, height: 812 } });
+
+    test("bottom tab bar is hidden on auth pages", { tag: ["@critical"] }, async ({ page }) => {
+      const navigationPage = new NavigationPage(page);
+
+      await page.goto("/sign-in");
+      await navigationPage.expectBottomBarHidden();
+
+      await page.goto("/sign-up");
+      await navigationPage.expectBottomBarHidden();
     });
   });
 

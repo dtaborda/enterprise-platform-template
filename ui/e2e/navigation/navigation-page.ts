@@ -7,7 +7,7 @@ export class NavigationPage {
 
   constructor(private readonly page: Page) {
     this.moreButton = this.page.getByTestId("bottom-tab-more");
-    this.moreDrawer = this.page.locator('[data-slot="sheet-content"]');
+    this.moreDrawer = this.page.getByTestId("bottom-tab-more-drawer");
   }
 
   async gotoDashboard(): Promise<void> {
