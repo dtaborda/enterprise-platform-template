@@ -47,6 +47,24 @@ test.describe("Workspace Admin Settings", () => {
   // ─── Owner flows ────────────────────────────────────────────────────────────
 
   test.describe("Owner flows", () => {
+    test("settings tabs keep stable URL and no secondary sidebar", async ({ page }) => {
+      const settingsPage = new WorkspaceAdminPage(page);
+
+      await login(page, OWNER_EMAIL, PASSWORD);
+      await settingsPage.goto();
+
+      await settingsPage.expectSettingsUrlStable();
+      await settingsPage.expectSecondarySettingsSidebarAbsent();
+
+      await settingsPage.clickTab("regional");
+      await settingsPage.expectTabActive("regional");
+      await settingsPage.expectSettingsUrlStable();
+
+      await settingsPage.clickTab("logo");
+      await settingsPage.expectTabActive("logo");
+      await settingsPage.expectSettingsUrlStable();
+    });
+
     test("owner updates workspace name", { tag: ["@critical"] }, async ({ page }) => {
       const settingsPage = new WorkspaceAdminPage(page);
       const newName = `E2E Workspace ${Date.now()}`;
@@ -123,6 +141,7 @@ test.describe("Workspace Admin Settings", () => {
         await login(page, OWNER_EMAIL, PASSWORD);
         await settingsPage.goto();
 
+        await settingsPage.clickTab("logo");
         await settingsPage.uploadLogo(tempPng);
 
         // After upload the logo preview image should become visible
@@ -138,6 +157,7 @@ test.describe("Workspace Admin Settings", () => {
       await login(page, OWNER_EMAIL, PASSWORD);
       await settingsPage.goto();
 
+      await settingsPage.clickTab("security");
       // Toggle the switch to change the current value
       await settingsPage.toggleSecurity();
       await settingsPage.saveSecurity();
@@ -160,6 +180,7 @@ test.describe("Workspace Admin Settings", () => {
       await login(page, ADMIN_EMAIL, PASSWORD);
       await settingsPage.goto();
 
+      await settingsPage.clickTab("regional");
       await settingsPage.selectTimezone("America/New_York");
       await settingsPage.saveRegional();
 
@@ -189,7 +210,9 @@ test.describe("Workspace Admin Settings", () => {
       await login(page, ADMIN_EMAIL, PASSWORD);
       await settingsPage.goto();
 
-      // Security section must NOT be in the DOM at all
+      // Security tab trigger must NOT be in the DOM at all
+      await settingsPage.expectSecurityTabAbsent();
+      // Security section content must NOT be in the DOM at all
       await settingsPage.expectSecuritySectionAbsent();
     });
   });
