@@ -23,11 +23,18 @@ interface HeaderProps {
   userLabel: string;
 }
 
+const ROUTE_TITLES = [
+  { prefix: ROUTES.settings, title: "Settings" },
+  { prefix: ROUTES.team, title: "Team" },
+  { prefix: ROUTES.billing, title: "Billing" },
+  { prefix: ROUTES.resources.root, title: "Resources" },
+] as const;
+
 export function Header({ userRole, userLabel }: HeaderProps) {
   const avatarLabel = userLabel.trim().charAt(0).toUpperCase() || "U";
   const pathname = usePathname();
 
-  const pageTitle = pathname.startsWith(ROUTES.settings) ? "Settings" : "Dashboard";
+  const pageTitle = ROUTE_TITLES.find((r) => pathname.startsWith(r.prefix))?.title ?? "Dashboard";
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm lg:px-6">

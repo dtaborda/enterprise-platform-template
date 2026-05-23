@@ -27,10 +27,7 @@ export function Sidebar({ userRole, userLabel }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside
-      className="hidden h-screen shrink-0 flex-col border-r bg-surface-container-low lg:flex"
-      style={{ width: "var(--sidebar-width)" }}
-    >
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[var(--sidebar-width)] flex-col border-r bg-surface-container-low lg:flex">
       <div className="flex h-14 items-center border-b px-4">
         <span className="font-heading text-lg font-bold text-primary">Enterprise</span>
       </div>
