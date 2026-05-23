@@ -15,7 +15,7 @@ export function FormBanner<T>({ state, successMessage, className }: FormBannerPr
   // Success
   if (state.success && successMessage) {
     return (
-      <p className={cn("rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-500", className)}>
+      <p className={cn("rounded-md bg-success/10 px-3 py-2 text-sm text-success", className)}>
         {successMessage}
       </p>
     );
