@@ -123,6 +123,7 @@ test.describe("Workspace Admin Settings", () => {
         await login(page, OWNER_EMAIL, PASSWORD);
         await settingsPage.goto();
 
+        await settingsPage.clickTab("logo");
         await settingsPage.uploadLogo(tempPng);
 
         // After upload the logo preview image should become visible
@@ -138,6 +139,7 @@ test.describe("Workspace Admin Settings", () => {
       await login(page, OWNER_EMAIL, PASSWORD);
       await settingsPage.goto();
 
+      await settingsPage.clickTab("security");
       // Toggle the switch to change the current value
       await settingsPage.toggleSecurity();
       await settingsPage.saveSecurity();
@@ -160,6 +162,7 @@ test.describe("Workspace Admin Settings", () => {
       await login(page, ADMIN_EMAIL, PASSWORD);
       await settingsPage.goto();
 
+      await settingsPage.clickTab("regional");
       await settingsPage.selectTimezone("America/New_York");
       await settingsPage.saveRegional();
 
@@ -189,7 +192,9 @@ test.describe("Workspace Admin Settings", () => {
       await login(page, ADMIN_EMAIL, PASSWORD);
       await settingsPage.goto();
 
-      // Security section must NOT be in the DOM at all
+      // Security tab trigger must NOT be in the DOM at all
+      await settingsPage.expectSecurityTabAbsent();
+      // Security section content must NOT be in the DOM at all
       await settingsPage.expectSecuritySectionAbsent();
     });
   });
