@@ -1,3 +1,4 @@
+import { PageHeader } from "@enterprise/ui/components/page-header";
 import Link from "next/link";
 import { requireAuth } from "@/features/auth/queries";
 import { ResourceForm } from "@/features/resources/components/resource-form";
@@ -27,10 +28,7 @@ export default async function NewResourcePage() {
         <span className="text-foreground">New Resource</span>
       </nav>
 
-      <div>
-        <h1 className="font-headline text-2xl font-bold">New Resource</h1>
-        <p className="text-muted-foreground">Add a new resource to your workspace</p>
-      </div>
+      <PageHeader title="New resource" />
 
       <div className="max-w-3xl">
         <ResourceForm />

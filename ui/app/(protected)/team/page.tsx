@@ -1,3 +1,4 @@
+import { PageHeader } from "@enterprise/ui/components/page-header";
 import { requireAuth } from "@/features/auth/queries";
 import { InviteMemberDialog } from "@/features/tenant-team-management/components/invite-member-dialog";
 import { TeamInvitationsList } from "@/features/tenant-team-management/components/team-invitations-list";
@@ -16,14 +17,12 @@ export default async function TeamPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-headline text-2xl font-bold">Team</h1>
-          <p className="text-muted-foreground">Manage your team members and pending invitations</p>
-        </div>
-        {isAdminOrOwner && <InviteMemberDialog />}
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Team"
+        subtitle="Manage members and invitations"
+        action={isAdminOrOwner ? <InviteMemberDialog /> : undefined}
+      />
 
       <section aria-labelledby="members-heading">
         <h2 id="members-heading" className="mb-4 text-lg font-semibold">

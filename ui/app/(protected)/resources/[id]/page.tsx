@@ -1,4 +1,5 @@
 import { Button } from "@enterprise/ui/components/button";
+import { PageHeader } from "@enterprise/ui/components/page-header";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/features/auth/queries";
@@ -35,14 +36,19 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
         <span className="truncate text-foreground">{resource.title}</span>
       </nav>
 
-      {isAdminOrOwner && (
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={ROUTES.resources.edit(id)}>Edit</Link>
-          </Button>
-          <DeleteResourceButton id={id} />
-        </div>
-      )}
+      <PageHeader
+        title={resource.title}
+        action={
+          isAdminOrOwner ? (
+            <div className="flex gap-3">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={ROUTES.resources.edit(id)}>Edit</Link>
+              </Button>
+              <DeleteResourceButton id={id} />
+            </div>
+          ) : undefined
+        }
+      />
 
       <ResourceDetail resource={resource} />
     </div>

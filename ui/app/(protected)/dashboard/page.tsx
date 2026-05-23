@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@enterprise/ui/components/card";
+import { PageHeader } from "@enterprise/ui/components/page-header";
 import { requireAuth } from "@/features/auth/queries";
 
 export const metadata = { title: "Dashboard" };
@@ -64,12 +65,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-headline text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Starter data from your authenticated platform context
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Starter data from your authenticated platform context"
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {starterFacts.map((item) => (
