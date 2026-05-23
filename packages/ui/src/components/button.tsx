@@ -16,6 +16,10 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        /** One gradient CTA per page max. Use for primary creation-flow navigation only. */
+        gradient:
+          "bg-gradient-to-r from-primary to-secondary text-white shadow-sm hover:opacity-90 focus-visible:ring-primary/20",
+        "destructive-ghost": "text-destructive hover:bg-destructive/10 hover:text-destructive",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
