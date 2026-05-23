@@ -57,12 +57,37 @@ export class AuthPage {
   }
 
   async signIn(email: string, password: string): Promise<void> {
+    if (!this.page.url().includes("/sign-in")) {
+      return;
+    }
+
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      await this.waitForHydratedForm("Sign In");
+      if (!this.page.url().includes("/sign-in")) {
+        return;
+      }
+
+      const signInButton = this.page.getByRole("button", { name: "Sign In" });
+
+      try {
+        await Promise.race([
+          this.waitForHydratedForm("Sign In"),
+          this.page.waitForURL(new RegExp(ROUTES.dashboard), { timeout: 15_000 }),
+        ]);
+      } catch {
+        if (!this.page.url().includes("/sign-in")) {
+          return;
+        }
+
+        throw new Error("Sign-in form did not become ready before timeout");
+      }
+
+      if (!this.page.url().includes("/sign-in")) {
+        return;
+      }
 
       await this.page.getByLabel("Email *").fill(email);
       await this.page.getByLabel("Password *").fill(password);
-      await this.page.getByRole("button", { name: "Sign In" }).click();
+      await signInButton.click();
 
       try {
         await this.page.waitForURL(new RegExp(ROUTES.dashboard), { timeout: 4_000 });
@@ -172,15 +197,20 @@ export class AuthPage {
     await expect(this.page.getByText(email)).toBeVisible();
     await expect(this.page.getByText("Role")).toBeVisible();
     await expect(this.page.getByText(role)).toBeVisible();
-    await expect(this.page.getByText("Workspace")).toBeVisible();
+    await expect(this.page.getByText("Workspace", { exact: true })).toBeVisible();
   }
 
   async expectWorkspaceAdminSettings(): Promise<void> {
     await expect(
       this.page.getByRole("main").getByRole("heading", { name: "Settings" }),
     ).toBeVisible();
+
     await expect(this.page.getByText("Workspace Profile", { exact: true })).toBeVisible();
+
+    await this.page.getByTestId("settings-tab-regional").click();
     await expect(this.page.getByText("Regional Settings", { exact: true })).toBeVisible();
+
+    await this.page.getByTestId("settings-tab-security").click();
     await expect(this.page.getByText("Security Settings", { exact: true })).toBeVisible();
   }
 }

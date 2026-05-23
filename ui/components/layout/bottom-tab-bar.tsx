@@ -4,7 +4,6 @@ import type { UserRole } from "@enterprise/contracts";
 import { Button } from "@enterprise/ui/components/button";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -23,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { signOut } from "@/features/auth/actions";
 import { ROUTES } from "@/lib/routes";
 import type { NavItem } from "./nav-utils";
@@ -46,6 +46,7 @@ function canAccessSettings(userRole: UserRole): boolean {
 
 export function BottomTabBar({ userRole, userLabel }: BottomTabBarProps) {
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
   const items = filterNavItemsByRole(BOTTOM_TAB_ITEMS, userRole);
   const showSettings = canAccessSettings(userRole);
 
@@ -77,7 +78,7 @@ export function BottomTabBar({ userRole, userLabel }: BottomTabBarProps) {
           );
         })}
 
-        <Sheet>
+        <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
             <Button
               type="button"
@@ -102,16 +103,15 @@ export function BottomTabBar({ userRole, userLabel }: BottomTabBarProps) {
 
             <div className="space-y-1 px-4 pb-2">
               {showSettings ? (
-                <SheetClose asChild>
-                  <Link
-                    href={ROUTES.settings}
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                    data-testid="bottom-tab-more-settings"
-                  >
-                    <Settings className="size-4" />
-                    Settings
-                  </Link>
-                </SheetClose>
+                <Link
+                  href={ROUTES.settings}
+                  className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                  data-testid="bottom-tab-more-settings"
+                  onClick={() => setMoreOpen(false)}
+                >
+                  <Settings className="size-4" />
+                  Settings
+                </Link>
               ) : null}
 
               <form action={signOut}>

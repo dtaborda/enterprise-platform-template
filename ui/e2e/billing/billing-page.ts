@@ -18,7 +18,9 @@ export class BillingPage {
   // ─── Page heading ──────────────────────────────────────────────────────────
 
   async expectHeadingVisible(): Promise<void> {
-    await expect(this.page.getByRole("heading", { name: "Billing", exact: true })).toBeVisible();
+    await expect(
+      this.page.getByRole("main").getByRole("heading", { name: "Billing", exact: true }),
+    ).toBeVisible();
   }
 
   // ─── Plan card ─────────────────────────────────────────────────────────────
