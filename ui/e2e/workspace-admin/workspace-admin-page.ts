@@ -25,6 +25,31 @@ export class WorkspaceAdminPage {
     await expect(this.page.getByRole("heading", { name: "Settings" })).toBeVisible();
   }
 
+  // ─── Tab navigation ───────────────────────────────────────────────────────
+
+  async clickTab(name: string): Promise<void> {
+    await this.page.getByTestId(`settings-tab-${name}`).click();
+  }
+
+  async expectTabActive(name: string): Promise<void> {
+    await expect(this.page.getByTestId(`settings-tab-${name}`)).toHaveAttribute(
+      "data-state",
+      "active",
+    );
+  }
+
+  async expectSecurityTabAbsent(): Promise<void> {
+    await expect(this.page.getByTestId("settings-tab-security")).toHaveCount(0);
+  }
+
+  async expectSettingsUrlStable(): Promise<void> {
+    await expect(this.page).toHaveURL(new RegExp(`^.*${ROUTES.settings}$`));
+  }
+
+  async expectSecondarySettingsSidebarAbsent(): Promise<void> {
+    await expect(this.page.locator("main aside")).toHaveCount(0);
+  }
+
   // ─── Profile section ───────────────────────────────────────────────────────
 
   async fillName(name: string): Promise<void> {
