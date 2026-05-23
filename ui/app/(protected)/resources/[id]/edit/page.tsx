@@ -1,3 +1,4 @@
+import { PageHeader } from "@enterprise/ui/components/page-header";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/features/auth/queries";
@@ -44,10 +45,7 @@ export default async function EditResourcePage({ params }: EditResourcePageProps
         <span className="text-foreground">Edit</span>
       </nav>
 
-      <div>
-        <h1 className="font-headline text-2xl font-bold">Edit Resource</h1>
-        <p className="text-muted-foreground">Update the details for {resource.title}</p>
-      </div>
+      <PageHeader title="Edit resource" />
 
       <div className="max-w-3xl">
         <ResourceForm defaultValues={resource} />

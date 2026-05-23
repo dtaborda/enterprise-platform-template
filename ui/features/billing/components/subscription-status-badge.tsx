@@ -1,10 +1,10 @@
 import { Badge } from "@enterprise/ui/components/badge";
 
 const STATUS_CONFIG = {
-  trialing: { label: "Trial", variant: "default" },
-  active: { label: "Active", variant: "secondary" },
+  trialing: { label: "Trial", variant: "warning" },
+  active: { label: "Active", variant: "success" },
   past_due: { label: "Past due", variant: "destructive" },
-  canceled: { label: "Canceled", variant: "outline" },
+  canceled: { label: "Canceled", variant: "neutral" },
   unpaid: { label: "Unpaid", variant: "destructive" },
 } as const;
 
@@ -15,7 +15,7 @@ interface SubscriptionStatusBadgeProps {
 }
 
 export function SubscriptionStatusBadge({ status }: SubscriptionStatusBadgeProps) {
-  const config = STATUS_CONFIG[status] ?? { label: status, variant: "outline" as const };
+  const config = STATUS_CONFIG[status] ?? { label: status, variant: "neutral" as const };
 
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }

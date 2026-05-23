@@ -1,6 +1,7 @@
 import type { TenantMemberOutput } from "@enterprise/contracts";
 import { Avatar, AvatarFallback, AvatarImage } from "@enterprise/ui/components/avatar";
 import { Badge } from "@enterprise/ui/components/badge";
+import { EmptyState } from "@enterprise/ui/components/empty-state";
 import {
   Table,
   TableBody,
@@ -9,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@enterprise/ui/components/table";
+import { Users } from "lucide-react";
 import { ChangeRoleDialog } from "./change-role-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
 
@@ -18,14 +20,11 @@ interface TeamMembersListProps {
   currentUserRole: string;
 }
 
-const ROLE_VARIANTS: Record<
-  TenantMemberOutput["role"],
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  owner: "default",
-  admin: "secondary",
-  member: "outline",
-  guest: "outline",
+const ROLE_VARIANTS: Record<TenantMemberOutput["role"], "info" | "accent" | "neutral"> = {
+  owner: "info",
+  admin: "accent",
+  member: "neutral",
+  guest: "neutral",
 };
 
 const ROLE_LABELS: Record<TenantMemberOutput["role"], string> = {
@@ -51,14 +50,16 @@ export function TeamMembersList({ members, currentUserId, currentUserRole }: Tea
 
   if (members.length === 0) {
     return (
-      <div className="rounded-lg border py-12 text-center">
-        <p className="text-muted-foreground">No team members found.</p>
-      </div>
+      <EmptyState
+        icon={Users}
+        title="No team members found"
+        description="Invite team members to collaborate in your workspace."
+      />
     );
   }
 
   return (
-    <div className="rounded-lg border">
+    <div className="rounded-xl bg-card">
       <Table>
         <TableHeader>
           <TableRow>

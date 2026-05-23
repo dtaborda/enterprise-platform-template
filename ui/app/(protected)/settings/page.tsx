@@ -1,3 +1,4 @@
+import { PageHeader } from "@enterprise/ui/components/page-header";
 import { redirect } from "next/navigation";
 import { requireAuth } from "@/features/auth/queries";
 import { SettingsTabs } from "@/features/workspace-admin/components/settings-tabs";
@@ -22,10 +23,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-headline text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage workspace configuration</p>
-      </div>
+      <PageHeader title="Settings" subtitle="Manage your workspace configuration" />
 
       <SettingsTabs settings={settings} role={user.role} />
     </div>

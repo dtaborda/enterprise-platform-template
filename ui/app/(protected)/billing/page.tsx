@@ -1,7 +1,7 @@
+import { PageHeader } from "@enterprise/ui/components/page-header";
 import { redirect } from "next/navigation";
 import { requireAuth } from "@/features/auth/queries";
 import { BillingHistoryTable } from "@/features/billing/components/billing-history-table";
-import { BillingPageHeader } from "@/features/billing/components/billing-page-header";
 import { CurrentPlanCard } from "@/features/billing/components/current-plan-card";
 import { PastDueBanner } from "@/features/billing/components/past-due-banner";
 import { PlanComparison } from "@/features/billing/components/plan-comparison";
@@ -30,7 +30,7 @@ export default async function BillingPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <BillingPageHeader />
+      <PageHeader title="Billing" subtitle="Manage your subscription" />
 
       {subscription?.status === "past_due" && (
         <PastDueBanner graceEndsAt={subscription.graceEndsAt} />

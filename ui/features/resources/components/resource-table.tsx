@@ -1,5 +1,7 @@
 import type { ResourceEntity, ResourceStatus, ResourceType } from "@enterprise/contracts";
 import { Badge } from "@enterprise/ui/components/badge";
+import { Button } from "@enterprise/ui/components/button";
+import { EmptyState } from "@enterprise/ui/components/empty-state";
 import {
   Table,
   TableBody,
@@ -8,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@enterprise/ui/components/table";
+import { Package } from "lucide-react";
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
 
@@ -24,13 +27,12 @@ const TYPE_LABELS: Record<ResourceType, string> = {
   other: "Other",
 };
 
-const STATUS_VARIANTS: Record<ResourceStatus, "default" | "secondary" | "destructive" | "outline"> =
-  {
-    active: "default",
-    draft: "secondary",
-    archived: "outline",
-    suspended: "destructive",
-  };
+const STATUS_VARIANTS: Record<ResourceStatus, "success" | "warning" | "neutral" | "destructive"> = {
+  active: "success",
+  draft: "warning",
+  archived: "neutral",
+  suspended: "destructive",
+};
 
 const STATUS_LABELS: Record<ResourceStatus, string> = {
   active: "Active",
@@ -47,12 +49,16 @@ function truncate(value: string | null, max = 80): string {
 export function ResourceTable({ items, total }: ResourceTableProps) {
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border py-16 text-center">
-        <p className="text-muted-foreground">No resources found.</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Add a resource to get started, or adjust your filters.
-        </p>
-      </div>
+      <EmptyState
+        icon={Package}
+        title="No resources found"
+        description="Add a resource to get started, or adjust your filters."
+        action={
+          <Button variant="gradient" asChild>
+            <Link href={ROUTES.resources.new}>New resource</Link>
+          </Button>
+        }
+      />
     );
   }
 
@@ -61,7 +67,7 @@ export function ResourceTable({ items, total }: ResourceTableProps) {
       <p className="text-sm text-muted-foreground">
         {total} {total === 1 ? "resource" : "resources"} found
       </p>
-      <div className="rounded-lg border">
+      <div className="rounded-xl bg-card">
         <Table>
           <TableHeader>
             <TableRow>
