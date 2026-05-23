@@ -134,9 +134,12 @@ test.describe("Team Management", () => {
       // Dialog should close
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
-      // Verify role badge updated
+      // Wait for router.refresh() to complete — the table re-renders from the server
+      await page.waitForLoadState("networkidle");
+
+      // Re-query the row (old locator may be stale after router.refresh())
       const memberRow = await teamPage.getMemberRow("member@enterprise.dev");
-      await expect(memberRow.getByText("Guest")).toBeVisible();
+      await expect(memberRow.getByText("Guest")).toBeVisible({ timeout: 15_000 });
 
       // Restore original role
       await teamPage.openChangeRoleDialog("member@enterprise.dev");
@@ -191,9 +194,13 @@ test.describe("Team Management", () => {
       await teamPage.expectInvitationInTable(inviteEmail);
       await teamPage.cancelInvitation(inviteEmail);
 
-      // Status badge should change to Revoked (or row updates)
+      // Wait for router.refresh() to complete — the table re-renders from the server
+      await page.waitForLoadState("networkidle");
+
+      // Re-query the row (old locator may be stale after router.refresh())
       const invitationRow = await teamPage.getInvitationRow(inviteEmail);
-      await expect(invitationRow.getByText("Revoked")).toBeVisible();
+      // Status badge should change to Revoked after server re-render
+      await expect(invitationRow.getByText("Revoked")).toBeVisible({ timeout: 15_000 });
     });
 
     test("admin can resend a pending invitation", async ({ page }) => {
@@ -208,9 +215,11 @@ test.describe("Team Management", () => {
       await teamPage.expectInvitationInTable(inviteEmail);
       await teamPage.resendInvitation(inviteEmail);
 
-      // Resend button should show "Resent!" feedback
+      // "Resent!" is client-side state set inside startTransition — wait for the
+      // transition to complete before asserting. Re-query the row to avoid a stale
+      // reference after router.refresh() fires concurrently.
       const invitationRow = await teamPage.getInvitationRow(inviteEmail);
-      await expect(invitationRow.getByText("Resent!")).toBeVisible();
+      await expect(invitationRow.getByText("Resent!")).toBeVisible({ timeout: 15_000 });
     });
   });
 

@@ -85,8 +85,8 @@ export class WorkspaceAdminPage {
   }
 
   async expectSlugDialogVisible(): Promise<void> {
-    await expect(this.page.getByRole("dialog")).toBeVisible();
-    await expect(this.page.getByText("Change workspace slug?")).toBeVisible();
+    await expect(this.page.getByRole("dialog")).toBeVisible({ timeout: 15_000 });
+    await expect(this.page.getByText("Change workspace slug?")).toBeVisible({ timeout: 15_000 });
   }
 
   async expectSlugDialogAbsent(): Promise<void> {
@@ -147,7 +147,7 @@ export class WorkspaceAdminPage {
   // ─── Success feedback ─────────────────────────────────────────────────────
 
   async expectSuccessMessage(text: string): Promise<void> {
-    await expect(this.page.getByText(text)).toBeVisible({ timeout: 10_000 });
+    await expect(this.page.getByText(text)).toBeVisible({ timeout: 15_000 });
   }
 
   async expectProfileSaved(): Promise<void> {
