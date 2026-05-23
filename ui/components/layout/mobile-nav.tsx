@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { ROUTES } from "@/lib/routes";
+import { filterNavItemsByRole, isNavItemActive } from "./nav-utils";
 import { NAV_ITEMS } from "./sidebar";
 
 interface MobileNavProps {
@@ -23,7 +24,7 @@ interface MobileNavProps {
 
 export function MobileNav({ userRole }: MobileNavProps) {
   const pathname = usePathname();
-  const items = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(userRole));
+  const items = filterNavItemsByRole(NAV_ITEMS, userRole);
 
   return (
     <Sheet>
@@ -39,17 +40,14 @@ export function MobileNav({ userRole }: MobileNavProps) {
         </SheetHeader>
         <nav className="flex flex-col gap-1 p-2">
           {items.map((item) => {
-            const isActive =
-              item.href === ROUTES.dashboard
-                ? pathname === ROUTES.dashboard
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = isNavItemActive(item.href, pathname, ROUTES.dashboard);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
+                  active
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}

@@ -2,23 +2,19 @@
 
 import type { UserRole } from "@enterprise/contracts";
 import { cn } from "@enterprise/ui/lib/utils";
-import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Package, Settings } from "lucide-react";
+import { CreditCard, LayoutDashboard, Package, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  roles?: UserRole[];
-}
+import type { NavItem } from "./nav-utils";
+import { filterNavItemsByRole, isNavItemActive } from "./nav-utils";
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: ROUTES.dashboard, icon: LayoutDashboard },
   { label: "Resources", href: ROUTES.resources.root, icon: Package },
-  { label: "Settings", href: ROUTES.settings, icon: Settings },
+  { label: "Team", href: ROUTES.team, icon: Users },
+  { label: "Billing", href: ROUTES.billing, icon: CreditCard, roles: ["owner", "admin"] },
+  { label: "Settings", href: ROUTES.settings, icon: Settings, roles: ["owner", "admin"] },
 ];
 
 interface SidebarProps {
@@ -27,25 +23,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({ userRole, userLabel }: SidebarProps) {
-  const items = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(userRole));
-
+  const items = filterNavItemsByRole(NAV_ITEMS, userRole);
   const pathname = usePathname();
 
   return (
-    <aside
-      className="hidden h-screen shrink-0 flex-col border-r bg-surface-container-low lg:flex"
-      style={{ width: "var(--sidebar-width)" }}
-    >
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[var(--sidebar-width)] flex-col border-r bg-surface-container-low lg:flex">
       <div className="flex h-14 items-center border-b px-4">
         <span className="font-heading text-lg font-bold text-primary">Enterprise</span>
       </div>
 
       <nav className="flex flex-col gap-1 p-2">
         {items.map((item) => {
-          const isActive =
-            item.href === ROUTES.dashboard
-              ? pathname === ROUTES.dashboard
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active = isNavItemActive(item.href, pathname, ROUTES.dashboard);
 
           return (
             <Link
@@ -53,7 +42,7 @@ export function Sidebar({ userRole, userLabel }: SidebarProps) {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
+                active
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
