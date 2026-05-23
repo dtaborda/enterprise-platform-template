@@ -12,11 +12,11 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children, userRole, userLabel }: DashboardShellProps) {
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen">
       <Sidebar userRole={userRole} userLabel={userLabel} />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-h-screen flex-1 flex-col lg:ml-[var(--sidebar-width)]">
         <Header userRole={userRole} userLabel={userLabel} />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 pb-20 lg:pb-6">{children}</main>
       </div>
     </div>
   );
