@@ -2,7 +2,7 @@
 title: "Feature roadmap"
 description: "Defines the implementation priority order for planned feature work in the multi-tenant SaaS template."
 owner: "Engineering"
-lastUpdated: "2026-05-23"
+lastUpdated: "2026-05-24"
 ---
 
 # Feature roadmap
@@ -28,9 +28,9 @@ Define the canonical implementation priority for planned features in this templa
 | 4 | P0 | Tenant team management | Done | Completes the core multi-tenant member lifecycle. |
 | 5 | P0 | Workspace admin | Done | Makes tenant operations usable in day-to-day product workflows. |
 | 6 | P0 | Billing and plans | Done | Enables SaaS monetization and plan-based packaging. |
-| 7 | P0 | Platform UX foundations | Planned | Fixes hidden navigation, broken scroll layout, and settings double sidebar. |
-| 8 | P0 | Design system consistency | Planned | Standardizes page templates, empty states, loading skeletons, and visual patterns. |
-| 9 | P0 | Landing page | Planned | Public marketing page with hero, features, pricing, and sign-in/sign-up access. |
+| 7 | P0 | Platform UX foundations | Done | Fixes hidden navigation, broken scroll layout, and settings double sidebar. |
+| 8 | P0 | Design system consistency | Done | Standardizes page templates, empty states, loading skeletons, and visual patterns. |
+| 9 | P0 | Landing page | Done | Public marketing page with hero, features, pricing, and sign-in/sign-up access. |
 | 10 | P1 | Notifications | Planned | Supports invites, billing events, and critical product communication. |
 | 11 | P1 | Public API and API keys | Planned | Unlocks integrations and external automation. |
 | 12 | P1 | Webhooks | Planned | Completes outbound integration workflows for technical adopters. |
@@ -88,4 +88,4 @@ Define the canonical implementation priority for planned features in this templa
 
 ---
 
-*Last updated: 2026-05-23*
+*Last updated: 2026-05-24*
