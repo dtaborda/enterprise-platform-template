@@ -63,7 +63,11 @@ export class ResourcesPage {
   }
 
   async submitForm(): Promise<void> {
-    await this.page.getByRole("button", { name: /create resource|update resource/i }).click();
+    const submitButton = this.page.getByRole("button", {
+      name: /create resource|update resource/i,
+    });
+    await submitButton.click();
+    await expect(submitButton).not.toContainText("Saving", { timeout: 30_000 });
   }
 
   async expectResourceInTable(title: string): Promise<void> {

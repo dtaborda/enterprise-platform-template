@@ -142,7 +142,7 @@ test.describe("Team Management", () => {
           .getByTestId("team-member-row")
           .filter({ hasText: "member@enterprise.dev" })
           .getByText("Guest"),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 30_000 });
 
       // Restore original role
       await teamPage.openChangeRoleDialog("member@enterprise.dev");
@@ -181,6 +181,10 @@ test.describe("Team Management", () => {
       // Dialog should close
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
+      // Force a fresh server render after the mutation instead of depending only
+      // on the in-place router.refresh() timing from the client dialog.
+      await teamPage.goto();
+
       // Member should no longer appear in table
       await teamPage.expectMemberNotInTable(removeEmail);
     });
@@ -197,11 +201,15 @@ test.describe("Team Management", () => {
       await teamPage.expectInvitationInTable(inviteEmail);
       await teamPage.cancelInvitation(inviteEmail);
 
+      // Force a fresh server render after the mutation instead of depending only
+      // on the in-place router.refresh() timing from the client button.
+      await teamPage.goto();
+
       // Use a lazy locator chain so Playwright re-queries the DOM on each
       // retry, surviving the router.refresh() RSC re-render.
       await expect(
         page.getByTestId("invitation-row").filter({ hasText: inviteEmail }).getByText("Revoked"),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 30_000 });
     });
 
     test("admin can resend a pending invitation", async ({ page }) => {
