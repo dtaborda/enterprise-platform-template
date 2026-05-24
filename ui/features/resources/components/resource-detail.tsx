@@ -22,13 +22,12 @@ const TYPE_LABELS: Record<ResourceType, string> = {
   other: "Other",
 };
 
-const STATUS_VARIANTS: Record<ResourceStatus, "default" | "secondary" | "destructive" | "outline"> =
-  {
-    active: "default",
-    draft: "secondary",
-    archived: "outline",
-    suspended: "destructive",
-  };
+const STATUS_VARIANTS: Record<ResourceStatus, "success" | "warning" | "neutral" | "destructive"> = {
+  active: "success",
+  draft: "warning",
+  archived: "neutral",
+  suspended: "destructive",
+};
 
 const STATUS_LABELS: Record<ResourceStatus, string> = {
   active: "Active",

@@ -89,11 +89,7 @@ export function CurrentPlanCard({ subscription, role }: CurrentPlanCardProps) {
               <CardTitle className="flex items-center gap-2">
                 {plan.name}
                 <SubscriptionStatusBadge status={subscription.status} />
-                {isCancelPending && (
-                  <Badge variant="outline" className="text-amber-600 border-amber-300">
-                    Cancels at period end
-                  </Badge>
-                )}
+                {isCancelPending && <Badge variant="warning">Cancels at period end</Badge>}
               </CardTitle>
               <CardDescription className="mt-1">{plan.description}</CardDescription>
             </div>
@@ -143,9 +139,8 @@ export function CurrentPlanCard({ subscription, role }: CurrentPlanCardProps) {
               {isActive && !isCancelPending && !isCanceled && (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="destructive-ghost"
                   size="sm"
-                  className="text-destructive hover:text-destructive"
                   onClick={() => setCancelDialogOpen(true)}
                 >
                   Cancel subscription

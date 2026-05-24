@@ -1,5 +1,6 @@
 import type { TenantInvitationOutput } from "@enterprise/contracts";
 import { Badge } from "@enterprise/ui/components/badge";
+import { EmptyState } from "@enterprise/ui/components/empty-state";
 import {
   Table,
   TableBody,
@@ -8,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@enterprise/ui/components/table";
+import { Mail } from "lucide-react";
 import { CancelInvitationButton } from "./cancel-invitation-button";
 import { ResendInvitationButton } from "./resend-invitation-button";
 
@@ -18,12 +20,12 @@ interface TeamInvitationsListProps {
 
 const STATUS_VARIANTS: Record<
   TenantInvitationOutput["status"],
-  "default" | "secondary" | "destructive" | "outline"
+  "warning" | "success" | "destructive" | "neutral"
 > = {
-  pending: "secondary",
-  accepted: "default",
+  pending: "warning",
+  accepted: "success",
   revoked: "destructive",
-  expired: "outline",
+  expired: "neutral",
 };
 
 const STATUS_LABELS: Record<TenantInvitationOutput["status"], string> = {
@@ -42,14 +44,16 @@ const ROLE_LABELS: Record<TenantInvitationOutput["role"], string> = {
 export function TeamInvitationsList({ invitations, isAdminOrOwner }: TeamInvitationsListProps) {
   if (invitations.length === 0) {
     return (
-      <div className="rounded-lg border py-12 text-center">
-        <p className="text-muted-foreground">No pending invitations.</p>
-      </div>
+      <EmptyState
+        icon={Mail}
+        title="No pending invitations"
+        description="Invite team members to collaborate in your workspace."
+      />
     );
   }
 
   return (
-    <div className="rounded-lg border">
+    <div className="rounded-xl bg-card">
       <Table>
         <TableHeader>
           <TableRow>

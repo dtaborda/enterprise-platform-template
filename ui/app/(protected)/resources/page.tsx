@@ -1,5 +1,6 @@
 import type { ResourceQueryDto } from "@enterprise/contracts";
 import { Button } from "@enterprise/ui/components/button";
+import { PageHeader } from "@enterprise/ui/components/page-header";
 import Link from "next/link";
 import { requireAuth } from "@/features/auth/queries";
 import { ResourceFilters } from "@/features/resources/components/resource-filters";
@@ -42,17 +43,17 @@ export default async function ResourcesPage({ searchParams }: ResourcesPageProps
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-headline text-2xl font-bold">Resources</h1>
-          <p className="text-muted-foreground">Browse and manage your resource catalog</p>
-        </div>
-        {isAdminOrOwner && (
-          <Button asChild>
-            <Link href={ROUTES.resources.new}>New Resource</Link>
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Resources"
+        subtitle="Manage your workspace resources"
+        action={
+          isAdminOrOwner ? (
+            <Button variant="gradient" asChild>
+              <Link href={ROUTES.resources.new}>New resource</Link>
+            </Button>
+          ) : undefined
+        }
+      />
 
       <ResourceFilters />
 

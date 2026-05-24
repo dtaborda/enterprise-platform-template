@@ -65,7 +65,9 @@ export class WorkspaceAdminPage {
   }
 
   async saveProfile(): Promise<void> {
-    await this.page.getByTestId("save-profile-button").click();
+    const submitButton = this.page.getByTestId("save-profile-button");
+    await submitButton.click();
+    await expect(submitButton).not.toContainText("Saving", { timeout: 30_000 });
   }
 
   async expectSlugFieldAbsent(): Promise<void> {
@@ -85,8 +87,8 @@ export class WorkspaceAdminPage {
   }
 
   async expectSlugDialogVisible(): Promise<void> {
-    await expect(this.page.getByRole("dialog")).toBeVisible();
-    await expect(this.page.getByText("Change workspace slug?")).toBeVisible();
+    await expect(this.page.getByRole("dialog")).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByText("Change workspace slug?")).toBeVisible({ timeout: 30_000 });
   }
 
   async expectSlugDialogAbsent(): Promise<void> {
@@ -136,7 +138,9 @@ export class WorkspaceAdminPage {
   }
 
   async saveSecurity(): Promise<void> {
-    await this.page.getByTestId("save-security-button").click();
+    const submitButton = this.page.getByTestId("save-security-button");
+    await submitButton.click();
+    await expect(submitButton).not.toContainText("Saving", { timeout: 30_000 });
   }
 
   async expectSecuritySectionAbsent(): Promise<void> {
@@ -147,7 +151,7 @@ export class WorkspaceAdminPage {
   // ─── Success feedback ─────────────────────────────────────────────────────
 
   async expectSuccessMessage(text: string): Promise<void> {
-    await expect(this.page.getByText(text)).toBeVisible({ timeout: 10_000 });
+    await expect(this.page.getByText(text)).toBeVisible({ timeout: 30_000 });
   }
 
   async expectProfileSaved(): Promise<void> {

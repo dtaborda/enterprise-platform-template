@@ -63,15 +63,19 @@ export class ResourcesPage {
   }
 
   async submitForm(): Promise<void> {
-    await this.page.getByRole("button", { name: /create resource|update resource/i }).click();
+    const submitButton = this.page.getByRole("button", {
+      name: /create resource|update resource/i,
+    });
+    await submitButton.click();
+    await expect(submitButton).not.toContainText("Saving", { timeout: 30_000 });
   }
 
   async expectResourceInTable(title: string): Promise<void> {
     // Wait for the table to be present before asserting the specific cell.
     // In CI the page re-fetches via Server Components after revalidatePath,
     // which can take longer than the default expect timeout.
-    await expect(this.page.getByRole("table")).toBeVisible();
-    await expect(this.page.getByRole("cell", { name: title })).toBeVisible();
+    await expect(this.page.getByRole("table")).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByRole("cell", { name: title })).toBeVisible({ timeout: 30_000 });
   }
 
   async expectResourceNotInTable(title: string): Promise<void> {

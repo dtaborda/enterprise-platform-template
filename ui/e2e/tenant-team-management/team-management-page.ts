@@ -24,14 +24,18 @@ export class TeamManagementPage {
   }
 
   async submitInviteForm(): Promise<void> {
-    await this.page.getByTestId("invite-submit-button").click();
+    const submitButton = this.page.getByTestId("invite-submit-button");
+    await submitButton.click();
+    await expect(submitButton).not.toContainText("Sending", { timeout: 30_000 });
   }
 
   // ─── Member Rows ───────────────────────────────────────────────────────────
 
   async expectMemberInTable(email: string): Promise<void> {
-    await expect(this.page.getByRole("table").first()).toBeVisible();
-    await expect(this.page.getByTestId("team-member-row").filter({ hasText: email })).toBeVisible();
+    await expect(this.page.getByRole("table").first()).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByTestId("team-member-row").filter({ hasText: email })).toBeVisible({
+      timeout: 30_000,
+    });
   }
 
   async getMemberRow(email: string) {
@@ -70,13 +74,16 @@ export class TeamManagementPage {
   async expectMemberNotInTable(email: string): Promise<void> {
     await expect(this.page.getByTestId("team-member-row").filter({ hasText: email })).toHaveCount(
       0,
+      { timeout: 30_000 },
     );
   }
 
   // ─── Invitation Rows ────────────────────────────────────────────────────────
 
   async expectInvitationInTable(email: string): Promise<void> {
-    await expect(this.page.getByTestId("invitation-row").filter({ hasText: email })).toBeVisible();
+    await expect(this.page.getByTestId("invitation-row").filter({ hasText: email })).toBeVisible({
+      timeout: 30_000,
+    });
   }
 
   async getInvitationRow(email: string) {

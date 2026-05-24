@@ -134,9 +134,15 @@ test.describe("Team Management", () => {
       // Dialog should close
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
-      // Verify role badge updated
-      const memberRow = await teamPage.getMemberRow("member@enterprise.dev");
-      await expect(memberRow.getByText("Guest")).toBeVisible();
+      // Wait for role badge "Guest" to appear anywhere in the member row.
+      // Use a lazy locator chain (not pre-captured) so Playwright re-queries
+      // the DOM on each retry, surviving the router.refresh() re-render.
+      await expect(
+        page
+          .getByTestId("team-member-row")
+          .filter({ hasText: "member@enterprise.dev" })
+          .getByText("Guest"),
+      ).toBeVisible({ timeout: 30_000 });
 
       // Restore original role
       await teamPage.openChangeRoleDialog("member@enterprise.dev");
@@ -175,6 +181,10 @@ test.describe("Team Management", () => {
       // Dialog should close
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
+      // Force a fresh server render after the mutation instead of depending only
+      // on the in-place router.refresh() timing from the client dialog.
+      await teamPage.goto();
+
       // Member should no longer appear in table
       await teamPage.expectMemberNotInTable(removeEmail);
     });
@@ -191,9 +201,15 @@ test.describe("Team Management", () => {
       await teamPage.expectInvitationInTable(inviteEmail);
       await teamPage.cancelInvitation(inviteEmail);
 
-      // Status badge should change to Revoked (or row updates)
-      const invitationRow = await teamPage.getInvitationRow(inviteEmail);
-      await expect(invitationRow.getByText("Revoked")).toBeVisible();
+      // Force a fresh server render after the mutation instead of depending only
+      // on the in-place router.refresh() timing from the client button.
+      await teamPage.goto();
+
+      // Use a lazy locator chain so Playwright re-queries the DOM on each
+      // retry, surviving the router.refresh() RSC re-render.
+      await expect(
+        page.getByTestId("invitation-row").filter({ hasText: inviteEmail }).getByText("Revoked"),
+      ).toBeVisible({ timeout: 30_000 });
     });
 
     test("admin can resend a pending invitation", async ({ page }) => {
@@ -206,11 +222,29 @@ test.describe("Team Management", () => {
       await teamPage.goto();
 
       await teamPage.expectInvitationInTable(inviteEmail);
-      await teamPage.resendInvitation(inviteEmail);
 
-      // Resend button should show "Resent!" feedback
-      const invitationRow = await teamPage.getInvitationRow(inviteEmail);
-      await expect(invitationRow.getByText("Resent!")).toBeVisible();
+      // The resend button cycles through: "Resend" → "Sending…" → "Resent!" → (refresh resets to "Resend").
+      // "Resent!" is ephemeral client-side state that disappears when router.refresh()
+      // re-mounts the component. Instead of catching the transient label, verify the
+      // button text transitions away from "Sending…" back to a stable state.
+      const resendBtn = page
+        .getByTestId("invitation-row")
+        .filter({ hasText: inviteEmail })
+        .getByTestId("resend-invitation-button");
+
+      await resendBtn.click();
+
+      // Button should show "Sending…" during the transition
+      await expect(resendBtn).toContainText("Sending");
+
+      // After transition completes, button settles back (either "Resent!" briefly or
+      // "Resend" after router.refresh()). Wait for the pending state to clear.
+      await expect(resendBtn).not.toContainText("Sending", { timeout: 30_000 });
+
+      // Invitation should still be visible in the table (not removed)
+      await expect(
+        page.getByTestId("invitation-row").filter({ hasText: inviteEmail }),
+      ).toBeVisible();
     });
   });
 

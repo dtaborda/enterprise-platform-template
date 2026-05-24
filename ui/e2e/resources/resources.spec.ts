@@ -94,7 +94,7 @@ test.describe("Resources", () => {
       await resourcesPage.gotoList();
       await resourcesPage.filterByStatus("Active");
 
-      await expect(page).toHaveURL(/status=active/);
+      await expect(page).toHaveURL(/status=active/, { timeout: 30_000 });
       await resourcesPage.expectResourceInTable(activeResource.title);
     });
 

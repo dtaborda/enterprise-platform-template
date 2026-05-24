@@ -2,6 +2,7 @@
 
 import type { BillingEventRecord } from "@enterprise/core/services/billing-service";
 import { Button } from "@enterprise/ui/components/button";
+import { EmptyState } from "@enterprise/ui/components/empty-state";
 import {
   Table,
   TableBody,
@@ -10,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@enterprise/ui/components/table";
+import { Receipt } from "lucide-react";
 import { useState } from "react";
 import { fetchBillingHistoryAction } from "@/features/billing/actions";
 
@@ -57,7 +59,11 @@ export function BillingHistoryTable({ initialHistory, tenantId }: BillingHistory
     return (
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Billing history</h2>
-        <p className="text-sm text-muted-foreground">No billing events yet.</p>
+        <EmptyState
+          icon={Receipt}
+          title="No billing history"
+          description="Your billing events will appear here once you have an active subscription."
+        />
       </div>
     );
   }

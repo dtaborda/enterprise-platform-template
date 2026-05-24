@@ -61,13 +61,13 @@ describe("FormBanner", () => {
     expect(result).toBeNull();
   });
 
-  it("renders success banner (green classes) when state.success && successMessage provided", () => {
+  it("renders success banner (semantic success token) when state.success && successMessage provided", () => {
     const state: ActionResult = { success: true, data: undefined };
     const result = FormBanner({ state, successMessage: "Saved successfully." });
     expect(result).not.toBeNull();
     const className: string = (result as { props: { className: string } }).props.className;
-    expect(className).toContain("bg-green-500");
-    expect(className).toContain("text-green-500");
+    expect(className).toContain("bg-success/10");
+    expect(className).toContain("text-success");
   });
 
   it("success banner has no role='alert'", () => {
