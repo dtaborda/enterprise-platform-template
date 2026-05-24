@@ -55,7 +55,7 @@ const ROLE_HOME_PATHS: Record<UserRole, string> = {
   owner: DASHBOARD_HOME,
   admin: DASHBOARD_HOME,
   member: DASHBOARD_HOME,
-  guest: "/",
+  guest: DASHBOARD_HOME,
 };
 
 export function resolveRoleRedirectPath(role: UserRole | null | undefined): string {
