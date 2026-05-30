@@ -12,10 +12,10 @@
  * - className prop applied to root <footer>
  */
 
+import type { BrandConfig } from "@enterprise/contracts";
 import { act, createElement } from "react";
 import * as ReactDOM from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { BrandConfig } from "@enterprise/contracts";
 
 // ============================================================================
 // Mock dependencies
