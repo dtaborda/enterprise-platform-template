@@ -2,6 +2,8 @@ export const ROUTES = {
   home: "/",
   dashboard: "/dashboard",
   billing: "/billing",
+  notifications: "/notifications",
+  notificationPreferences: "/settings/notifications",
   settings: "/settings",
   team: "/team",
   resources: {
