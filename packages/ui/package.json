@@ -16,7 +16,9 @@
     "./brand/provider": "./src/brand/provider.tsx",
     "./brand/resolve": "./src/brand/resolve.ts",
     "./brand/registry": "./src/brand/registry.ts",
-    "./brand/metadata": "./src/brand/metadata.ts"
+    "./brand/metadata": "./src/brand/metadata.ts",
+    "./brand/brand-logo": "./src/brand/brand-logo.tsx",
+    "./brand/brand-footer": "./src/brand/brand-footer.tsx"
   },
   "scripts": {
     "build:theme": "tsx scripts/build-theme.ts",
