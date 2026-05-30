@@ -2,7 +2,7 @@
 
 import { Button } from "@enterprise/ui/components/button";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { markAsReadAction } from "@/features/notifications/actions";
 import type { NotificationDto } from "@/features/notifications/types";
 import { NotificationEmptyState } from "./notification-empty-state";
@@ -20,6 +20,12 @@ export function NotificationList({ initialItems, hasFilter }: NotificationListPr
   const [items, setItems] = useState(initialItems);
   const [offset, setOffset] = useState(0);
   const [markingId, setMarkingId] = useState<string | null>(null);
+
+  // Sync client state when Server Component re-renders with new data
+  // (e.g., after filter change via URL params or router.refresh)
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
 
   const hasPrev = offset > 0;
   const hasNext = items.length === PAGE_SIZE;

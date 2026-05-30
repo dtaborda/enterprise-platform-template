@@ -566,3 +566,141 @@ CROSS JOIN (
 ) AS event_data(id, event_type, provider, external_event_id, payload, created_at)
 WHERE p.id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 ON CONFLICT (external_event_id) DO NOTHING;
+
+-- ─── Notifications: seed rows ─────────────────────────────────────────────────
+--
+-- 5 notification rows + 1 preference row for E2E tests.
+-- All reference the admin demo tenant (resolved via admin user's profile).
+-- Notification UUIDs use the c0000001-… prefix to avoid collisions.
+-- Preference UUID uses the c0000002-… prefix.
+-- Idempotent: ON CONFLICT (id) DO NOTHING.
+--
+-- User ID reference:
+--   owner  → a1b2c3d4-e5f6-7890-abcd-ef1234567890 (admin@enterprise.dev)
+--   member → b1b2c3d4-e5f6-7890-abcd-ef1234567890 (member@enterprise.dev)
+--   admin  → a2b2c3d4-e5f6-7890-abcd-ef1234567890 (admin-role@enterprise.dev)
+
+INSERT INTO public.notifications (
+  id, tenant_id, user_id, type, category,
+  title, body, metadata,
+  is_read, read_at, source_event, source_entity_id,
+  created_at
+)
+SELECT
+  n.id,
+  p.tenant_id,
+  n.user_id,
+  n.type::notification_type,
+  n.category::notification_category,
+  n.title,
+  n.body,
+  n.metadata,
+  n.is_read,
+  n.read_at,
+  n.source_event,
+  n.source_entity_id,
+  n.created_at
+FROM public.profiles p
+CROSS JOIN (
+  VALUES
+    -- 1. Unread team_invited for member user
+    (
+      'c0000001-0000-0000-0000-000000000001'::uuid,
+      'b1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
+      'team_invited',
+      'team',
+      'You were invited to join Demo Workspace',
+      'Admin User invited you as a member.',
+      '{"inviterId":"a1b2c3d4-e5f6-7890-abcd-ef1234567890","role":"member"}',
+      FALSE,
+      NULL::timestamptz,
+      'tenant_member.invited',
+      NULL::uuid,
+      NOW() - INTERVAL '2 hours'
+    ),
+    -- 2. Unread billing_past_due for owner user
+    (
+      'c0000001-0000-0000-0000-000000000002'::uuid,
+      'a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
+      'billing_past_due',
+      'billing',
+      'Your subscription is past due',
+      'Update your payment method before the grace period ends.',
+      '{"graceEndsAt":"2026-06-15T00:00:00Z"}',
+      FALSE,
+      NULL::timestamptz,
+      'billing.subscription_past_due',
+      NULL::uuid,
+      NOW() - INTERVAL '1 day'
+    ),
+    -- 3. Read billing_plan_upgraded for owner user (read 2 days ago)
+    (
+      'c0000001-0000-0000-0000-000000000003'::uuid,
+      'a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
+      'billing_plan_upgraded',
+      'billing',
+      'Plan upgraded to Pro',
+      'Your plan has been upgraded from Free to Pro.',
+      '{"fromPlan":"free","toPlan":"pro"}',
+      TRUE,
+      NOW() - INTERVAL '2 days',
+      'billing.plan_upgraded',
+      NULL::uuid,
+      NOW() - INTERVAL '3 days'
+    ),
+    -- 4. Read team_invitation_accepted for admin user (read 5 days ago)
+    (
+      'c0000001-0000-0000-0000-000000000004'::uuid,
+      'a2b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
+      'team_invitation_accepted',
+      'team',
+      'Member User accepted your invitation',
+      'Member User joined Demo Workspace as member.',
+      '{"acceptedByName":"Member User","role":"member"}',
+      TRUE,
+      NOW() - INTERVAL '5 days',
+      'tenant_invitation.accepted',
+      NULL::uuid,
+      NOW() - INTERVAL '6 days'
+    ),
+    -- 5. Unread team_role_changed for member user
+    (
+      'c0000001-0000-0000-0000-000000000005'::uuid,
+      'b1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid,
+      'team_role_changed',
+      'team',
+      'Your role was changed to admin',
+      'Owner User updated your role from member to admin.',
+      '{"previousRole":"member","newRole":"admin","changedBy":"a1b2c3d4-e5f6-7890-abcd-ef1234567890"}',
+      FALSE,
+      NULL::timestamptz,
+      'tenant_member.role_changed',
+      NULL::uuid,
+      NOW() - INTERVAL '12 hours'
+    )
+) AS n(id, user_id, type, category, title, body, metadata, is_read, read_at, source_event, source_entity_id, created_at)
+WHERE p.id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+ON CONFLICT (id) DO NOTHING;
+
+-- ─── Notifications: seed preferences ─────────────────────────────────────────
+--
+-- Member user has billing email notifications disabled.
+-- This lets E2E tests verify preference toggling behaviour.
+
+INSERT INTO public.notification_preferences (
+  id, user_id, tenant_id, category,
+  in_app_enabled, email_enabled,
+  created_at, updated_at
+)
+SELECT
+  'c0000002-0000-0000-0000-000000000001'::uuid,
+  'b1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  p.tenant_id,
+  'billing'::notification_category,
+  TRUE,
+  FALSE,
+  NOW(),
+  NOW()
+FROM public.profiles p
+WHERE p.id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+ON CONFLICT (id) DO NOTHING;
