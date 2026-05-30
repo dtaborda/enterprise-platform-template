@@ -1,5 +1,5 @@
 import type { PlatformUser, RegistrationMetadata, UserRole } from "@enterprise/contracts";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AuthPort } from "./ports/auth-port";
 
 export interface ServiceSuccess<T> {
   success: true;
@@ -66,182 +66,94 @@ export function resolveRoleRedirectPath(role: UserRole | null | undefined): stri
   return ROLE_HOME_PATHS[role] ?? DASHBOARD_HOME;
 }
 
+/**
+ * Returns the platform role for a given userId.
+ *
+ * Delegates to auth.getUserRole() — the adapter handles the DB lookup.
+ * The SupabaseAuthAdapter queries the profiles table directly.
+ *
+ * Note: This function still accepts AuthPort (not SupabaseClient) because
+ * getUserRole is part of the auth provider contract — adapters that embed
+ * the role in JWT claims can resolve it without a DB call.
+ *
+ * Middleware keeps a SupabaseClient for the DB query until DatabasePort lands.
+ * In that context, pass `authFactory(supabase)` to get the AuthPort.
+ */
 export async function getUserRoleService(
-  client: SupabaseClient,
+  auth: AuthPort,
   userId: string,
 ): Promise<ServiceResult<UserRoleServiceData>> {
-  const { data: profile, error } = await client
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .single();
-
-  if (error && error.code !== "PGRST116") {
-    return {
-      success: false,
-      error: "Could not load user role",
-      code: "ROLE_LOOKUP_FAILED",
-    };
-  }
-
-  return {
-    success: true,
-    data: {
-      role: (profile?.role as UserRole | null | undefined) ?? "guest",
-    },
-  };
+  return auth.getUserRole(userId);
 }
 
+/**
+ * Returns the currently authenticated platform user.
+ *
+ * Delegates to auth.getUser() — the adapter validates the token server-side
+ * and resolves the profile data.
+ */
 export async function getCurrentPlatformUserService(
-  client: SupabaseClient,
+  auth: AuthPort,
 ): Promise<ServiceResult<PlatformUser | null>> {
-  const {
-    data: { user },
-    error,
-  } = await client.auth.getUser();
-
-  if (error) {
-    return {
-      success: false,
-      error: "Could not resolve authenticated user",
-      code: "AUTH_USER_LOOKUP_FAILED",
-    };
-  }
-
-  if (!user) {
-    return { success: true, data: null };
-  }
-
-  const { data: profile } = await client
-    .from("profiles")
-    .select("tenant_id, role, name, avatar_url")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    success: true,
-    data: {
-      id: user.id,
-      createdAt: new Date(user.created_at),
-      updatedAt: new Date(user.updated_at ?? user.created_at),
-      email: user.email ?? "",
-      name: profile?.name ?? null,
-      avatarUrl: profile?.avatar_url ?? null,
-      role: (profile?.role as UserRole | undefined) ?? "guest",
-      tenantId: profile?.tenant_id ?? "",
-    },
-  };
+  return auth.getUser();
 }
 
+/**
+ * Authenticates a user with email and password.
+ *
+ * Delegates to auth.signInWithPassword() — the adapter handles the
+ * Supabase SDK call, role lookup, and error code mapping.
+ */
 export async function signInWithPasswordService(
-  client: SupabaseClient,
+  auth: AuthPort,
   input: SignInServiceInput,
 ): Promise<ServiceResult<SignInServiceData>> {
-  const { error } = await client.auth.signInWithPassword({
-    email: input.email,
-    password: input.password,
-  });
-
-  if (error) {
-    return { success: false, error: "Invalid credentials", code: "INVALID_CREDENTIALS" };
-  }
-
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: "User not found after sign-in", code: "USER_NOT_FOUND" };
-  }
-
-  const roleResult = await getUserRoleService(client, user.id);
-
-  if (!roleResult.success) {
-    return roleResult;
-  }
-
-  return {
-    success: true,
-    data: {
-      role: roleResult.data.role,
-    },
-  };
+  return auth.signInWithPassword(input);
 }
 
-export async function signOutService(client: SupabaseClient): Promise<ServiceResult<null>> {
-  const { error } = await client.auth.signOut();
-
-  if (error) {
-    return { success: false, error: "Could not sign out", code: "SIGN_OUT_FAILED" };
-  }
-
-  return { success: true, data: null };
+/**
+ * Terminates the current user session.
+ *
+ * Delegates to auth.signOut() — the adapter handles the provider call.
+ */
+export async function signOutService(auth: AuthPort): Promise<ServiceResult<null>> {
+  return auth.signOut();
 }
 
+/**
+ * Registers a new user account.
+ *
+ * Delegates to auth.signUp() — the adapter handles the provider call,
+ * email confirmation detection, and error code mapping.
+ */
 export async function signUpService(
-  client: SupabaseClient,
+  auth: AuthPort,
   input: SignUpServiceInput,
 ): Promise<ServiceResult<SignUpServiceData>> {
-  const { data, error } = await client.auth.signUp({
-    email: input.email,
-    password: input.password,
-    options: {
-      data: input.metadata,
-      emailRedirectTo: input.emailRedirectTo,
-    },
-  });
-
-  if (error) {
-    return { success: false, error: "Could not create account", code: "SIGN_UP_FAILED" };
-  }
-
-  if (!data.user) {
-    return { success: false, error: "User was not created", code: "USER_NOT_CREATED" };
-  }
-
-  return {
-    success: true,
-    data: {
-      userId: data.user.id,
-      needsEmailConfirmation: data.session === null,
-    },
-  };
+  return auth.signUp(input);
 }
 
+/**
+ * Sends a password reset email to the specified address.
+ *
+ * Delegates to auth.requestPasswordReset() — the adapter handles the
+ * provider call and error code mapping.
+ */
 export async function requestPasswordResetService(
-  client: SupabaseClient,
+  auth: AuthPort,
   input: PasswordResetServiceInput,
 ): Promise<ServiceResult<null>> {
-  const { error } = await client.auth.resetPasswordForEmail(input.email, {
-    redirectTo: input.redirectTo,
-  });
-
-  if (error) {
-    return {
-      success: false,
-      error: "Could not send password reset email",
-      code: "PASSWORD_RESET_REQUEST_FAILED",
-    };
-  }
-
-  return { success: true, data: null };
+  return auth.requestPasswordReset(input);
 }
 
+/**
+ * Updates the password for the currently authenticated user.
+ *
+ * Delegates to auth.updatePassword() — the adapter handles the provider call.
+ */
 export async function updatePasswordService(
-  client: SupabaseClient,
+  auth: AuthPort,
   input: UpdatePasswordServiceInput,
 ): Promise<ServiceResult<null>> {
-  const { error } = await client.auth.updateUser({
-    password: input.password,
-  });
-
-  if (error) {
-    return {
-      success: false,
-      error: "Could not update password",
-      code: "PASSWORD_UPDATE_FAILED",
-    };
-  }
-
-  return { success: true, data: null };
+  return auth.updatePassword(input);
 }

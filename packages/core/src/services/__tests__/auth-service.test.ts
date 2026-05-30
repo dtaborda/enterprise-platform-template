@@ -1,5 +1,5 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
+import type { AuthPort } from "../ports/auth-port";
 import {
   type PasswordResetServiceInput,
   requestPasswordResetService,
@@ -10,49 +10,28 @@ import {
   updatePasswordService,
 } from "../auth-service";
 
-function createMockClient() {
-  const mockSingle = vi.fn();
-
+function createMockAuthPort(): AuthPort {
   return {
-    auth: {
-      signInWithPassword: vi.fn(),
-      signOut: vi.fn(),
-      getUser: vi.fn(),
-      signUp: vi.fn(),
-      resetPasswordForEmail: vi.fn(),
-      updateUser: vi.fn(),
-    },
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: mockSingle,
-        })),
-      })),
-    })),
-    __mockSingle: mockSingle,
-  } as unknown as SupabaseClient;
+    signInWithPassword: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn(),
+    getUser: vi.fn(),
+    getUserRole: vi.fn(),
+    requestPasswordReset: vi.fn(),
+    updatePassword: vi.fn(),
+  };
 }
 
 describe("auth-service", () => {
   describe("signInWithPasswordService", () => {
     it("success returns { success: true, data: { role } } for profile role", async () => {
-      const client = createMockClient() as SupabaseClient & {
-        __mockSingle: ReturnType<typeof vi.fn>;
-      };
-      const signInMock = vi.mocked(client.auth.signInWithPassword);
-      const getUserMock = vi.mocked(client.auth.getUser);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signInWithPassword).mockResolvedValue({
+        success: true,
+        data: { role: "member" },
+      });
 
-      signInMock.mockResolvedValue({ data: { user: null, session: null }, error: null } as never);
-      getUserMock.mockResolvedValue({
-        data: {
-          user: {
-            id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-          },
-        },
-      } as never);
-      client.__mockSingle.mockResolvedValue({ data: { role: "member" }, error: null });
-
-      const result = await signInWithPasswordService(client, {
+      const result = await signInWithPasswordService(auth, {
         email: "member@enterprise.dev",
         password: "password123",
       });
@@ -61,17 +40,14 @@ describe("auth-service", () => {
     });
 
     it("sign-in auth failure returns INVALID_CREDENTIALS", async () => {
-      const client = createMockClient() as SupabaseClient & {
-        __mockSingle: ReturnType<typeof vi.fn>;
-      };
-      const signInMock = vi.mocked(client.auth.signInWithPassword);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signInWithPassword).mockResolvedValue({
+        success: false,
+        error: "Invalid credentials",
+        code: "INVALID_CREDENTIALS",
+      });
 
-      signInMock.mockResolvedValue({
-        data: { user: null, session: null },
-        error: { message: "no" },
-      } as never);
-
-      const result = await signInWithPasswordService(client, {
+      const result = await signInWithPasswordService(auth, {
         email: "member@enterprise.dev",
         password: "wrong-password",
       });
@@ -82,17 +58,15 @@ describe("auth-service", () => {
       }
     });
 
-    it("missing user from auth.getUser() returns USER_NOT_FOUND", async () => {
-      const client = createMockClient() as SupabaseClient & {
-        __mockSingle: ReturnType<typeof vi.fn>;
-      };
-      const signInMock = vi.mocked(client.auth.signInWithPassword);
-      const getUserMock = vi.mocked(client.auth.getUser);
+    it("missing user from auth returns USER_NOT_FOUND", async () => {
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signInWithPassword).mockResolvedValue({
+        success: false,
+        error: "User not found after sign-in",
+        code: "USER_NOT_FOUND",
+      });
 
-      signInMock.mockResolvedValue({ data: { user: null, session: null }, error: null } as never);
-      getUserMock.mockResolvedValue({ data: { user: null } } as never);
-
-      const result = await signInWithPasswordService(client, {
+      const result = await signInWithPasswordService(auth, {
         email: "member@enterprise.dev",
         password: "password123",
       });
@@ -103,20 +77,15 @@ describe("auth-service", () => {
       }
     });
 
-    it("profile query error returns ROLE_LOOKUP_FAILED", async () => {
-      const client = createMockClient() as SupabaseClient & {
-        __mockSingle: ReturnType<typeof vi.fn>;
-      };
-      const signInMock = vi.mocked(client.auth.signInWithPassword);
-      const getUserMock = vi.mocked(client.auth.getUser);
+    it("role lookup failure returns ROLE_LOOKUP_FAILED", async () => {
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signInWithPassword).mockResolvedValue({
+        success: false,
+        error: "Could not load user role",
+        code: "ROLE_LOOKUP_FAILED",
+      });
 
-      signInMock.mockResolvedValue({ data: { user: null, session: null }, error: null } as never);
-      getUserMock.mockResolvedValue({
-        data: { user: { id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890" } },
-      } as never);
-      client.__mockSingle.mockResolvedValue({ data: null, error: { message: "missing" } });
-
-      const result = await signInWithPasswordService(client, {
+      const result = await signInWithPasswordService(auth, {
         email: "member@enterprise.dev",
         password: "password123",
       });
@@ -128,19 +97,13 @@ describe("auth-service", () => {
     });
 
     it("null/undefined profile role returns success with guest role", async () => {
-      const client = createMockClient() as SupabaseClient & {
-        __mockSingle: ReturnType<typeof vi.fn>;
-      };
-      const signInMock = vi.mocked(client.auth.signInWithPassword);
-      const getUserMock = vi.mocked(client.auth.getUser);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signInWithPassword).mockResolvedValue({
+        success: true,
+        data: { role: "guest" },
+      });
 
-      signInMock.mockResolvedValue({ data: { user: null, session: null }, error: null } as never);
-      getUserMock.mockResolvedValue({
-        data: { user: { id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890" } },
-      } as never);
-      client.__mockSingle.mockResolvedValue({ data: {}, error: null });
-
-      const result = await signInWithPasswordService(client, {
+      const result = await signInWithPasswordService(auth, {
         email: "member@enterprise.dev",
         password: "password123",
       });
@@ -151,22 +114,22 @@ describe("auth-service", () => {
 
   describe("signOutService", () => {
     it("success returns { success: true, data: null }", async () => {
-      const client = createMockClient();
-      const signOutMock = vi.mocked(client.auth.signOut);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signOut).mockResolvedValue({ success: true, data: null });
 
-      signOutMock.mockResolvedValue({ error: null } as never);
-
-      const result = await signOutService(client);
+      const result = await signOutService(auth);
       expect(result).toEqual({ success: true, data: null });
     });
 
     it("auth signOut error returns SIGN_OUT_FAILED", async () => {
-      const client = createMockClient();
-      const signOutMock = vi.mocked(client.auth.signOut);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signOut).mockResolvedValue({
+        success: false,
+        error: "Could not sign out",
+        code: "SIGN_OUT_FAILED",
+      });
 
-      signOutMock.mockResolvedValue({ error: { message: "failed" } } as never);
-
-      const result = await signOutService(client);
+      const result = await signOutService(auth);
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.code).toBe("SIGN_OUT_FAILED");
@@ -176,16 +139,14 @@ describe("auth-service", () => {
 
   describe("signUpService", () => {
     it("returns sign-up success with confirmation status", async () => {
-      const client = createMockClient();
-      const signUpMock = vi.mocked(client.auth.signUp);
-
-      signUpMock.mockResolvedValue({
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signUp).mockResolvedValue({
+        success: true,
         data: {
-          user: { id: "fcb76509-16e5-4c56-8f70-17a018ec4d8d" },
-          session: null,
+          userId: "fcb76509-16e5-4c56-8f70-17a018ec4d8d",
+          needsEmailConfirmation: true,
         },
-        error: null,
-      } as never);
+      });
 
       const input: SignUpServiceInput = {
         email: "test@example.com",
@@ -194,7 +155,7 @@ describe("auth-service", () => {
         emailRedirectTo: "http://localhost:3000/auth/callback",
       };
 
-      const result = await signUpService(client, input);
+      const result = await signUpService(auth, input);
 
       expect(result).toEqual({
         success: true,
@@ -206,13 +167,12 @@ describe("auth-service", () => {
     });
 
     it("auth signUp error returns SIGN_UP_FAILED", async () => {
-      const client = createMockClient();
-      const signUpMock = vi.mocked(client.auth.signUp);
-
-      signUpMock.mockResolvedValue({
-        data: { user: null, session: null },
-        error: { message: "failed" },
-      } as never);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signUp).mockResolvedValue({
+        success: false,
+        error: "Could not create account",
+        code: "SIGN_UP_FAILED",
+      });
 
       const input: SignUpServiceInput = {
         email: "test@example.com",
@@ -221,7 +181,7 @@ describe("auth-service", () => {
         emailRedirectTo: "http://localhost:3000/auth/callback",
       };
 
-      const result = await signUpService(client, input);
+      const result = await signUpService(auth, input);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -230,10 +190,12 @@ describe("auth-service", () => {
     });
 
     it("signUp result without user returns USER_NOT_CREATED", async () => {
-      const client = createMockClient();
-      const signUpMock = vi.mocked(client.auth.signUp);
-
-      signUpMock.mockResolvedValue({ data: { user: null, session: null }, error: null } as never);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signUp).mockResolvedValue({
+        success: false,
+        error: "User was not created",
+        code: "USER_NOT_CREATED",
+      });
 
       const input: SignUpServiceInput = {
         email: "test@example.com",
@@ -242,7 +204,7 @@ describe("auth-service", () => {
         emailRedirectTo: "http://localhost:3000/auth/callback",
       };
 
-      const result = await signUpService(client, input);
+      const result = await signUpService(auth, input);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -251,16 +213,14 @@ describe("auth-service", () => {
     });
 
     it("signUp with non-null session sets needsEmailConfirmation: false", async () => {
-      const client = createMockClient();
-      const signUpMock = vi.mocked(client.auth.signUp);
-
-      signUpMock.mockResolvedValue({
+      const auth = createMockAuthPort();
+      vi.mocked(auth.signUp).mockResolvedValue({
+        success: true,
         data: {
-          user: { id: "fcb76509-16e5-4c56-8f70-17a018ec4d8d" },
-          session: { access_token: "token" },
+          userId: "fcb76509-16e5-4c56-8f70-17a018ec4d8d",
+          needsEmailConfirmation: false,
         },
-        error: null,
-      } as never);
+      });
 
       const input: SignUpServiceInput = {
         email: "test@example.com",
@@ -269,7 +229,7 @@ describe("auth-service", () => {
         emailRedirectTo: "http://localhost:3000/auth/callback",
       };
 
-      const result = await signUpService(client, input);
+      const result = await signUpService(auth, input);
 
       expect(result).toEqual({
         success: true,
@@ -283,35 +243,35 @@ describe("auth-service", () => {
 
   describe("requestPasswordResetService", () => {
     it("success returns { success: true, data: null }", async () => {
-      const client = createMockClient();
-      const resetMock = vi.mocked(client.auth.resetPasswordForEmail);
-
-      resetMock.mockResolvedValue({ data: {}, error: null } as never);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.requestPasswordReset).mockResolvedValue({
+        success: true,
+        data: null,
+      });
 
       const input: PasswordResetServiceInput = {
         email: "test@example.com",
         redirectTo: "http://localhost:3000/auth/callback?next=/reset-password",
       };
 
-      const result = await requestPasswordResetService(client, input);
+      const result = await requestPasswordResetService(auth, input);
       expect(result).toEqual({ success: true, data: null });
     });
 
     it("returns reset-password service failure when provider fails", async () => {
-      const client = createMockClient();
-      const resetMock = vi.mocked(client.auth.resetPasswordForEmail);
-
-      resetMock.mockResolvedValue({
-        data: {},
-        error: { message: "failure" },
-      } as never);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.requestPasswordReset).mockResolvedValue({
+        success: false,
+        error: "Could not send password reset email",
+        code: "PASSWORD_RESET_REQUEST_FAILED",
+      });
 
       const input: PasswordResetServiceInput = {
         email: "test@example.com",
         redirectTo: "http://localhost:3000/auth/callback?next=/reset-password",
       };
 
-      const result = await requestPasswordResetService(client, input);
+      const result = await requestPasswordResetService(auth, input);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -322,15 +282,13 @@ describe("auth-service", () => {
 
   describe("updatePasswordService", () => {
     it("updates password successfully", async () => {
-      const client = createMockClient();
-      const updateUserMock = vi.mocked(client.auth.updateUser);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.updatePassword).mockResolvedValue({
+        success: true,
+        data: null,
+      });
 
-      updateUserMock.mockResolvedValue({
-        data: { user: null },
-        error: null,
-      } as never);
-
-      const result = await updatePasswordService(client, {
+      const result = await updatePasswordService(auth, {
         password: "Password123",
       });
 
@@ -338,15 +296,14 @@ describe("auth-service", () => {
     });
 
     it("auth update error returns PASSWORD_UPDATE_FAILED", async () => {
-      const client = createMockClient();
-      const updateUserMock = vi.mocked(client.auth.updateUser);
+      const auth = createMockAuthPort();
+      vi.mocked(auth.updatePassword).mockResolvedValue({
+        success: false,
+        error: "Could not update password",
+        code: "PASSWORD_UPDATE_FAILED",
+      });
 
-      updateUserMock.mockResolvedValue({
-        data: { user: null },
-        error: { message: "failed" },
-      } as never);
-
-      const result = await updatePasswordService(client, {
+      const result = await updatePasswordService(auth, {
         password: "Password123",
       });
 
