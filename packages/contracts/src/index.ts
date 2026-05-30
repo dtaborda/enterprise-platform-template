@@ -4,6 +4,7 @@
 // Re-export Zod for convenience
 export { z } from "zod";
 export * from "./dto/billing";
+export * from "./dto/notifications";
 // DTOs
 export * from "./dto/platform";
 export * from "./dto/resources";

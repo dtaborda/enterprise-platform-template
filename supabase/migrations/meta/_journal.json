@@ -15,6 +15,13 @@
       "when": 1779396142849,
       "tag": "0001_happy_the_renegades",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780099326005,
+      "tag": "0002_rapid_stingray",
+      "breakpoints": true
     }
   ]
 }
