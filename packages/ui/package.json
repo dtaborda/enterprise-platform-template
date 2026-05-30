@@ -11,7 +11,12 @@
     "./theme/context": "./src/theme/context.ts",
     "./theme/provider": "./src/theme/provider.tsx",
     "./theme/toggle": "./src/theme/toggle.tsx",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./hooks/*": "./src/hooks/*.ts",
+    "./brand/context": "./src/brand/context.ts",
+    "./brand/provider": "./src/brand/provider.tsx",
+    "./brand/resolve": "./src/brand/resolve.ts",
+    "./brand/registry": "./src/brand/registry.ts",
+    "./brand/metadata": "./src/brand/metadata.ts"
   },
   "scripts": {
     "build:theme": "tsx scripts/build-theme.ts",
@@ -29,11 +34,13 @@
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "next": "^15.5.18",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "zod": "^3.25.0"
   },
   "peerDependencies": {
+    "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwindcss": "^4.0.0"
