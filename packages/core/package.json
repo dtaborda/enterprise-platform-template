@@ -19,7 +19,10 @@
     "./services/billing-service": "./src/services/billing-service.ts",
     "./services/notification-service": "./src/services/notification-service.ts",
     "./services/ports/payment-provider-port": "./src/services/ports/payment-provider-port.ts",
-    "./services/adapters/payment-adapter-factory": "./src/services/adapters/payment-adapter-factory.ts"
+    "./services/adapters/payment-adapter-factory": "./src/services/adapters/payment-adapter-factory.ts",
+    "./services/ports": "./src/services/ports/index.ts",
+    "./services/adapters": "./src/services/adapters/index.ts",
+    "./services/backend-adapters": "./src/services/backend-adapters.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

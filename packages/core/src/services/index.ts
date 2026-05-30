@@ -1,6 +1,27 @@
 // Platform service layer - base services for multi-tenant operations
 // These are meant to be extended by domain-specific services
 
+// Backend ports — provider-agnostic interfaces
+export type { AuthPort } from "./ports/auth-port";
+export type {
+  StoragePort,
+  StorageUploadOptions,
+  StorageUploadResult,
+  StorageSignedUrlResult,
+  StoragePublicUrlResult,
+  StorageFileEntry,
+} from "./ports/storage-port";
+export type { SessionPort } from "./ports/session-port";
+
+// Backend adapters — Supabase reference implementations
+export { SupabaseAuthAdapter } from "./adapters/supabase-auth-adapter";
+export { SupabaseStorageAdapter } from "./adapters/supabase-storage-adapter";
+export { SupabaseSessionAdapter } from "./adapters/supabase-session-adapter";
+
+// Backend adapter factory
+export { createBackendAdapters } from "./backend-adapters";
+export type { BackendAdapters } from "./backend-adapters";
+
 export { ConsoleInvitationEmailAdapter } from "./adapters/console-invitation-email-adapter";
 export { ResendInvitationEmailAdapter } from "./adapters/resend-invitation-email-adapter";
 export * from "./auth-service";
