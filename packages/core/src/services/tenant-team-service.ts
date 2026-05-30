@@ -12,7 +12,9 @@ import type {
   TenantMemberOutput,
 } from "@enterprise/contracts";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createNotificationEmailAdapter } from "./adapters/notification-email-adapter-factory";
 import type { ServiceResult } from "./auth-service";
+import { createNotification } from "./notification-service";
 import type { InvitationEmailPort } from "./ports/invitation-email-port";
 
 // ─── Token Utilities ───────────────────────────────────────────────────────────
@@ -159,6 +161,7 @@ export async function inviteTenantMember(
   input: InviteMemberDto,
   emailPort: InvitationEmailPort,
   opts?: { appUrl?: string; tenantName?: string; inviterName?: string },
+  adminClient?: SupabaseClient,
 ): Promise<ServiceResult<TenantInvitationOutput>> {
   // Guard: allow_admin_invites flag
   if (userRole === "admin") {
@@ -277,6 +280,43 @@ export async function inviteTenantMember(
         error: emailResult.error,
       },
     );
+  }
+
+  // Dispatch in-app notification if invited user already has an account (non-blocking)
+  if (adminClient) {
+    try {
+      // Check if the invited email already has an auth user via profiles lookup
+      const { data: existingUser } = await adminClient
+        .from("profiles")
+        .select("id")
+        .eq("email", input.email)
+        .maybeSingle();
+
+      if (existingUser) {
+        // Existing user: create in-app + email notification
+        const existingUserId = (existingUser as Record<string, unknown>)["id"] as string;
+        createNotification(
+          adminClient,
+          {
+            tenantId,
+            userId: existingUserId,
+            type: "team_invited",
+            category: "team",
+            title: "You have been invited to a team",
+            body: `You have been invited to join as ${input.role}.`,
+            sourceEvent: "member.invited",
+            sourceEntityId: invitationRow["id"] as string,
+          },
+          createNotificationEmailAdapter(),
+          input.email,
+        ).catch((notifError) => {
+          console.error("[team] inviteTenantMember: notification dispatch failed:", notifError);
+        });
+      }
+      // No account yet: invitation email already sent above via emailPort — no in-app row
+    } catch (notifError) {
+      console.error("[team] inviteTenantMember: notification dispatch failed:", notifError);
+    }
   }
 
   return { success: true, data: mapInvitationRow(invitationRow) };
@@ -415,6 +455,26 @@ export async function acceptTenantInvitation(
     role,
   });
 
+  // Dispatch notification to the inviter (non-blocking)
+  const invitedByUserId = inv["invited_by"] as string;
+  createNotification(
+    adminClient,
+    {
+      tenantId,
+      userId: invitedByUserId,
+      type: "team_invitation_accepted",
+      category: "team",
+      title: "Invitation accepted",
+      body: `Your invitation has been accepted. The new member joined as ${role}.`,
+      metadata: JSON.stringify({ acceptedByEmail: email, role }),
+      sourceEvent: "member.joined",
+      sourceEntityId: invitationId,
+    },
+    createNotificationEmailAdapter(),
+  ).catch((notifError) => {
+    console.error("[team] acceptTenantInvitation: notification dispatch failed:", notifError);
+  });
+
   return { success: true, data: undefined };
 }
 
@@ -513,6 +573,29 @@ export async function changeTenantMemberRole(
     to: input.role,
   });
 
+  // Dispatch notification to the affected member (non-blocking)
+  createNotification(
+    adminClient,
+    {
+      tenantId,
+      userId: input.userId,
+      type: "team_role_changed",
+      category: "team",
+      title: "Your role has changed",
+      body: `Your role has been updated to ${input.role}.`,
+      metadata: JSON.stringify({
+        previousRole: target["role"],
+        newRole: input.role,
+        changedBy: requesterId,
+      }),
+      sourceEvent: "member.role_changed",
+      sourceEntityId: input.userId,
+    },
+    createNotificationEmailAdapter(),
+  ).catch((notifError) => {
+    console.error("[team] changeTenantMemberRole: notification dispatch failed:", notifError);
+  });
+
   return { success: true, data: mapProfileToMember(updated as Record<string, unknown>) };
 }
 
@@ -603,6 +686,22 @@ export async function removeTenantMember(
     email: target["email"],
     role: target["role"],
   });
+
+  // Dispatch email-only notification (no in-app row — user is losing access) (non-blocking)
+  const removedEmail = target["email"] as string | null;
+  if (removedEmail) {
+    try {
+      const emailAdapter = createNotificationEmailAdapter();
+      void emailAdapter.sendNotificationEmail({
+        to: removedEmail,
+        subject: "You have been removed from the team",
+        title: "Removed from team",
+        body: "Your access to the workspace has been revoked.",
+      });
+    } catch (notifError) {
+      console.error("[team] removeTenantMember: email notification failed:", notifError);
+    }
+  }
 
   return { success: true, data: undefined };
 }

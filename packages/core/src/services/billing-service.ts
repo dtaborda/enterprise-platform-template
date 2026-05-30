@@ -9,7 +9,9 @@ import type {
   ChangePlanDto,
 } from "@enterprise/contracts";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createNotificationEmailAdapter } from "./adapters/notification-email-adapter-factory";
 import type { ServiceResult } from "./auth-service";
+import { createBulkNotifications, createNotification } from "./notification-service";
 import type { PaymentProviderPort } from "./ports/payment-provider-port";
 
 // ─── Service-Layer Types ──────────────────────────────────────────────────────
@@ -397,6 +399,28 @@ export async function changePlan(
     initiatedBy: userId,
   });
 
+  // 9. Dispatch notification (non-blocking)
+  const notificationType = isUpgrade ? "billing_plan_upgraded" : "billing_plan_downgraded";
+  createNotification(
+    adminClient,
+    {
+      tenantId,
+      userId,
+      type: notificationType,
+      category: "billing",
+      title: isUpgrade ? "Plan upgraded" : "Plan downgraded",
+      body: isUpgrade
+        ? "Your subscription plan has been upgraded."
+        : "Your subscription plan has been downgraded.",
+      metadata: JSON.stringify({ fromPlanId: oldPlanId, toPlanId: input.planId }),
+      sourceEvent: auditEvent,
+      sourceEntityId: sub["id"] as string,
+    },
+    createNotificationEmailAdapter(),
+  ).catch((notifError) => {
+    console.error("[billing] changePlan: notification dispatch failed:", notifError);
+  });
+
   return { success: true, data: mapSubscriptionRow(updatedSub as SubscriptionRow) };
 }
 
@@ -503,6 +527,44 @@ export async function cancelSubscription(
     },
   );
 
+  // 7. Dispatch notification to owner + admins (non-blocking)
+  try {
+    const { data: recipients } = await adminClient
+      .from("profiles")
+      .select("id, email")
+      .eq("tenant_id", tenantId)
+      .in("role", ["owner", "admin"]);
+
+    const recipientRows = (recipients ?? []) as Array<Record<string, unknown>>;
+    const inputs = recipientRows.map((r) => ({
+      tenantId,
+      userId: r["id"] as string,
+      type: "billing_canceled" as const,
+      category: "billing" as const,
+      title: "Subscription canceled",
+      body: "Your subscription has been canceled.",
+      sourceEvent: "billing.subscription_canceled",
+      sourceEntityId: sub["id"] as string,
+    }));
+    const emailMap: Record<string, string> = {};
+    for (const r of recipientRows) {
+      emailMap[r["id"] as string] = r["email"] as string;
+    }
+
+    if (inputs.length > 0) {
+      createBulkNotifications(
+        adminClient,
+        inputs,
+        createNotificationEmailAdapter(),
+        emailMap,
+      ).catch((notifError) => {
+        console.error("[billing] cancelSubscription: notification dispatch failed:", notifError);
+      });
+    }
+  } catch (notifError) {
+    console.error("[billing] cancelSubscription: notification dispatch failed:", notifError);
+  }
+
   return { success: true, data: mapSubscriptionRow(updatedSub as SubscriptionRow) };
 }
 
@@ -593,6 +655,44 @@ export async function resumeSubscription(
       initiatedBy: userId,
     },
   );
+
+  // 6. Dispatch notification to owner + admins (non-blocking)
+  try {
+    const { data: recipients } = await adminClient
+      .from("profiles")
+      .select("id, email")
+      .eq("tenant_id", tenantId)
+      .in("role", ["owner", "admin"]);
+
+    const recipientRows = (recipients ?? []) as Array<Record<string, unknown>>;
+    const inputs = recipientRows.map((r) => ({
+      tenantId,
+      userId: r["id"] as string,
+      type: "billing_activated" as const,
+      category: "billing" as const,
+      title: "Subscription reactivated",
+      body: "Your subscription has been reactivated.",
+      sourceEvent: "billing.subscription_reactivated",
+      sourceEntityId: sub["id"] as string,
+    }));
+    const emailMap: Record<string, string> = {};
+    for (const r of recipientRows) {
+      emailMap[r["id"] as string] = r["email"] as string;
+    }
+
+    if (inputs.length > 0) {
+      createBulkNotifications(
+        adminClient,
+        inputs,
+        createNotificationEmailAdapter(),
+        emailMap,
+      ).catch((notifError) => {
+        console.error("[billing] resumeSubscription: notification dispatch failed:", notifError);
+      });
+    }
+  } catch (notifError) {
+    console.error("[billing] resumeSubscription: notification dispatch failed:", notifError);
+  }
 
   return { success: true, data: mapSubscriptionRow(updatedSub as SubscriptionRow) };
 }
@@ -779,6 +879,93 @@ async function syncSubscriptionState(
   const auditEvent = data.status ? statusAuditMap[data.status] : undefined;
   if (auditEvent) {
     void writeAuditLog(adminClient, tenantId, systemUserId, auditEvent, updatedSub["id"] as string);
+  }
+
+  // Dispatch notifications based on status transition (non-blocking)
+  if (data.status === "past_due" || data.status === "active" || data.status === "canceled") {
+    try {
+      const { data: recipients } = await adminClient
+        .from("profiles")
+        .select("id, email, role")
+        .eq("tenant_id", tenantId)
+        .in("role", ["owner", "admin"]);
+
+      const recipientRows = (recipients ?? []) as Array<Record<string, unknown>>;
+      const emailMap: Record<string, string> = {};
+      for (const r of recipientRows) {
+        emailMap[r["id"] as string] = r["email"] as string;
+      }
+
+      let notifInputs: Array<{
+        tenantId: string;
+        userId: string;
+        type: "billing_past_due" | "billing_activated" | "billing_canceled";
+        category: "billing";
+        title: string;
+        body: string;
+        sourceEvent: string;
+        sourceEntityId?: string;
+      }> = [];
+
+      if (data.status === "past_due") {
+        // All owners + admins
+        notifInputs = recipientRows.map((r) => ({
+          tenantId,
+          userId: r["id"] as string,
+          type: "billing_past_due" as const,
+          category: "billing" as const,
+          title: "Payment past due",
+          body: "Your subscription payment is past due. Please update your payment method.",
+          sourceEvent: "billing.subscription_past_due",
+          sourceEntityId: updatedSub["id"] as string,
+        }));
+      } else if (data.status === "active") {
+        // Owner only (first owner found)
+        const owner = recipientRows.find((r) => r["role"] === "owner");
+        if (owner) {
+          notifInputs = [
+            {
+              tenantId,
+              userId: owner["id"] as string,
+              type: "billing_activated" as const,
+              category: "billing" as const,
+              title: "Subscription activated",
+              body: "Your subscription is now active.",
+              sourceEvent: "billing.subscription_activated",
+              sourceEntityId: updatedSub["id"] as string,
+            },
+          ];
+        }
+      } else if (data.status === "canceled") {
+        // All owners + admins
+        notifInputs = recipientRows.map((r) => ({
+          tenantId,
+          userId: r["id"] as string,
+          type: "billing_canceled" as const,
+          category: "billing" as const,
+          title: "Subscription canceled",
+          body: "Your subscription has been canceled.",
+          sourceEvent: "billing.subscription_expired",
+          sourceEntityId: updatedSub["id"] as string,
+        }));
+      }
+
+      if (notifInputs.length > 0) {
+        createBulkNotifications(
+          adminClient,
+          notifInputs,
+          createNotificationEmailAdapter(),
+          emailMap,
+        ).catch((notifError) => {
+          console.error(
+            "[billing] syncSubscriptionState: notification dispatch failed:",
+            notifError,
+          );
+        });
+      }
+    } catch (notifError) {
+      console.error("[billing] syncSubscriptionState: notification dispatch failed:", notifError);
+    }
   }
 
   return { success: true, data: mapSubscriptionRow(updatedSub as SubscriptionRow) };
