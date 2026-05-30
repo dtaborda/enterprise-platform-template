@@ -15,12 +15,16 @@ import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/features/auth/actions";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { ROUTES } from "@/lib/routes";
 import { MobileNav } from "./mobile-nav";
 
 interface HeaderProps {
   userRole: UserRole;
   userLabel: string;
+  userId: string;
+  tenantId: string;
+  initialUnreadCount: number;
 }
 
 const ROUTE_TITLES = [
@@ -28,9 +32,10 @@ const ROUTE_TITLES = [
   { prefix: ROUTES.team, title: "Team" },
   { prefix: ROUTES.billing, title: "Billing" },
   { prefix: ROUTES.resources.root, title: "Resources" },
+  { prefix: ROUTES.notifications, title: "Notifications" },
 ] as const;
 
-export function Header({ userRole, userLabel }: HeaderProps) {
+export function Header({ userRole, userLabel, userId, tenantId, initialUnreadCount }: HeaderProps) {
   const avatarLabel = userLabel.trim().charAt(0).toUpperCase() || "U";
   const pathname = usePathname();
 
@@ -45,6 +50,9 @@ export function Header({ userRole, userLabel }: HeaderProps) {
 
       <div className="ml-auto flex items-center gap-2">
         <ThemeToggle />
+        {userRole !== "guest" && (
+          <NotificationBell initialCount={initialUnreadCount} userId={userId} tenantId={tenantId} />
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
