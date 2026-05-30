@@ -3,6 +3,24 @@
 
 // Re-export Zod for convenience
 export { z } from "zod";
+
+// Brand system — schemas and types
+export {
+  brandConfigSchema,
+  brandLegalSchema,
+  brandLogoSchema,
+  brandLogoVariantSchema,
+  brandMetadataSchema,
+  brandSocialSchema,
+} from "./schemas/brand";
+export type {
+  BrandConfig,
+  BrandLegal,
+  BrandLogo,
+  BrandLogoVariant,
+  BrandMetadata,
+  BrandSocial,
+} from "./schemas/brand";
 export * from "./dto/billing";
 export * from "./dto/notifications";
 // DTOs
