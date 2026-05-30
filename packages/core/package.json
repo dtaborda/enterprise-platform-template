@@ -17,6 +17,7 @@
     "./services": "./src/services/index.ts",
     "./services/auth-service": "./src/services/auth-service.ts",
     "./services/billing-service": "./src/services/billing-service.ts",
+    "./services/notification-service": "./src/services/notification-service.ts",
     "./services/ports/payment-provider-port": "./src/services/ports/payment-provider-port.ts",
     "./services/adapters/payment-adapter-factory": "./src/services/adapters/payment-adapter-factory.ts"
   },

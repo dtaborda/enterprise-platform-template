@@ -5,6 +5,7 @@ export type { PgTable } from "drizzle-orm/pg-core";
 // Re-export drizzle utilities
 export { drizzle } from "drizzle-orm/postgres-js";
 export * from "./schema/billing.js";
+export * from "./schema/notifications.js";
 // Re-export new types explicitly for consumers
 export type { NewTenantInvitation, TenantInvitation } from "./schema/platform.js";
 export * from "./schema/platform.js";
