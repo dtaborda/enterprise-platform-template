@@ -197,6 +197,9 @@ See `ui/AGENTS.md` for E2E test rules and conventions.
 
 ## QA Checklist (before every PR)
 
+- [ ] `pnpm install --frozen-lockfile` passes (run FIRST — CI's first step; FAILS the whole pipeline if `pnpm-lock.yaml` is stale. `typecheck`/`lint`/`test` install without the frozen flag and will NOT catch a stale lockfile)
+- [ ] If any `package.json` dependency changed, `pnpm-lock.yaml` was regenerated (`pnpm install`) and committed in the SAME PR
+- [ ] `git diff <base>...HEAD --stat` shows only files this PR should touch (no commits leaked from sibling/stacked branches)
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm lint` passes
 - [ ] `pnpm test` passes (unit tests)
