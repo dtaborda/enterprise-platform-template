@@ -20,7 +20,9 @@ metadata:
 - ALWAYS use conventional-commit format for PR title: `type(scope): description`
 - ALWAYS link related issues with `Closes #N`, `Fixes #N`, or `Resolves #N`
 - ALWAYS include workspace-specific checklist items when applicable
-- NEVER create a PR without running quality checks first (`pnpm typecheck && pnpm lint && pnpm test`)
+- NEVER create a PR without running quality checks first (`pnpm install --frozen-lockfile && pnpm typecheck && pnpm lint && pnpm test`)
+- ALWAYS run `pnpm install --frozen-lockfile` as the FIRST check whenever ANY `package.json` changed — CI runs it before everything else and FAILS the whole pipeline if `pnpm-lock.yaml` is stale. `typecheck`/`lint`/`test` do NOT catch this because they install without the frozen flag.
+- If you added/removed/bumped a dependency, you MUST run `pnpm install` (no flag) to regenerate `pnpm-lock.yaml`, then commit the lockfile in the SAME PR as the `package.json` change.
 - NEVER push `--force` to main/master
 - NEVER include secrets, `.env` files, or credentials in the PR
 
@@ -30,12 +32,14 @@ metadata:
 
 ```
 1. Ensure branch is up to date with main
-2. Run quality checks: pnpm typecheck && pnpm lint && pnpm test
-3. Review all commits: git log main..HEAD --oneline
-4. Review full diff: git diff main...HEAD --stat
-5. Fill PR template sections
-6. Create PR: gh pr create --title "type(scope): description" --body "..."
-7. Verify CI passes
+2. Verify lockfile integrity: pnpm install --frozen-lockfile  (MUST pass — mirrors CI's first step)
+3. Run quality checks: pnpm typecheck && pnpm lint && pnpm test
+4. Review all commits: git log main..HEAD --oneline
+5. Review full diff: git diff main...HEAD --stat
+6. Confirm no stray files from other branches leaked in (see "Lockfile & Branch Hygiene" below)
+7. Fill PR template sections
+8. Create PR: gh pr create --title "type(scope): description" --body "..."
+9. Verify CI passes
 ```
 
 ---
@@ -75,6 +79,7 @@ The template lives at `.github/PULL_REQUEST_TEMPLATE.md`. Every PR body MUST con
 
 ## Verification
 
+- [ ] `pnpm install --frozen-lockfile` passes
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm lint` passes
 - [ ] `pnpm test` passes
@@ -170,13 +175,45 @@ Is the diff > 400 lines?
 ## Before Creating PR
 
 1. ✅ Branch is up to date with main (`git pull origin main --rebase`)
-2. ✅ `pnpm typecheck` passes
-3. ✅ `pnpm lint` passes
-4. ✅ `pnpm test` passes
-5. ✅ E2E tests pass (if feature has UI: `pnpm e2e`)
-6. ✅ Commits follow conventional-commits format
-7. ✅ No `any` types introduced
-8. ✅ No secrets in code
+2. ✅ `pnpm install --frozen-lockfile` passes (run FIRST — this is exactly what CI does before any other step)
+3. ✅ `pnpm typecheck` passes
+4. ✅ `pnpm lint` passes
+5. ✅ `pnpm test` passes
+6. ✅ E2E tests pass (if feature has UI: `pnpm e2e`)
+7. ✅ `git diff main...HEAD --stat` shows ONLY files this PR should touch (no leaked commits from sibling branches)
+8. ✅ Commits follow conventional-commits format
+9. ✅ No `any` types introduced
+10. ✅ No secrets in code
+
+---
+
+## Lockfile & Branch Hygiene
+
+The #1 silent CI failure on this repo is a stale `pnpm-lock.yaml`. CI runs `pnpm install --frozen-lockfile` as its FIRST step in BOTH the `quality` and `security` jobs and aborts the entire pipeline if the lockfile does not match every `package.json`. Local `typecheck`/`lint`/`test` install WITHOUT the frozen flag, so they never surface this.
+
+### Rule: package.json and lockfile travel together
+
+```bash
+# After ANY dependency add/remove/bump in a package.json:
+pnpm install                    # regenerates pnpm-lock.yaml
+git add pnpm-lock.yaml          # stage it in the SAME commit/PR as the package.json change
+
+# Then prove CI will pass:
+pnpm install --frozen-lockfile  # must print "Lockfile is up to date"
+```
+
+Adding only `exports`/`scripts`/`name` fields (no dependency change) does NOT require a lockfile update — but running `pnpm install --frozen-lockfile` to confirm costs seconds and removes all doubt.
+
+### Rule: verify the diff is scoped to THIS branch
+
+When working with stacked or sibling branches, commits can leak across branches (e.g. cherry-pick mistakes, wrong active branch). Before opening the PR:
+
+```bash
+git diff <base>...HEAD --stat   # every file must belong to THIS PR's scope
+git log <base>..HEAD --oneline  # every commit must belong to THIS PR
+```
+
+If you see files or commits from an unrelated track, rebuild the branch cleanly off its intended base (cherry-pick only this PR's commits) before creating the PR.
 
 ---
 
@@ -186,8 +223,8 @@ Is the diff > 400 lines?
 # Ensure branch is current
 git pull origin main --rebase
 
-# Run all quality checks
-pnpm typecheck && pnpm lint && pnpm test
+# Run all quality checks (lockfile check FIRST — mirrors CI order)
+pnpm install --frozen-lockfile && pnpm typecheck && pnpm lint && pnpm test
 
 # Review what will be in the PR
 git log main..HEAD --oneline
