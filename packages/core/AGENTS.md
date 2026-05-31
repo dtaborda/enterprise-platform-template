@@ -35,6 +35,56 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 ---
 
+## Architecture: Port/Adapter Pattern
+
+`@enterprise/core` implements a port/adapter abstraction for auth, storage, and session management. This follows the same pattern as the billing feature (`PaymentProviderPort` + `createPaymentAdapter()`).
+
+### Port interfaces
+
+| Port | Location | Responsibility |
+|------|----------|----------------|
+| `AuthPort` | `src/services/ports/auth-port.ts` | Sign in, sign up, sign out, get user, password reset |
+| `StoragePort` | `src/services/ports/storage-port.ts` | Upload, download, delete, signed URLs, list files |
+| `SessionPort` | `src/services/ports/session-port.ts` | Middleware-level session cookie refresh |
+
+### Adapter factory
+
+`createBackendAdapters()` in `src/services/backend-adapters.ts` selects the active adapter
+based on env vars:
+- `BACKEND_AUTH_PROVIDER` — `"supabase"` (default) | `"custom"`
+- `BACKEND_STORAGE_PROVIDER` — `"supabase"` (default) | `"custom"`
+
+The default Supabase path requires no env var changes. See
+`docs/developer-guide/backend-provider-migration.md` for the full guide.
+
+### Wiring in Server Actions
+
+```typescript
+// ✅ Correct — module-level factory, per-request adapter
+const { auth: authFactory } = createBackendAdapters();
+
+export async function signInAction(input: SignInInput) {
+  const client = await getServerClient();
+  const auth = authFactory(client);     // per-request
+  return signInWithPasswordService(auth, input);
+}
+```
+
+### Mock helpers for tests
+
+Use the pre-built mock factories from `src/services/__tests__/mocks/`:
+
+```typescript
+import { createMockAuthPort, createMockStoragePort } from "./__tests__/mocks";
+
+const auth = createMockAuthPort();
+vi.mocked(auth.signInWithPassword).mockResolvedValue({ success: true, data: { role: "member" } });
+```
+
+Each factory returns a fresh, fully-typed `vi.fn()` stub per call — no Supabase SDK import needed.
+
+---
+
 ## Critical Rules — Non-Negotiable
 
 ### Supabase Clients
@@ -47,8 +97,10 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 ### Service Layer
 
-- ALWAYS: Services receive `SupabaseClient` as first argument (dependency injection)
 - ALWAYS: Services return `ServiceResult<T>` (discriminated union: success/failure)
+- ALWAYS: New auth services accept `AuthPort` as first argument — NOT `SupabaseClient`
+- ALWAYS: New storage services accept `StoragePort` as first argument — NOT `SupabaseClient`
+- ALWAYS: Services that need DB access (non-auth, non-storage) still receive `SupabaseClient`
 - NEVER: `"use server"` in this package — that belongs in `ui/features/*/actions.ts`
 - NEVER: `revalidatePath`, `redirect`, `cookies()` — those are Next.js server-only APIs
 - NEVER: Sentry calls in services — error tracking belongs in Server Actions or boundaries
@@ -200,11 +252,23 @@ packages/core/
     ├── index.ts                    # Barrel export
     ├── services/
     │   ├── index.ts                # Legacy class-based services (TenantService, ProfileService, AuditService)
-    │   ├── auth-service.ts         # Function-based auth (sign in, sign up, password reset)
+    │   ├── auth-service.ts         # Function-based auth — accepts AuthPort (not SupabaseClient)
+    │   ├── backend-adapters.ts     # createBackendAdapters() factory — env-var-driven adapter selection
     │   ├── resource-service.ts     # Function-based CRUD example
+    │   ├── ports/
+    │   │   ├── auth-port.ts        # AuthPort interface — provider-agnostic auth contract
+    │   │   ├── storage-port.ts     # StoragePort interface — provider-agnostic storage contract
+    │   │   ├── session-port.ts     # SessionPort interface — middleware session refresh contract
+    │   │   └── index.ts            # Port barrel exports
+    │   ├── adapters/
+    │   │   ├── supabase-auth-adapter.ts     # SupabaseAuthAdapter — reference AuthPort implementation
+    │   │   ├── supabase-storage-adapter.ts  # SupabaseStorageAdapter — reference StoragePort implementation
+    │   │   ├── supabase-session-adapter.ts  # SupabaseSessionAdapter — reference SessionPort implementation
+    │   │   └── __tests__/          # Adapter tests (only place where SupabaseClient is mocked directly)
     │   └── __tests__/
+    │       ├── mocks/              # Port mock helpers (createMockAuthPort, createMockStoragePort, createMockSessionPort)
     │       ├── auth-service.test.ts
-    │       ├── resource-service.test.ts
+    │       ├── backend-adapters.test.ts
     │       └── platform-services.test.ts
     ├── supabase/
     │   ├── client.ts               # Browser client (createBrowserClient)
@@ -212,7 +276,7 @@ packages/core/
     │   ├── middleware.ts           # Middleware client (session refresh)
     │   ├── admin.ts                # Admin client (service role — server-only)
     │   ├── contracts.ts            # Auth metadata re-exports from @enterprise/contracts
-    │   └── storage-paths.ts        # buildStoragePath() utility
+    │   └── storage-paths.ts        # buildStoragePath() utility + STORAGE_BUCKETS + STORAGE_PATHS
     └── utils/
         └── env.ts                  # getEnv(), getAppUrl() — validated env access
 ```
@@ -244,10 +308,12 @@ pnpm --filter @enterprise/core test:watch   # Watch mode for TDD
 ## QA Checklist (before commit)
 
 - [ ] New service uses function-based pattern (not class-based)
-- [ ] Services receive `SupabaseClient` as first arg
+- [ ] New auth services accept `AuthPort` as first arg (NOT `SupabaseClient`)
+- [ ] New storage services accept `StoragePort` as first arg (NOT `SupabaseClient`)
 - [ ] Services return `ServiceResult<T>`, not `ActionResult<T>`
 - [ ] No `"use server"`, `revalidatePath`, `redirect`, or `cookies()` in this package
 - [ ] No Sentry calls in services (belongs in actions/boundaries)
-- [ ] Unit tests exist with mocked Supabase client
+- [ ] Unit tests use port mock helpers (`createMockAuthPort`, `createMockStoragePort`) — no direct Supabase mock in service tests
+- [ ] Adapter tests (in `adapters/__tests__/`) are the only place where `SupabaseClient` is mocked directly
 - [ ] CUD operations write to audit log
 - [ ] Types imported from `@enterprise/contracts`, not redefined locally
