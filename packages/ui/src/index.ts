@@ -1,3 +1,12 @@
+// Brand
+
+export type { BrandConfig } from "@enterprise/contracts";
+export type { BrandContextValue } from "./brand/context";
+export { BrandContext } from "./brand/context";
+export { generateBrandMetadata } from "./brand/metadata";
+export type { BrandProviderProps } from "./brand/provider";
+export { BrandProvider, useBrand } from "./brand/provider";
+
 // Theme
 
 export * from "./components/avatar";

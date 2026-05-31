@@ -11,6 +11,23 @@ export * from "./dto/resources";
 export * from "./dto/tenant-team";
 export * from "./dto/workspace-admin";
 export type {
+  BrandConfig,
+  BrandLegal,
+  BrandLogo,
+  BrandLogoVariant,
+  BrandMetadata,
+  BrandSocial,
+} from "./schemas/brand";
+// Brand system — schemas and types
+export {
+  brandConfigSchema,
+  brandLegalSchema,
+  brandLogoSchema,
+  brandLogoVariantSchema,
+  brandMetadataSchema,
+  brandSocialSchema,
+} from "./schemas/brand";
+export type {
   InvitationMetadata,
   PaginationParams,
   RegistrationMetadata,

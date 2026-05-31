@@ -1,4 +1,6 @@
-import { ThemeProvider } from "@enterprise/ui";
+import { generateBrandMetadata } from "@enterprise/ui/brand/metadata";
+import { BrandProvider } from "@enterprise/ui/brand/provider";
+import { resolveBrand } from "@enterprise/ui/brand/resolve";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { Toaster } from "sonner";
@@ -24,15 +26,14 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Enterprise Platform",
-    template: "%s | Enterprise Platform",
-  },
-  description: "Multi-tenant enterprise platform",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await resolveBrand();
+  return generateBrandMetadata(brand);
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const brand = await resolveBrand();
+
   return (
     <html
       lang="en"
@@ -41,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${inter.variable} ${jetbrainsMono.variable} ${plusJakartaSans.variable} ${spaceGrotesk.variable}`}
     >
       <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider defaultMode="dark">{children}</ThemeProvider>
+        <BrandProvider brand={brand}>{children}</BrandProvider>
         <Toaster richColors position="top-right" />
       </body>
     </html>
