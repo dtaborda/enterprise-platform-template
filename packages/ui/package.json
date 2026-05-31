@@ -16,6 +16,7 @@
   "scripts": {
     "build:theme": "tsx scripts/build-theme.ts",
     "typecheck": "tsc --noEmit",
+    "test": "cd ../.. && vitest run --project ui",
     "clean": "rm -rf dist"
   },
   "dependencies": {
