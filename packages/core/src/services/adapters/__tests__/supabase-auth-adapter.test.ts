@@ -6,7 +6,7 @@
  * are explicitly testing the Supabase mapping, not business logic.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { SupabaseAuthAdapter } from "../supabase-auth-adapter";
 
 function createMockSupabaseClient() {
@@ -67,7 +67,9 @@ describe("SupabaseAuthAdapter", () => {
         data: { user: { id: "user-123", created_at: "2024-01-01" } },
         error: null,
       } as never);
-      (client as typeof client & { __mockSingle: ReturnType<typeof vi.fn> }).__mockSingle.mockResolvedValue({
+      (
+        client as typeof client & { __mockSingle: ReturnType<typeof vi.fn> }
+      ).__mockSingle.mockResolvedValue({
         data: { role: "member" },
         error: null,
       });
@@ -113,7 +115,9 @@ describe("SupabaseAuthAdapter", () => {
       const client = createMockSupabaseClient();
       const adapter = new SupabaseAuthAdapter(client);
 
-      (client as typeof client & { __mockSingle: ReturnType<typeof vi.fn> }).__mockSingle.mockResolvedValue({
+      (
+        client as typeof client & { __mockSingle: ReturnType<typeof vi.fn> }
+      ).__mockSingle.mockResolvedValue({
         data: null,
         error: { code: "PGRST116", message: "Row not found" },
       });
@@ -131,7 +135,9 @@ describe("SupabaseAuthAdapter", () => {
       const client = createMockSupabaseClient();
       const adapter = new SupabaseAuthAdapter(client);
 
-      (client as typeof client & { __mockSingle: ReturnType<typeof vi.fn> }).__mockSingle.mockResolvedValue({
+      (
+        client as typeof client & { __mockSingle: ReturnType<typeof vi.fn> }
+      ).__mockSingle.mockResolvedValue({
         data: null,
         error: { code: "NETWORK_ERROR", message: "Connection refused" },
       });

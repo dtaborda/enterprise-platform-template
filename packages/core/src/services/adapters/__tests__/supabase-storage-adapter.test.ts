@@ -188,7 +188,9 @@ describe("SupabaseStorageAdapter", () => {
 
       // Supabase getPublicUrl() is synchronous and never returns an error
       client.__storageMethods.getPublicUrl.mockReturnValue({
-        data: { publicUrl: "https://example.supabase.co/storage/v1/object/public/avatars/file.png" },
+        data: {
+          publicUrl: "https://example.supabase.co/storage/v1/object/public/avatars/file.png",
+        },
       });
 
       const result = await adapter.getPublicUrl("avatars", "tenant-1/avatar.png");

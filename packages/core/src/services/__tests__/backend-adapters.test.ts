@@ -6,7 +6,7 @@
  * 2. Unknown provider throws a descriptive error
  * 3. Missing NEXT_PUBLIC_SUPABASE_URL throws descriptive error
  */
-import { describe, expect, it, afterEach, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { createBackendAdapters } from "../backend-adapters";
 
 // Store original env for restoration
@@ -77,9 +77,7 @@ describe("createBackendAdapters", () => {
       process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"] = "test-anon-key";
       process.env["BACKEND_AUTH_PROVIDER"] = "firebase";
 
-      expect(() => createBackendAdapters()).toThrow(
-        /Unknown BACKEND_AUTH_PROVIDER.*firebase/i,
-      );
+      expect(() => createBackendAdapters()).toThrow(/Unknown BACKEND_AUTH_PROVIDER.*firebase/i);
     });
 
     it("throws with clear guidance when BACKEND_STORAGE_PROVIDER is unknown", () => {
@@ -88,9 +86,7 @@ describe("createBackendAdapters", () => {
       delete process.env["BACKEND_AUTH_PROVIDER"];
       process.env["BACKEND_STORAGE_PROVIDER"] = "s3";
 
-      expect(() => createBackendAdapters()).toThrow(
-        /Unknown BACKEND_STORAGE_PROVIDER.*s3/i,
-      );
+      expect(() => createBackendAdapters()).toThrow(/Unknown BACKEND_STORAGE_PROVIDER.*s3/i);
     });
   });
 
@@ -101,9 +97,7 @@ describe("createBackendAdapters", () => {
       delete process.env["BACKEND_AUTH_PROVIDER"];
       delete process.env["BACKEND_STORAGE_PROVIDER"];
 
-      expect(() => createBackendAdapters()).toThrow(
-        /NEXT_PUBLIC_SUPABASE_URL/,
-      );
+      expect(() => createBackendAdapters()).toThrow(/NEXT_PUBLIC_SUPABASE_URL/);
     });
 
     it("throws descriptive error when NEXT_PUBLIC_SUPABASE_ANON_KEY is missing", () => {
@@ -112,9 +106,7 @@ describe("createBackendAdapters", () => {
       delete process.env["BACKEND_AUTH_PROVIDER"];
       delete process.env["BACKEND_STORAGE_PROVIDER"];
 
-      expect(() => createBackendAdapters()).toThrow(
-        /NEXT_PUBLIC_SUPABASE_ANON_KEY/,
-      );
+      expect(() => createBackendAdapters()).toThrow(/NEXT_PUBLIC_SUPABASE_ANON_KEY/);
     });
   });
 });
