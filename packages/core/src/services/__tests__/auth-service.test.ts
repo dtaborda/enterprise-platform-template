@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import type { AuthPort } from "../ports/auth-port";
 import {
   type PasswordResetServiceInput,
   requestPasswordResetService,
@@ -9,6 +8,7 @@ import {
   signUpService,
   updatePasswordService,
 } from "../auth-service";
+import type { AuthPort } from "../ports/auth-port";
 
 function createMockAuthPort(): AuthPort {
   return {

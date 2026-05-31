@@ -1,8 +1,8 @@
-import { createBackendAdapters } from "@enterprise/core/services/backend-adapters";
 import {
   getUserRoleService,
   resolveRoleRedirectPath,
 } from "@enterprise/core/services/auth-service";
+import { createBackendAdapters } from "@enterprise/core/services/backend-adapters";
 import { createMiddlewareClient } from "@enterprise/core/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
