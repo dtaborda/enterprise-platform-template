@@ -3,10 +3,28 @@
 
 export { ConsoleInvitationEmailAdapter } from "./adapters/console-invitation-email-adapter";
 export { ResendInvitationEmailAdapter } from "./adapters/resend-invitation-email-adapter";
+// Backend adapters — Supabase reference implementations
+export { SupabaseAuthAdapter } from "./adapters/supabase-auth-adapter";
+export { SupabaseSessionAdapter } from "./adapters/supabase-session-adapter";
+export { SupabaseStorageAdapter } from "./adapters/supabase-storage-adapter";
 export * from "./auth-service";
+export type { BackendAdapters } from "./backend-adapters";
+// Backend adapter factory
+export { createBackendAdapters } from "./backend-adapters";
 export * from "./billing-service";
 export * from "./notification-service";
+// Backend ports — provider-agnostic interfaces
+export type { AuthPort } from "./ports/auth-port";
 export type { InvitationEmailParams, InvitationEmailPort } from "./ports/invitation-email-port";
+export type { SessionPort } from "./ports/session-port";
+export type {
+  StorageFileEntry,
+  StoragePort,
+  StoragePublicUrlResult,
+  StorageSignedUrlResult,
+  StorageUploadOptions,
+  StorageUploadResult,
+} from "./ports/storage-port";
 export * from "./resource-service";
 export * from "./tenant-team-service";
 export * from "./workspace-settings-service";
