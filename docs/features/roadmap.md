@@ -2,7 +2,7 @@
 title: "Feature roadmap"
 description: "Defines the implementation priority order for planned feature work in the multi-tenant SaaS template."
 owner: "Engineering"
-lastUpdated: "2026-05-30"
+lastUpdated: "2026-05-31"
 ---
 
 # Feature roadmap
@@ -35,15 +35,16 @@ Define the canonical implementation priority for planned features in this templa
 | 11 | P1 | Public API and API keys | Planned | Unlocks integrations and external automation. |
 | 12 | P1 | Webhooks | Planned | Completes outbound integration workflows for technical adopters. |
 | 13 | P1 | Usage limits and quotas | Planned | Enforces plan value and protects shared resources. |
-| 14 | P1 | Brand abstraction layer | Planned | Enables multi-brand support from a single codebase with provider-agnostic branding. |
+| 14 | P1 | Brand abstraction layer | Done | Enables multi-brand support from a single codebase with provider-agnostic branding. |
 | 15 | P1 | Brand isolation package | Planned | Enforces brand code boundaries and prevents brand logic leaks into shared packages. |
-| 16 | P1 | Backend provider decoupling | Planned | Introduces port/adapter interfaces to decouple @enterprise/core from Supabase. |
-| 17 | P2 | Tenant onboarding | Planned | Improves activation and first-run time-to-value. |
-| 18 | P2 | File storage module | Planned | Covers a common SaaS need for tenant-scoped file handling. |
-| 19 | P2 | i18n and regional settings | Planned | Expands reuse across regions and teams. |
-| 20 | P2 | Deployment provider decoupling | Planned | Adds Docker support and deployment-target abstraction for non-Vercel hosting. |
-| 21 | P3 | Feature flags | Planned | Adds rollout and packaging control after the core platform exists. |
-| 22 | P3 | Secure impersonation | Planned | Adds advanced support tooling after admin and audit flows mature. |
+| 16 | P1 | Backend provider decoupling | Done | Introduces port/adapter interfaces to decouple @enterprise/core from Supabase. |
+| 17 | P1 | Test and CI stability hardening | Planned | Removes flaky E2E (notifications timing/delay), closes test-coverage gaps, and enforces lockfile/build checks so future feature PRDs don't break the pipeline. |
+| 18 | P2 | Tenant onboarding | Planned | Improves activation and first-run time-to-value. |
+| 19 | P2 | File storage module | Planned | Covers a common SaaS need for tenant-scoped file handling. |
+| 20 | P2 | i18n and regional settings | Planned | Expands reuse across regions and teams. |
+| 21 | P2 | Deployment provider decoupling | Planned | Adds Docker support and deployment-target abstraction for non-Vercel hosting. |
+| 22 | P3 | Feature flags | Planned | Adds rollout and packaging control after the core platform exists. |
+| 23 | P3 | Secure impersonation | Planned | Adds advanced support tooling after admin and audit flows mature. |
 
 ---
 
@@ -88,4 +89,4 @@ Define the canonical implementation priority for planned features in this templa
 
 ---
 
-*Last updated: 2026-05-30*
+*Last updated: 2026-05-31*
