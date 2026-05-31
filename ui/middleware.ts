@@ -2,7 +2,8 @@ import {
   getUserRoleService,
   resolveRoleRedirectPath,
 } from "@enterprise/core/services/auth-service";
-import { createMiddlewareClient, updateSession } from "@enterprise/core/supabase/middleware";
+import { createBackendAdapters } from "@enterprise/core/services/backend-adapters";
+import { createMiddlewareClient } from "@enterprise/core/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_ROUTES = [
@@ -28,10 +29,16 @@ const middlewareSupabaseConfig = {
   supabaseAnonKey,
 };
 
+// Session refresh is provider-agnostic via SessionPort.
+// auth factory is request-scoped: call authFactory(supabase) per request.
+const { session: sessionPort, auth: authFactory } = createBackendAdapters();
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isServerActionRequest = request.method === "POST" && request.headers.has("next-action");
-  const response = await updateSession(request, middlewareSupabaseConfig);
+
+  // Session refresh is handled by SessionPort — no direct @supabase/ssr import needed.
+  const response = await sessionPort.refreshSession(request);
 
   const isPublicRoute = PUBLIC_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -40,7 +47,10 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
 
+  // Role resolution uses SupabaseClient for the DB query via AuthPort.
+  // TODO: Replace with DatabasePort when available (P1 follow-up).
   const supabase = createMiddlewareClient(request, middlewareSupabaseConfig);
+  const auth = authFactory(supabase);
 
   const {
     data: { user },
@@ -56,7 +66,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const roleResult = await getUserRoleService(supabase, user.id);
+  const roleResult = await getUserRoleService(auth, user.id);
   const roleHome = roleResult.success
     ? resolveRoleRedirectPath(roleResult.data.role)
     : resolveRoleRedirectPath("guest");

@@ -13,24 +13,29 @@ const {
   mockRedirect,
   mockNormalizeSafeRedirectPath,
   mockGetAppUrl,
-} = vi.hoisted(() => ({
-  mockGetServerClient: vi.fn(),
-  mockSignInWithPasswordService: vi.fn(),
-  mockSignUpService: vi.fn(),
-  mockRequestPasswordResetService: vi.fn(),
-  mockSignOutService: vi.fn(),
-  mockUpdatePasswordService: vi.fn(),
-  mockResolveRoleRedirectPath: vi.fn((role: string | null | undefined) =>
-    role === "guest" ? "/" : "/dashboard",
-  ),
-  mockRedirect: vi.fn((path: string) => {
-    throw createRedirectError(path);
-  }),
-  mockNormalizeSafeRedirectPath: vi.fn(
-    (value: string | null | undefined, fallback = "/dashboard") => value ?? fallback,
-  ),
-  mockGetAppUrl: vi.fn(() => "http://localhost:3000"),
-}));
+  mockAuthFactory,
+} = vi.hoisted(() => {
+  const mockAuthFactory = vi.fn((client: unknown) => client);
+  return {
+    mockGetServerClient: vi.fn(),
+    mockSignInWithPasswordService: vi.fn(),
+    mockSignUpService: vi.fn(),
+    mockRequestPasswordResetService: vi.fn(),
+    mockSignOutService: vi.fn(),
+    mockUpdatePasswordService: vi.fn(),
+    mockResolveRoleRedirectPath: vi.fn((role: string | null | undefined) =>
+      role === "guest" ? "/" : "/dashboard",
+    ),
+    mockRedirect: vi.fn((path: string) => {
+      throw createRedirectError(path);
+    }),
+    mockNormalizeSafeRedirectPath: vi.fn(
+      (value: string | null | undefined, fallback = "/dashboard") => value ?? fallback,
+    ),
+    mockGetAppUrl: vi.fn(() => "http://localhost:3000"),
+    mockAuthFactory,
+  };
+});
 
 vi.mock("next/navigation", () => ({
   redirect: mockRedirect,
@@ -55,6 +60,14 @@ vi.mock("@enterprise/core/services/auth-service", () => ({
 
 vi.mock("./redirects", () => ({
   normalizeSafeRedirectPath: mockNormalizeSafeRedirectPath,
+}));
+
+vi.mock("@enterprise/core/services/backend-adapters", () => ({
+  createBackendAdapters: () => ({
+    auth: mockAuthFactory,
+    session: { refreshSession: vi.fn() },
+    storage: vi.fn(),
+  }),
 }));
 
 async function loadActions() {

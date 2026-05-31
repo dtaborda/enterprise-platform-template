@@ -1,15 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createRedirectError, REDIRECT_SENTINEL } from "../../test-utils/redirect";
 
-const { mockGetServerClient, mockRedirect, mockGetCurrentPlatformUserService } = vi.hoisted(() => {
-  return {
-    mockGetServerClient: vi.fn(),
-    mockRedirect: vi.fn((path: string) => {
-      throw createRedirectError(path);
-    }),
-    mockGetCurrentPlatformUserService: vi.fn(),
-  };
-});
+const { mockGetServerClient, mockRedirect, mockGetCurrentPlatformUserService, mockAuthFactory } =
+  vi.hoisted(() => {
+    const mockAuthFactory = vi.fn((client: unknown) => client);
+    return {
+      mockGetServerClient: vi.fn(),
+      mockRedirect: vi.fn((path: string) => {
+        throw createRedirectError(path);
+      }),
+      mockGetCurrentPlatformUserService: vi.fn(),
+      mockAuthFactory,
+    };
+  });
 
 vi.mock("server-only", () => ({}));
 
@@ -23,6 +26,14 @@ vi.mock("@enterprise/core/supabase/server", () => ({
 
 vi.mock("next/navigation", () => ({
   redirect: mockRedirect,
+}));
+
+vi.mock("@enterprise/core/services/backend-adapters", () => ({
+  createBackendAdapters: () => ({
+    auth: mockAuthFactory,
+    session: { refreshSession: vi.fn() },
+    storage: vi.fn(),
+  }),
 }));
 
 async function loadQueries() {

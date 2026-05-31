@@ -4,7 +4,7 @@
  * Tests verify:
  * 1. Default (no env vars) returns Supabase adapter factories
  * 2. Unknown provider throws a descriptive error
- * 3. Missing NEXT_PUBLIC_SUPABASE_URL throws descriptive error
+ * 3. Missing NEXT_PUBLIC_SUPABASE_* does NOT throw at creation (lazy session resolution)
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { createBackendAdapters } from "../backend-adapters";
@@ -90,23 +90,27 @@ describe("createBackendAdapters", () => {
     });
   });
 
-  describe("missing supabase credentials", () => {
-    it("throws descriptive error when NEXT_PUBLIC_SUPABASE_URL is missing", () => {
+  describe("missing supabase credentials (lazy session resolution)", () => {
+    it("does NOT throw at creation when NEXT_PUBLIC_SUPABASE_URL is missing", () => {
       delete process.env["NEXT_PUBLIC_SUPABASE_URL"];
       process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"] = "test-anon-key";
       delete process.env["BACKEND_AUTH_PROVIDER"];
       delete process.env["BACKEND_STORAGE_PROVIDER"];
 
-      expect(() => createBackendAdapters()).toThrow(/NEXT_PUBLIC_SUPABASE_URL/);
+      // Session credentials are resolved lazily on refreshSession(), so the
+      // factory must be safe to call at module load (e.g. during `next build`).
+      expect(() => createBackendAdapters()).not.toThrow();
+      expect(createBackendAdapters().session).toBeDefined();
     });
 
-    it("throws descriptive error when NEXT_PUBLIC_SUPABASE_ANON_KEY is missing", () => {
+    it("does NOT throw at creation when NEXT_PUBLIC_SUPABASE_ANON_KEY is missing", () => {
       process.env["NEXT_PUBLIC_SUPABASE_URL"] = "https://test.supabase.co";
       delete process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
       delete process.env["BACKEND_AUTH_PROVIDER"];
       delete process.env["BACKEND_STORAGE_PROVIDER"];
 
-      expect(() => createBackendAdapters()).toThrow(/NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+      expect(() => createBackendAdapters()).not.toThrow();
+      expect(createBackendAdapters().session).toBeDefined();
     });
   });
 });

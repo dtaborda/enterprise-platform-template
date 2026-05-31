@@ -86,24 +86,11 @@ export function createBackendAdapters(): BackendAdapters {
   }
 
   // --- Session adapter (always Supabase in MVP; no selection env var) ---
-  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
-  const supabaseAnonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
-
-  if (!supabaseUrl) {
-    throw new Error(
-      "[createBackendAdapters] Missing NEXT_PUBLIC_SUPABASE_URL. " +
-        "This is required for the session adapter.",
-    );
-  }
-
-  if (!supabaseAnonKey) {
-    throw new Error(
-      "[createBackendAdapters] Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
-        "This is required for the session adapter.",
-    );
-  }
-
-  const session: SessionPort = new SupabaseSessionAdapter(supabaseUrl, supabaseAnonKey);
+  // Constructed without credentials so this factory can be called at module load
+  // in Server Actions WITHOUT NEXT_PUBLIC_SUPABASE_* present. The adapter resolves
+  // them lazily from env on the first refreshSession() call (runtime middleware),
+  // which prevents `next build` from throwing while collecting page data.
+  const session: SessionPort = new SupabaseSessionAdapter();
 
   return {
     auth: authFactory,
