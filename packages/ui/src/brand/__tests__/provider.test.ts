@@ -9,7 +9,7 @@
  */
 
 import type { BrandConfig } from "@enterprise/contracts";
-import { act, createElement, useContext } from "react";
+import { act, createElement } from "react";
 import * as ReactDOM from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
