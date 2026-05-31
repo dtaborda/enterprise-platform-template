@@ -8,19 +8,7 @@ import {
   signUpService,
   updatePasswordService,
 } from "../auth-service";
-import type { AuthPort } from "../ports/auth-port";
-
-function createMockAuthPort(): AuthPort {
-  return {
-    signInWithPassword: vi.fn(),
-    signUp: vi.fn(),
-    signOut: vi.fn(),
-    getUser: vi.fn(),
-    getUserRole: vi.fn(),
-    requestPasswordReset: vi.fn(),
-    updatePassword: vi.fn(),
-  };
-}
+import { createMockAuthPort } from "./mocks/auth-port.mock";
 
 describe("auth-service", () => {
   describe("signInWithPasswordService", () => {
