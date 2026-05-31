@@ -8,10 +8,10 @@
  * - ThemeProvider receives the correct defaultMode derived from themeRef
  */
 
+import type { BrandConfig } from "@enterprise/contracts";
 import { act, createElement, useContext } from "react";
 import * as ReactDOM from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { BrandConfig } from "@enterprise/contracts";
 
 // ============================================================================
 // Mock ThemeProvider to capture the defaultMode prop passed to it
@@ -140,6 +140,7 @@ describe("BrandProvider + useBrand", () => {
     let threwError = false;
     function OutsideConsumer() {
       try {
+        // biome-ignore lint/correctness/useHookAtTopLevel: deliberately calling the hook outside a provider to assert it throws
         useBrand();
       } catch {
         threwError = true;
@@ -148,7 +149,11 @@ describe("BrandProvider + useBrand", () => {
     }
 
     const contextValue = null;
-    const tree = createElement(BrandContext, { value: contextValue }, createElement(OutsideConsumer));
+    const tree = createElement(
+      BrandContext,
+      { value: contextValue },
+      createElement(OutsideConsumer),
+    );
     const { root } = renderTree(tree);
     cleanup.push(() => act(() => root.unmount()));
     expect(threwError).toBe(true);

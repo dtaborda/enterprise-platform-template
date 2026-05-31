@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import type { BrandConfig } from "@enterprise/contracts";
+import type { Metadata } from "next";
 
 /**
  * Generates a Next.js Metadata object from a resolved BrandConfig.

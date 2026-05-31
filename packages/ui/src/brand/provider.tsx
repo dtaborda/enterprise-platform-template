@@ -2,8 +2,8 @@
 
 import type { BrandConfig } from "@enterprise/contracts";
 import { useContext } from "react";
-import { BrandContext } from "./context";
 import { ThemeProvider } from "../theme/provider";
+import { BrandContext } from "./context";
 
 // ============================================================================
 // BrandProvider

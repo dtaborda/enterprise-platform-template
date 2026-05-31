@@ -3,7 +3,21 @@
 
 // Re-export Zod for convenience
 export { z } from "zod";
-
+export * from "./dto/billing";
+export * from "./dto/notifications";
+// DTOs
+export * from "./dto/platform";
+export * from "./dto/resources";
+export * from "./dto/tenant-team";
+export * from "./dto/workspace-admin";
+export type {
+  BrandConfig,
+  BrandLegal,
+  BrandLogo,
+  BrandLogoVariant,
+  BrandMetadata,
+  BrandSocial,
+} from "./schemas/brand";
 // Brand system — schemas and types
 export {
   brandConfigSchema,
@@ -13,21 +27,6 @@ export {
   brandMetadataSchema,
   brandSocialSchema,
 } from "./schemas/brand";
-export type {
-  BrandConfig,
-  BrandLegal,
-  BrandLogo,
-  BrandLogoVariant,
-  BrandMetadata,
-  BrandSocial,
-} from "./schemas/brand";
-export * from "./dto/billing";
-export * from "./dto/notifications";
-// DTOs
-export * from "./dto/platform";
-export * from "./dto/resources";
-export * from "./dto/tenant-team";
-export * from "./dto/workspace-admin";
 export type {
   InvitationMetadata,
   PaginationParams,

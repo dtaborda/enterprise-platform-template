@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import type { BrandConfig } from "@enterprise/contracts";
+import { describe, expect, it } from "vitest";
 
 // ============================================================================
 // Fixture brand configs
