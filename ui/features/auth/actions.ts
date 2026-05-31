@@ -18,12 +18,16 @@ import {
   signUpService,
   updatePasswordService,
 } from "@enterprise/core/services/auth-service";
+import { createBackendAdapters } from "@enterprise/core/services/backend-adapters";
 import { initializeSubscription } from "@enterprise/core/services/billing-service";
 import { getAdminClient } from "@enterprise/core/supabase/admin";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { getAppUrl } from "@enterprise/core/utils/env";
 import { redirect } from "next/navigation";
 import { normalizeSafeRedirectPath } from "./redirects";
+
+// Auth factory is request-scoped: call authFactory(client) per request.
+const { auth: authFactory } = createBackendAdapters();
 
 function resolveRoleRedirect(role: UserRole | null | undefined) {
   return resolveRoleRedirectPath(role);
@@ -33,8 +37,9 @@ const AUTH_CALLBACK_PATH = "/auth/callback";
 
 export async function signIn(email: string, password: string, redirectTo?: string | null) {
   const supabase = await getServerClient();
+  const auth = authFactory(supabase);
 
-  const result = await signInWithPasswordService(supabase, { email, password });
+  const result = await signInWithPasswordService(auth, { email, password });
 
   if (!result.success) {
     return { error: "Invalid credentials" };
@@ -111,8 +116,9 @@ export async function signUpAction(
   });
 
   const supabase = await getServerClient();
+  const auth = authFactory(supabase);
   const appUrl = getAppUrl();
-  const result = await signUpService(supabase, {
+  const result = await signUpService(auth, {
     ...parsedInput.data,
     metadata,
     emailRedirectTo: `${appUrl}${AUTH_CALLBACK_PATH}`,
@@ -147,7 +153,7 @@ export async function signUpAction(
     console.error("[auth] billing init failed for user:", result.data.userId);
   }
 
-  await signOutService(supabase);
+  await signOutService(auth);
 
   redirect("/sign-in?registered=1");
 }
@@ -172,9 +178,10 @@ export async function forgotPasswordAction(
   }
 
   const supabase = await getServerClient();
+  const auth = authFactory(supabase);
   const appUrl = getAppUrl();
 
-  const result = await requestPasswordResetService(supabase, {
+  const result = await requestPasswordResetService(auth, {
     email: parsedInput.data.email,
     redirectTo: `${appUrl}${AUTH_CALLBACK_PATH}?next=/reset-password`,
   });
@@ -194,8 +201,9 @@ export async function forgotPasswordAction(
 
 export async function signOut() {
   const supabase = await getServerClient();
+  const auth = authFactory(supabase);
 
-  await signOutService(supabase);
+  await signOutService(auth);
   redirect("/sign-in");
 }
 
@@ -221,7 +229,8 @@ export async function updatePasswordAction(
   }
 
   const supabase = await getServerClient();
-  const result = await updatePasswordService(supabase, {
+  const auth = authFactory(supabase);
+  const result = await updatePasswordService(auth, {
     password: parsedInput.data.password,
   });
 
@@ -235,6 +244,6 @@ export async function updatePasswordAction(
     };
   }
 
-  await signOutService(supabase);
+  await signOutService(auth);
   redirect("/sign-in?passwordUpdated=1");
 }
