@@ -2,7 +2,7 @@
 title: "Feature roadmap"
 description: "Defines the implementation priority order for planned feature work in the multi-tenant SaaS template."
 owner: "Engineering"
-lastUpdated: "2026-05-24"
+lastUpdated: "2026-05-30"
 ---
 
 # Feature roadmap
@@ -31,7 +31,7 @@ Define the canonical implementation priority for planned features in this templa
 | 7 | P0 | Platform UX foundations | Done | Fixes hidden navigation, broken scroll layout, and settings double sidebar. |
 | 8 | P0 | Design system consistency | Done | Standardizes page templates, empty states, loading skeletons, and visual patterns. |
 | 9 | P0 | Landing page | Done | Public marketing page with hero, features, pricing, and sign-in/sign-up access. |
-| 10 | P1 | Notifications | Planned | Supports invites, billing events, and critical product communication. |
+| 10 | P1 | Notifications | Done | Supports invites, billing events, and critical product communication. |
 | 11 | P1 | Public API and API keys | Planned | Unlocks integrations and external automation. |
 | 12 | P1 | Webhooks | Planned | Completes outbound integration workflows for technical adopters. |
 | 13 | P1 | Usage limits and quotas | Planned | Enforces plan value and protects shared resources. |
@@ -88,4 +88,4 @@ Define the canonical implementation priority for planned features in this templa
 
 ---
 
-*Last updated: 2026-05-24*
+*Last updated: 2026-05-30*
