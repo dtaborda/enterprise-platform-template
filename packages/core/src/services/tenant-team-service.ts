@@ -832,11 +832,11 @@ export async function resendTenantInvitation(
     };
   }
 
-  // Send new email
+  // Send new email (non-fatal — mirrors the inviteTenantMember pattern)
   const appUrl = opts?.appUrl ?? process.env["NEXT_PUBLIC_APP_URL"] ?? "http://localhost:3000";
   const acceptUrl = `${appUrl}/invite/accept?token=${plainToken}`;
 
-  await emailPort.send({
+  const emailResult = await emailPort.send({
     to: inv["email"] as string,
     inviterName: opts?.inviterName ?? "A team admin",
     tenantName: opts?.tenantName ?? "your team",
@@ -844,6 +844,18 @@ export async function resendTenantInvitation(
     role: inv["role"] as string,
     expiresAt,
   });
+
+  if (!emailResult.success) {
+    // Non-fatal: log the delivery failure but do not roll back the resent invitation.
+    void writeAuditLog(
+      client,
+      tenantId,
+      inv["invited_by"] as string,
+      "email_delivery_failed",
+      input.invitationId,
+      { email: inv["email"], error: emailResult.error },
+    );
+  }
 
   // Audit
   void writeAuditLog(

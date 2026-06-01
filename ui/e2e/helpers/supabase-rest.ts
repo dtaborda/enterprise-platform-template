@@ -136,3 +136,33 @@ export async function updateRows(
     body: patch,
   });
 }
+
+/**
+ * Resets a Supabase Auth user's password via the Admin API.
+ * Used in afterEach hooks to restore seeded credentials so later test runs
+ * are not poisoned by a password changed during a test.
+ *
+ * Uses the service-role key — bypasses normal auth. Safe only in E2E teardown.
+ */
+export async function resetUserPassword(userId: string, password: string): Promise<void> {
+  const supabaseUrl = getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+  const normalizedBaseUrl = supabaseUrl.endsWith("/") ? supabaseUrl.slice(0, -1) : supabaseUrl;
+
+  const response = await fetch(`${normalizedBaseUrl}/auth/v1/admin/users/${userId}`, {
+    method: "PUT",
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `resetUserPassword failed for ${userId}: ${response.status} ${response.statusText} — ${errorBody}`,
+    );
+  }
+}
