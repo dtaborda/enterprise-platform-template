@@ -118,3 +118,21 @@ export async function deleteRows(table: string, filters: Record<string, string>)
     params: filters,
   });
 }
+
+/**
+ * PATCHes rows in a table matching the given PostgREST filter params.
+ * Used for idempotent E2E state restoration in afterEach hooks.
+ * Uses the service-role key — bypasses RLS. Safe only in E2E teardown.
+ */
+export async function updateRows(
+  table: string,
+  filters: Record<string, string>,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  await supabaseRequest(table, {
+    method: "PATCH",
+    params: filters,
+    headers: { Prefer: "return=minimal" },
+    body: patch,
+  });
+}
