@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 import { AuthPage } from "../auth/auth-page";
 import { login } from "../helpers/auth";
 import { ROUTES } from "../helpers/routes";
+import { supabaseRequest, updateRows } from "../helpers/supabase-rest";
 import { WorkspaceAdminPage } from "./workspace-admin-page";
 
 // ─── Credentials ──────────────────────────────────────────────────────────────
@@ -47,6 +48,20 @@ test.describe("Workspace Admin Settings", () => {
   // ─── Owner flows ────────────────────────────────────────────────────────────
 
   test.describe("Owner flows", () => {
+    test.afterEach(async () => {
+      // Restore slug and allow_admin_invites to their seeded values after every
+      // owner test, even on failure — prevents state contamination across runs.
+      const [profile] = await supabaseRequest<Array<{ tenant_id: string }>>("profiles", {
+        params: { email: "eq.admin@enterprise.dev", select: "tenant_id", limit: "1" },
+      });
+      if (!profile?.tenant_id) return;
+      await updateRows(
+        "tenants",
+        { id: `eq.${profile.tenant_id}` },
+        { slug: "enterprise-demo", allow_admin_invites: true },
+      );
+    });
+
     test("settings tabs keep stable URL and no secondary sidebar", async ({ page }) => {
       const settingsPage = new WorkspaceAdminPage(page);
 
@@ -100,13 +115,7 @@ test.describe("Workspace Admin Settings", () => {
       await settingsPage.confirmSlugDialog();
 
       await settingsPage.expectSlugSaved();
-
-      // Restore original slug so subsequent test runs work correctly
-      await settingsPage.fillSlug("enterprise-demo");
-      await settingsPage.saveProfile();
-      await settingsPage.expectSlugDialogVisible();
-      await settingsPage.confirmSlugDialog();
-      await settingsPage.expectSlugSaved();
+      // Slug restoration handled by test.afterEach (PATCH tenants via service-role)
     });
 
     test("owner cancels slug change", async ({ page }) => {
@@ -163,11 +172,7 @@ test.describe("Workspace Admin Settings", () => {
       await settingsPage.saveSecurity();
 
       await settingsPage.expectSecuritySaved();
-
-      // Toggle back to restore original state for subsequent test runs
-      await settingsPage.toggleSecurity();
-      await settingsPage.saveSecurity();
-      await settingsPage.expectSecuritySaved();
+      // Security flag restoration handled by test.afterEach (PATCH tenants via service-role)
     });
   });
 

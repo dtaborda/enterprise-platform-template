@@ -9,6 +9,11 @@ export class WorkspaceAdminPage {
   async goto(): Promise<void> {
     await this.page.goto(ROUTES.settings);
     await this.page.waitForURL(new RegExp(ROUTES.settings), { timeout: 10_000 });
+    // Content-ready guard: ensures the Settings heading is rendered before
+    // any test interaction, preventing flaky selector misses on slow CI.
+    await expect(this.page.getByRole("heading", { name: "Settings" })).toBeVisible({
+      timeout: 30_000,
+    });
   }
 
   async expectRedirectedToDashboard(): Promise<void> {
