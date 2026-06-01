@@ -10,7 +10,14 @@ const allowedWorkspaceImports = {
   "packages/db": [],
   "packages/core": ["@enterprise/contracts", "@enterprise/db"],
   "packages/ui": ["@enterprise/contracts"],
-  ui: ["@enterprise/contracts", "@enterprise/core", "@enterprise/ui", "@enterprise/db"],
+  "packages/brand": ["@enterprise/contracts", "@enterprise/ui"],
+  ui: [
+    "@enterprise/contracts",
+    "@enterprise/core",
+    "@enterprise/ui",
+    "@enterprise/db",
+    "@enterprise/brand",
+  ],
 };
 
 const ignoredDirectories = new Set(["node_modules", ".next", "dist", ".turbo", ".git"]);

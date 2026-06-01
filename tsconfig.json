@@ -35,6 +35,8 @@
       "@enterprise/db/*": ["packages/db/src/*"],
       "@enterprise/ui": ["packages/ui/src"],
       "@enterprise/ui/*": ["packages/ui/src/*"],
+      "@enterprise/brand": ["packages/brand/src"],
+      "@enterprise/brand/*": ["packages/brand/src/*"],
       "@/*": ["ui/*"]
     }
   },

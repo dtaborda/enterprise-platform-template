@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     "@enterprise/core",
     "@enterprise/contracts",
     "@enterprise/db",
+    "@enterprise/brand",
   ],
   images: {
     remotePatterns: [

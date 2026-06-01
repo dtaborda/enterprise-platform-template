@@ -35,6 +35,43 @@ importers:
         specifier: ^3.2.0
         version: 3.2.4(@types/node@25.6.0)(happy-dom@18.0.1)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.2)(tsx@4.21.0)
 
+  packages/brand:
+    dependencies:
+      '@enterprise/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@enterprise/ui':
+        specifier: workspace:*
+        version: link:../ui
+      react:
+        specifier: ^19.0.0
+        version: 19.2.5
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.5(react@19.2.5)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+    devDependencies:
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      next:
+        specifier: 15.5.18
+        version: 15.5.18(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      tsx:
+        specifier: ^4.19.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
+
   packages/contracts:
     dependencies:
       zod:

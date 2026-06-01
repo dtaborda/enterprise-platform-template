@@ -1,0 +1,39 @@
+{
+  "name": "@enterprise/brand",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./context": "./src/brand/context.ts",
+    "./provider": "./src/brand/provider.tsx",
+    "./resolve": "./src/brand/resolve.ts",
+    "./registry": "./src/brand/registry.ts",
+    "./metadata": "./src/brand/metadata.ts",
+    "./brand-logo": "./src/brand/brand-logo.tsx",
+    "./brand-footer": "./src/brand/brand-footer.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "cd ../.. && vitest run --project brand --passWithNoTests",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@enterprise/contracts": "workspace:*",
+    "@enterprise/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "next": "^15.5.18",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "zod": "^3.25.0"
+  },
+  "peerDependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0"
+  }
+}
