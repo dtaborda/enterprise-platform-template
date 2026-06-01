@@ -35,6 +35,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: "brand",
+          root: "./packages/brand",
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+        },
+      },
+      {
+        test: {
           name: "web",
           root: "./ui",
           environment: "node",
@@ -43,6 +51,7 @@ export default defineConfig({
         },
       },
     ],
+    passWithNoTests: true,
     coverage: {
       provider: "v8",
       reporter: ["text", "text-summary", "lcov"],
@@ -51,6 +60,7 @@ export default defineConfig({
         "packages/contracts/src/**/*.ts",
         "packages/core/src/**/*.ts",
         "packages/ui/src/**/*.ts",
+        "packages/brand/src/**/*.ts",
         "ui/lib/**/*.ts",
         "ui/features/**/*.ts",
       ],

@@ -41,6 +41,7 @@ get_agents_path() {
         packages/core)      echo "$REPO_ROOT/packages/core/AGENTS.md" ;;
         packages/contracts) echo "$REPO_ROOT/packages/contracts/AGENTS.md" ;;
         packages/db)        echo "$REPO_ROOT/packages/db/AGENTS.md" ;;
+        packages/brand)     echo "$REPO_ROOT/packages/brand/AGENTS.md" ;;
         *)                  echo "" ;;
     esac
 }
