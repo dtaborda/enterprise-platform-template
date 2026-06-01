@@ -51,15 +51,20 @@ test.describe("Workspace Admin Settings", () => {
     test.afterEach(async () => {
       // Restore slug and allow_admin_invites to their seeded values after every
       // owner test, even on failure — prevents state contamination across runs.
-      const [profile] = await supabaseRequest<Array<{ tenant_id: string }>>("profiles", {
-        params: { email: "eq.admin@enterprise.dev", select: "tenant_id", limit: "1" },
-      });
-      if (!profile?.tenant_id) return;
-      await updateRows(
-        "tenants",
-        { id: `eq.${profile.tenant_id}` },
-        { slug: "enterprise-demo", allow_admin_invites: true },
-      );
+      // Best-effort: teardown failures must not mask actual test outcomes.
+      try {
+        const [profile] = await supabaseRequest<Array<{ tenant_id: string }>>("profiles", {
+          params: { email: "eq.admin@enterprise.dev", select: "tenant_id", limit: "1" },
+        });
+        if (!profile?.tenant_id) return;
+        await updateRows(
+          "tenants",
+          { id: `eq.${profile.tenant_id}` },
+          { slug: "enterprise-demo", allow_admin_invites: true },
+        );
+      } catch (err) {
+        console.warn("[afterEach] workspace-admin restore failed:", err);
+      }
     });
 
     test("settings tabs keep stable URL and no secondary sidebar", async ({ page }) => {

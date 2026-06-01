@@ -24,14 +24,22 @@ test.describe("Notifications", () => {
   // Reset both member notification rows to unread after every test.
   // Prevents the "mark as read" mutation in one test from contaminating
   // the unread-filter assertion in another describe block.
+  // Best-effort: teardown failures must not mask actual test outcomes.
   test.afterEach(async () => {
-    await updateRows(
-      "notifications",
-      {
-        id: "in.(c0000001-0000-0000-0000-000000000001,c0000001-0000-0000-0000-000000000005)",
-      },
-      { is_read: false, read_at: null },
-    );
+    try {
+      await updateRows(
+        "notifications",
+        {
+          id: "in.(c0000001-0000-0000-0000-000000000001,c0000001-0000-0000-0000-000000000005)",
+        },
+        { is_read: false, read_at: null },
+      );
+    } catch (err) {
+      // Log but do not rethrow — a teardown failure must not fail the test itself.
+      // In CI the schema cache is always fresh; locally reload with:
+      //   supabase db reset  OR  NOTIFY pgrst, 'reload schema';
+      console.warn("[afterEach] notifications restore failed (schema cache?):", err);
+    }
   });
 
   // ─── Bell visibility ─────────────────────────────────────────────────────

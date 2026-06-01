@@ -77,7 +77,12 @@ test.describe("Team Management", () => {
     test.afterEach(async () => {
       // Restore member@enterprise.dev role to its seeded value after every test,
       // even on failure — prevents role contamination across tests.
-      await updateRows("profiles", { email: "eq.member@enterprise.dev" }, { role: "member" });
+      // Best-effort: teardown failures must not mask actual test outcomes.
+      try {
+        await updateRows("profiles", { email: "eq.member@enterprise.dev" }, { role: "member" });
+      } catch (err) {
+        console.warn("[afterEach] team-management role restore failed:", err);
+      }
     });
 
     test("admin can view team members list", async ({ page }) => {
