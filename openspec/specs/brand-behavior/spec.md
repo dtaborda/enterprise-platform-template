@@ -3,6 +3,7 @@
 > **Domain**: brand-behavior
 > **Introduced by**: change #14 — brand-and-decoupling (behavior first established)
 > **Promoted to canonical by**: change #15 — brand-isolation (PRs #125, #126, #127; merged to main @ 92fcf6b)
+> **Last amended by**: change #16 — e2e-stability-hardening (PR #129; merged to main @ e933a80) — added Root Layout SSR Theme Consistency
 > **Status**: canonical — all requirements are ACTIVE
 >
 > Note: All behavior is implemented in `@enterprise/brand` (post-isolation).
@@ -155,6 +156,47 @@ MUST return a Next.js `Metadata` object with the following field mapping:
 
 ---
 
+## Requirement: Root Layout SSR Theme Consistency
+
+The root layout Server Component (`ui/app/layout.tsx`) MUST derive the initial `data-theme`
+attribute on `<html>` from the resolved brand's `themeRef`, using the same rule as
+`BrandProvider`: `themeRef.endsWith("light") → "light"`, otherwise `"dark"`.
+
+Hard-coding `data-theme` to any literal value is PROHIBITED.
+
+`suppressHydrationWarning` on `<html>` MUST be retained so that user localStorage overrides do
+not produce React hydration errors.
+
+The shared pure helper `deriveThemeMode(themeRef: string): ThemeMode` exported from
+`@enterprise/brand/theme-mode` is the single source of truth for this rule and MUST be used by
+both `layout.tsx` and `BrandProvider` to prevent drift.
+
+### Scenario: Light brand — SSR data-theme=light, no flash
+
+- GIVEN the resolved brand has `themeRef` ending in `"light"` (e.g., enterprise, `themeRef: "light"`)
+- AND the browser `localStorage` is empty (fresh session or cleared in beforeEach)
+- WHEN any page renders on the server and hydrates on the client
+- THEN `data-theme="light"` is present in the initial SSR HTML
+- AND `data-theme` remains `"light"` after hydration completes (no dark→light observable flash)
+
+### Scenario: Dark brand — SSR data-theme=dark, no flash
+
+- GIVEN the resolved brand has `themeRef` NOT ending in `"light"` (e.g., `themeRef: "acme-dark"`)
+- AND the browser `localStorage` is empty
+- WHEN any page renders on the server and hydrates on the client
+- THEN `data-theme="dark"` is present in the initial SSR HTML
+- AND `data-theme` remains `"dark"` after hydration completes (no light→dark observable flash)
+
+### Scenario: E2E assertion — data-theme matches brand default with no post-hydration mutation
+
+- GIVEN the enterprise brand resolves (default, `themeRef: "light"`)
+- AND `localStorage` is cleared in `beforeEach` (no stored user preference)
+- WHEN the sign-in page loads and reaches `networkidle`
+- THEN `html[data-theme]` equals `"light"` at first assertion after `networkidle`
+- AND asserting `html[data-theme]` again after 1 000 ms still equals `"light"` (no flash interval)
+
+---
+
 ## Test Coverage Map
 
 | Requirement | Unit test file | E2E coverage |
@@ -165,3 +207,4 @@ MUST return a Next.js `Metadata` object with the following field mapping:
 | BrandFooter | `packages/brand/src/brand/__tests__/brand-footer.test.ts` | `ui/e2e/brand/brand.spec.ts` — footer renders |
 | generateBrandMetadata | `packages/brand/src/brand/__tests__/metadata.test.ts` | `ui/e2e/brand/brand.spec.ts` — metadata check |
 | registry | `packages/brand/src/brand/__tests__/registry.test.ts` | — |
+| Root Layout SSR Theme Consistency | `packages/brand/src/brand/__tests__/theme-mode.test.ts` | `ui/e2e/theme/theme.spec.ts` — SSR no-flash assertion (raw HTML + data-theme) |

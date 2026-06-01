@@ -38,7 +38,7 @@ Define the canonical implementation priority for planned features in this templa
 | 14 | P1 | Brand abstraction layer | Done | Enables multi-brand support from a single codebase with provider-agnostic branding. |
 | 15 | P1 | Brand isolation package | Done | Enforces brand code boundaries and prevents brand logic leaks into shared packages. |
 | 16 | P1 | Backend provider decoupling | Done | Introduces port/adapter interfaces to decouple @enterprise/core from Supabase. |
-| 17 | P1 | Test and CI stability hardening | Planned | Removes flaky E2E (notifications timing/delay), closes test-coverage gaps, and enforces lockfile/build checks so future feature PRDs don't break the pipeline. |
+| 17 | P1 | Test and CI stability hardening | Done | Removes flaky E2E (notifications timing/delay), closes test-coverage gaps, and enforces lockfile/build checks so future feature PRDs don't break the pipeline. |
 | 18 | P2 | Tenant onboarding | Planned | Improves activation and first-run time-to-value. |
 | 19 | P2 | File storage module | Planned | Covers a common SaaS need for tenant-scoped file handling. |
 | 20 | P2 | i18n and regional settings | Planned | Expands reuse across regions and teams. |
