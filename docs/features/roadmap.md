@@ -36,7 +36,7 @@ Define the canonical implementation priority for planned features in this templa
 | 12 | P1 | Webhooks | Planned | Completes outbound integration workflows for technical adopters. |
 | 13 | P1 | Usage limits and quotas | Planned | Enforces plan value and protects shared resources. |
 | 14 | P1 | Brand abstraction layer | Done | Enables multi-brand support from a single codebase with provider-agnostic branding. |
-| 15 | P1 | Brand isolation package | Planned | Enforces brand code boundaries and prevents brand logic leaks into shared packages. |
+| 15 | P1 | Brand isolation package | Done | Enforces brand code boundaries and prevents brand logic leaks into shared packages. |
 | 16 | P1 | Backend provider decoupling | Done | Introduces port/adapter interfaces to decouple @enterprise/core from Supabase. |
 | 17 | P1 | Test and CI stability hardening | Planned | Removes flaky E2E (notifications timing/delay), closes test-coverage gaps, and enforces lockfile/build checks so future feature PRDs don't break the pipeline. |
 | 18 | P2 | Tenant onboarding | Planned | Improves activation and first-run time-to-value. |
