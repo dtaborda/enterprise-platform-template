@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { clearMailbox, getPasswordResetLink } from "../helpers/inbucket";
+import { resetUserPassword } from "../helpers/supabase-rest";
 import { AuthPage } from "./auth-page";
 
 const RESET_ACCOUNTS = ["reset@enterprise.dev", "reset2@enterprise.dev"] as const;
@@ -48,7 +49,28 @@ async function completeRecoveryNavigation(
   await page.goto(resetLink);
 }
 
+// Seeded user IDs from supabase/seed.sql — must match exactly.
+const RESET_USER_IDS = {
+  "reset@enterprise.dev": "d1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "reset2@enterprise.dev": "e1b2c3d4-e5f6-7890-abcd-ef1234567890",
+} as const;
+
+const SEEDED_PASSWORD = "password123";
+
 test.describe("Password reset recovery", () => {
+  test.afterEach(async () => {
+    // Restore seeded passwords after every test so a password changed during
+    // the test cannot poison later runs (each test picks an account by retry index).
+    // Best-effort: teardown failures must not mask actual test outcomes.
+    for (const [, userId] of Object.entries(RESET_USER_IDS)) {
+      try {
+        await resetUserPassword(userId, SEEDED_PASSWORD);
+      } catch (err) {
+        console.warn(`[afterEach] password-reset restore failed for ${userId}:`, err);
+      }
+    }
+  });
+
   test("forgot-password with Inbucket polling retrieves reset email and opens reset link to /reset-password", async ({
     page,
   }, testInfo) => {

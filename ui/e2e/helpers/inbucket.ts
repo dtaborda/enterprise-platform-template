@@ -2,9 +2,10 @@
 const DEFAULT_INBUCKET_BASE_URL = process.env["INBUCKET_URL"] ?? "http://localhost:55334";
 
 const INBUCKET_POLLING = {
-  // 20 s gives Supabase Auth enough time to send the email in CI
-  // (local SMTP delivery via Inbucket/Mailpit can lag under load).
-  DEFAULT_TIMEOUT_MS: 20_000,
+  // 35 s gives Supabase Auth enough time to send the email in CI
+  // (local SMTP delivery via Inbucket/Mailpit can lag under load, especially
+  // during the cold-start window right after `supabase start`).
+  DEFAULT_TIMEOUT_MS: 35_000,
   DEFAULT_POLL_INTERVAL_MS: 500,
 } as const;
 
@@ -71,6 +72,13 @@ interface MailpitDetailResponse {
   HTML?: string;
 }
 
+/**
+ * Clears all messages for the given email address.
+ *
+ * Tries the Inbucket bulk-DELETE endpoint first. When that returns 404
+ * (Mailpit does not expose the Inbucket mailbox endpoint), falls back to
+ * per-message DELETE via the Mailpit `/api/v1/message/{id}` endpoint.
+ */
 export async function clearMailbox(email: string, options?: InbucketOptions): Promise<void> {
   const { baseUrl } = resolveOptions(options);
   const mailboxName = encodeURIComponent(getMailboxName(email));
@@ -81,7 +89,9 @@ export async function clearMailbox(email: string, options?: InbucketOptions): Pr
   });
 
   if (response.status === 404) {
-    // Mailpit API does not expose Inbucket's mailbox delete endpoint.
+    // Mailpit API does not expose Inbucket's bulk mailbox-delete endpoint.
+    // Fall back to deleting each message individually.
+    await clearMailboxSafely(email, options);
     return;
   }
 
@@ -89,6 +99,39 @@ export async function clearMailbox(email: string, options?: InbucketOptions): Pr
     throw new Error(
       `Failed to clear Inbucket mailbox for ${email}. HTTP ${response.status} ${response.statusText}`,
     );
+  }
+}
+
+/**
+ * Best-effort mailbox clear: fetches message IDs and deletes each one via
+ * the Mailpit `/api/v1/message/{id}` DELETE endpoint.
+ * Swallows per-message errors so a single failure does not abort the clear.
+ */
+export async function clearMailboxSafely(email: string, options?: InbucketOptions): Promise<void> {
+  const { baseUrl } = resolveOptions(options);
+  let messages: InbucketMailboxMessage[];
+
+  try {
+    messages = await getMailboxMessages(email, options);
+  } catch {
+    // If we cannot even list messages, there is nothing to delete.
+    return;
+  }
+
+  for (const message of messages) {
+    try {
+      const deleteResponse = await fetch(`${baseUrl}/api/v1/message/${message.id}`, {
+        method: "DELETE",
+      });
+
+      if (!deleteResponse.ok && deleteResponse.status !== 404) {
+        console.warn(
+          `[inbucket] Failed to delete message ${message.id} for ${email}: HTTP ${deleteResponse.status}`,
+        );
+      }
+    } catch {
+      // Best-effort: keep going if one message delete fails.
+    }
   }
 }
 
