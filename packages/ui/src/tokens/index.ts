@@ -1,6 +1,6 @@
 /**
  * AUTO-GENERATED — Do not edit manually.
- * Generated: 2026-06-01T01:51:37.225Z
+ * Generated: 2026-04-29T20:12:06.882Z
  * Source: packages/ui/src/themes/light.json
  * Run `pnpm build:theme` to regenerate.
  */

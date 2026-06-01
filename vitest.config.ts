@@ -51,7 +51,6 @@ export default defineConfig({
         },
       },
     ],
-    passWithNoTests: true,
     coverage: {
       provider: "v8",
       reporter: ["text", "text-summary", "lcov"],
