@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { login } from "../helpers/auth";
 import { ROUTES } from "../helpers/routes";
-import { updateRows } from "../helpers/supabase-rest";
+import { supabaseRequest, updateRows } from "../helpers/supabase-rest";
 import { NotificationPreferencesPage, NotificationsPage } from "./notifications-page";
 
 // ─── Credentials ──────────────────────────────────────────────────────────────
@@ -21,19 +21,50 @@ const PASSWORD = "password123";
 
 test.describe("Notifications", () => {
   // ─── Cross-describe isolation ─────────────────────────────────────────────
-  // Reset both member notification rows to unread after every test.
-  // Prevents the "mark as read" mutation in one test from contaminating
-  // the unread-filter assertion in another describe block.
+  // After every test:
+  //   1. Reset the two seeded member notification rows back to unread=false.
+  //   2. Delete any extra notifications created by other spec runs (e.g., the
+  //      "team_role_changed" notifications emitted by team-management.spec tests
+  //      when they change member@enterprise.dev's role). These accumulate across
+  //      suite runs and skew the unread-dot count in subsequent tests.
   // Best-effort: teardown failures must not mask actual test outcomes.
+  //
+  // Seeded notification IDs for member@enterprise.dev:
+  //   c0000001-0000-0000-0000-000000000001  (team_invited — unread)
+  //   c0000001-0000-0000-0000-000000000005  (team_role_changed — unread)
+  // All other seeded IDs (owner + admin user notifications) are left untouched.
+
+  // All 5 seeded notification IDs (owner, admin, member) — nothing else should exist.
+  const SEEDED_NOTIFICATION_IDS =
+    "c0000001-0000-0000-0000-000000000001," +
+    "c0000001-0000-0000-0000-000000000002," +
+    "c0000001-0000-0000-0000-000000000003," +
+    "c0000001-0000-0000-0000-000000000004," +
+    "c0000001-0000-0000-0000-000000000005";
+
+  // member@enterprise.dev user id (from seed.sql)
+  const MEMBER_USER_ID = "b1b2c3d4-e5f6-7890-abcd-ef1234567890";
+
   test.afterEach(async () => {
     try {
+      // 1. Reset seeded member notifications to unread
       await updateRows(
         "notifications",
         {
-          id: "in.(c0000001-0000-0000-0000-000000000001,c0000001-0000-0000-0000-000000000005)",
+          id: `in.(c0000001-0000-0000-0000-000000000001,c0000001-0000-0000-0000-000000000005)`,
         },
         { is_read: false, read_at: null },
       );
+
+      // 2. Delete any non-seeded notifications for the member (e.g., created
+      //    by team-management tests that change the member's role)
+      await supabaseRequest("notifications", {
+        method: "DELETE",
+        params: {
+          user_id: `eq.${MEMBER_USER_ID}`,
+          id: `not.in.(${SEEDED_NOTIFICATION_IDS})`,
+        },
+      });
     } catch (err) {
       // Log but do not rethrow — a teardown failure must not fail the test itself.
       // In CI the schema cache is always fresh; locally reload with:
@@ -91,9 +122,12 @@ test.describe("Notifications", () => {
       // Click the first unread notification to mark it as read
       await notificationsPage.clickFirstUnreadNotification();
 
-      // After the optimistic update the unread dot for that item should be gone.
-      // State-based wait: member starts with 2 unread, marking one leaves 1.
-      // toHaveCount retries up to 10 s — no fixed sleep needed.
+      // Wait for the RSC router.refresh() round-trip to complete so the
+      // component tree is stable before we assert the exact dot count.
+      await page.waitForLoadState("networkidle");
+
+      // After the optimistic update + server refresh the unread dot for that
+      // item should be gone. Member has 2 unread → marking one leaves 1.
       await notificationsPage.expectUnreadDotCount(1);
 
       // Verify we remain on the notifications page (no unexpected navigation)
