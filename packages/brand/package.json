@@ -11,7 +11,8 @@
     "./registry": "./src/brand/registry.ts",
     "./metadata": "./src/brand/metadata.ts",
     "./brand-logo": "./src/brand/brand-logo.tsx",
-    "./brand-footer": "./src/brand/brand-footer.tsx"
+    "./brand-footer": "./src/brand/brand-footer.tsx",
+    "./theme-mode": "./src/brand/theme-mode.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

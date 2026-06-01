@@ -1,27 +1,45 @@
 import { expect, test } from "@playwright/test";
 import { login } from "../helpers/auth";
 import { ROUTES } from "../helpers/routes";
+import { EXPECTED_DEFAULT_THEME } from "../helpers/theme";
 
 /**
  * Theme E2E Tests — T4.10
  *
  * Tests:
- * - Page loads with data-theme="dark" by default
+ * - SSR emits data-theme matching brand default (no-flash, no hydration mismatch)
  * - Theme toggle button is visible in the dashboard header
- * - Theme toggle switches to light mode (data-theme changes)
- * - Theme toggle switches back to dark
- * - Theme preference persists across navigation (localStorage)
+ * - Theme toggle switches between modes (light ↔ dark)
+ * - Theme preference persists via localStorage
  *
  * Note: The ThemeToggle is rendered in the dashboard header (requires auth).
- * The default data-theme check is verifiable without auth (see layout.tsx).
+ * The SSR data-theme checks are verifiable without auth (see layout.tsx).
  */
 
 test.describe("Theme System", () => {
-  test("sign-in page loads with data-theme=dark by default", async ({ page }) => {
-    await page.goto("/sign-in");
+  /**
+   * SSR no-flash — proves layout.tsx derives data-theme from brand.themeRef,
+   * not a hard-coded literal.  RED: layout.tsx still has data-theme="dark".
+   */
+  test("SSR HTML contains brand-derived data-theme (no hard-coded literal)", async ({ page }) => {
+    // Raw HTTP — no JS execution, proves SSR rendered the correct value.
+    const response = await page.request.get("/sign-in");
+    const html = await response.text();
+    expect(html).toContain(`data-theme="${EXPECTED_DEFAULT_THEME}"`);
+  });
 
-    const htmlElement = page.locator("html");
-    await expect(htmlElement).toHaveAttribute("data-theme", "dark");
+  test("sign-in page data-theme matches brand default and is stable after hydration", async ({
+    page,
+  }) => {
+    await page.goto("/sign-in");
+    await page.waitForLoadState("networkidle");
+
+    const htmlEl = page.locator("html");
+    await expect(htmlEl).toHaveAttribute("data-theme", EXPECTED_DEFAULT_THEME);
+
+    // Attribute must not flip after ~1 s (no-flash guarantee).
+    await page.waitForTimeout(1000);
+    await expect(htmlEl).toHaveAttribute("data-theme", EXPECTED_DEFAULT_THEME);
   });
 
   test("html element has suppressHydrationWarning (no mismatch errors)", async ({ page }) => {
@@ -44,6 +62,11 @@ test.describe("Theme System", () => {
     test.beforeEach(async ({ page }) => {
       await login(page);
       await page.waitForURL(new RegExp(ROUTES.dashboard));
+      // Clear localStorage so each test starts from the brand default theme.
+      // This prevents prior test runs from leaking a stored preference.
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      await page.waitForLoadState("networkidle");
     });
 
     test("theme toggle button is visible in dashboard header", async ({ page }) => {
@@ -51,52 +74,56 @@ test.describe("Theme System", () => {
       await expect(toggleButton).toBeVisible();
     });
 
-    test("clicking theme toggle switches from dark to light mode", async ({ page }) => {
-      // Ensure we start in dark mode
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    test("clicking theme toggle switches from default to opposite mode", async ({ page }) => {
+      // Confirm we start at the brand default.
+      await expect(page.locator("html")).toHaveAttribute("data-theme", EXPECTED_DEFAULT_THEME);
 
       const toggleButton = page.getByRole("button", { name: "Toggle theme" });
       await toggleButton.click();
 
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+      // After one click we are on the opposite mode.
+      const opposite = EXPECTED_DEFAULT_THEME === "light" ? "dark" : "light";
+      await expect(page.locator("html")).toHaveAttribute("data-theme", opposite);
     });
 
-    test("clicking theme toggle again switches back to dark mode", async ({ page }) => {
+    test("clicking theme toggle twice returns to default mode", async ({ page }) => {
       const toggleButton = page.getByRole("button", { name: "Toggle theme" });
 
-      // Switch to light
+      // Toggle to opposite.
       await toggleButton.click();
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+      const opposite = EXPECTED_DEFAULT_THEME === "light" ? "dark" : "light";
+      await expect(page.locator("html")).toHaveAttribute("data-theme", opposite);
 
-      // Switch back to dark
+      // Toggle back to default.
       await toggleButton.click();
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", EXPECTED_DEFAULT_THEME);
     });
 
     test("theme preference persists to localStorage", async ({ page }) => {
       const toggleButton = page.getByRole("button", { name: "Toggle theme" });
 
-      // Switch to light mode
+      // Toggle once — localStorage must reflect the new (opposite) mode.
       await toggleButton.click();
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+      const opposite = EXPECTED_DEFAULT_THEME === "light" ? "dark" : "light";
+      await expect(page.locator("html")).toHaveAttribute("data-theme", opposite);
 
-      // Verify localStorage was updated
       const storedTheme = await page.evaluate(() => localStorage.getItem("enterprise-theme-mode"));
-      expect(storedTheme).toBe("light");
+      expect(storedTheme).toBe(opposite);
     });
 
     test("theme preference is restored from localStorage on navigation", async ({ page }) => {
-      // Set localStorage to light before navigation
-      await page.evaluate(() => {
-        localStorage.setItem("enterprise-theme-mode", "light");
-      });
+      // Seed localStorage with the opposite theme.
+      const opposite = EXPECTED_DEFAULT_THEME === "light" ? "dark" : "light";
+      await page.evaluate((mode) => {
+        localStorage.setItem("enterprise-theme-mode", mode);
+      }, opposite);
 
-      // Navigate to another dashboard page
+      // Navigate to another dashboard page.
       await page.goto(ROUTES.settings);
       await page.waitForLoadState("networkidle");
 
-      // data-theme should be restored to light from localStorage
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+      // data-theme should be restored from localStorage.
+      await expect(page.locator("html")).toHaveAttribute("data-theme", opposite);
     });
   });
 });

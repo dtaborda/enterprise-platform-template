@@ -43,6 +43,7 @@
       "@enterprise/brand/metadata": ["packages/brand/src/brand/metadata"],
       "@enterprise/brand/brand-logo": ["packages/brand/src/brand/brand-logo"],
       "@enterprise/brand/brand-footer": ["packages/brand/src/brand/brand-footer"],
+      "@enterprise/brand/theme-mode": ["packages/brand/src/brand/theme-mode"],
       "@enterprise/brand/*": ["packages/brand/src/*"],
       "@/*": ["ui/*"]
     }

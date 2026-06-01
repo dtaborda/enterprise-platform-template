@@ -4,6 +4,7 @@ import type { BrandConfig } from "@enterprise/contracts";
 import { ThemeProvider } from "@enterprise/ui/theme/provider";
 import { useContext } from "react";
 import { BrandContext } from "./context";
+import { deriveThemeMode } from "./theme-mode";
 
 // ============================================================================
 // BrandProvider
@@ -25,9 +26,10 @@ export interface BrandProviderProps {
 }
 
 export function BrandProvider({ children, brand, defaultMode }: BrandProviderProps) {
-  // Derive initial theme mode from themeRef if not explicitly provided
-  const resolvedDefaultMode: "light" | "dark" =
-    defaultMode ?? (brand.themeRef.endsWith("light") ? "light" : "dark");
+  // Derive initial theme mode from themeRef if not explicitly provided.
+  // Uses the shared deriveThemeMode helper so layout.tsx and BrandProvider
+  // always apply the same rule.
+  const resolvedDefaultMode: "light" | "dark" = defaultMode ?? deriveThemeMode(brand.themeRef);
 
   return (
     <BrandContext value={{ brand }}>
