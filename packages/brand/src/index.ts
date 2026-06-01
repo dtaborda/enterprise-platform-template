@@ -20,3 +20,5 @@ export {
   getDefaultBrand,
 } from "./brand/registry";
 export { resolveBrand, resolveBrandFromRegistry } from "./brand/resolve";
+export type { ThemeMode } from "./brand/theme-mode";
+export { deriveThemeMode } from "./brand/theme-mode";
