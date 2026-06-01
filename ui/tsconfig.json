@@ -19,7 +19,16 @@
       "@enterprise/core": ["../packages/core/src"],
       "@enterprise/core/*": ["../packages/core/src/*"],
       "@enterprise/db": ["../packages/db/src"],
-      "@enterprise/db/*": ["../packages/db/src/*"]
+      "@enterprise/db/*": ["../packages/db/src/*"],
+      "@enterprise/brand": ["../packages/brand/src"],
+      "@enterprise/brand/context": ["../packages/brand/src/brand/context"],
+      "@enterprise/brand/provider": ["../packages/brand/src/brand/provider"],
+      "@enterprise/brand/resolve": ["../packages/brand/src/brand/resolve"],
+      "@enterprise/brand/registry": ["../packages/brand/src/brand/registry"],
+      "@enterprise/brand/metadata": ["../packages/brand/src/brand/metadata"],
+      "@enterprise/brand/brand-logo": ["../packages/brand/src/brand/brand-logo"],
+      "@enterprise/brand/brand-footer": ["../packages/brand/src/brand/brand-footer"],
+      "@enterprise/brand/*": ["../packages/brand/src/*"]
     },
     "noEmit": true,
     "incremental": true

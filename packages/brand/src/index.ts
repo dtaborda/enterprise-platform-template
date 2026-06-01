@@ -12,5 +12,11 @@ export { BrandContext } from "./brand/context";
 export { generateBrandMetadata } from "./brand/metadata";
 export type { BrandProviderProps } from "./brand/provider";
 export { BrandProvider, useBrand } from "./brand/provider";
-export { buildRegistry, getAllBrands, getBrandBySlug, getBrandRegistry, getDefaultBrand } from "./brand/registry";
+export {
+  buildRegistry,
+  getAllBrands,
+  getBrandBySlug,
+  getBrandRegistry,
+  getDefaultBrand,
+} from "./brand/registry";
 export { resolveBrand, resolveBrandFromRegistry } from "./brand/resolve";
