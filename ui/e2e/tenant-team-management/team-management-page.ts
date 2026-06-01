@@ -7,6 +7,11 @@ export class TeamManagementPage {
   async goto(): Promise<void> {
     await this.page.goto(ROUTES.team);
     await this.page.waitForURL(new RegExp(ROUTES.team));
+    // Content-ready guard: ensures the Members heading is rendered before
+    // any test interaction, preventing flaky selector misses on slow CI.
+    await expect(this.page.getByRole("heading", { name: "Members" })).toBeVisible({
+      timeout: 30_000,
+    });
   }
 
   // ─── Invite Member ─────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { login } from "../helpers/auth";
 import { ROUTES } from "../helpers/routes";
-import { deleteRows, seedRows, supabaseRequest } from "../helpers/supabase-rest";
+import { deleteRows, seedRows, supabaseRequest, updateRows } from "../helpers/supabase-rest";
 import { TeamManagementPage } from "./team-management-page";
 
 // ─── Seed helpers ─────────────────────────────────────────────────────────────
@@ -74,6 +74,17 @@ test.describe("Team Management", () => {
       await teardownTestMembers();
     });
 
+    test.afterEach(async () => {
+      // Restore member@enterprise.dev role to its seeded value after every test,
+      // even on failure — prevents role contamination across tests.
+      // Best-effort: teardown failures must not mask actual test outcomes.
+      try {
+        await updateRows("profiles", { email: "eq.member@enterprise.dev" }, { role: "member" });
+      } catch (err) {
+        console.warn("[afterEach] team-management role restore failed:", err);
+      }
+    });
+
     test("admin can view team members list", async ({ page }) => {
       const teamPage = new TeamManagementPage(page);
 
@@ -143,12 +154,7 @@ test.describe("Team Management", () => {
           .filter({ hasText: "member@enterprise.dev" })
           .getByText("Guest"),
       ).toBeVisible({ timeout: 30_000 });
-
-      // Restore original role
-      await teamPage.openChangeRoleDialog("member@enterprise.dev");
-      await teamPage.selectNewRole("Member");
-      await teamPage.submitChangeRole();
-      await expect(page.getByRole("dialog")).toHaveCount(0);
+      // Role restoration handled by test.afterEach (PATCH profiles via service-role)
     });
 
     test("admin can remove a member", async ({ page }) => {
