@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { login } from "../helpers/auth";
 import { ROUTES } from "../helpers/routes";
+import { updateRows } from "../helpers/supabase-rest";
 import { NotificationPreferencesPage, NotificationsPage } from "./notifications-page";
 
 // ─── Credentials ──────────────────────────────────────────────────────────────
@@ -19,6 +20,20 @@ const PASSWORD = "password123";
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 test.describe("Notifications", () => {
+  // ─── Cross-describe isolation ─────────────────────────────────────────────
+  // Reset both member notification rows to unread after every test.
+  // Prevents the "mark as read" mutation in one test from contaminating
+  // the unread-filter assertion in another describe block.
+  test.afterEach(async () => {
+    await updateRows(
+      "notifications",
+      {
+        id: "in.(c0000001-0000-0000-0000-000000000001,c0000001-0000-0000-0000-000000000005)",
+      },
+      { is_read: false, read_at: null },
+    );
+  });
+
   // ─── Bell visibility ─────────────────────────────────────────────────────
 
   test.describe("Notification bell", () => {
@@ -69,13 +84,11 @@ test.describe("Notifications", () => {
       await notificationsPage.clickFirstUnreadNotification();
 
       // After the optimistic update the unread dot for that item should be gone.
-      // Allow a moment for optimistic update to apply.
-      await page.waitForTimeout(500);
+      // State-based wait: member starts with 2 unread, marking one leaves 1.
+      // toHaveCount retries up to 10 s — no fixed sleep needed.
+      await notificationsPage.expectUnreadDotCount(1);
 
-      // Seed has 2 unread items for member; after marking one the list may still
-      // show 1 unread dot (the other item). We verify the action triggered a refresh
-      // by checking the bell aria-label updated or there are fewer unread dots.
-      // The safest assertion is that the page remains on /notifications.
+      // Verify we remain on the notifications page (no unexpected navigation)
       await expect(page).toHaveURL(new RegExp(ROUTES.notifications));
     });
 

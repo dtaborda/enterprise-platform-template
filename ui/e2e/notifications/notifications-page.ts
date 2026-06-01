@@ -100,6 +100,15 @@ export class NotificationsPage {
     await expect(this.page.locator('[role="status"]').first()).toBeVisible({ timeout: 10_000 });
   }
 
+  /**
+   * Asserts exactly n unread dots are visible.
+   * Use instead of waitForTimeout after marking a notification as read —
+   * this waits for the optimistic update to settle rather than a fixed delay.
+   */
+  async expectUnreadDotCount(n: number): Promise<void> {
+    await expect(this.page.locator('[role="status"]')).toHaveCount(n, { timeout: 10_000 });
+  }
+
   // ─── Mark all read ─────────────────────────────────────────────────────────
 
   async clickMarkAllAsRead(): Promise<void> {
