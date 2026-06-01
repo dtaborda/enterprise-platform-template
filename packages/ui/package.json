@@ -11,14 +11,7 @@
     "./theme/context": "./src/theme/context.ts",
     "./theme/provider": "./src/theme/provider.tsx",
     "./theme/toggle": "./src/theme/toggle.tsx",
-    "./hooks/*": "./src/hooks/*.ts",
-    "./brand/context": "./src/brand/context.ts",
-    "./brand/provider": "./src/brand/provider.tsx",
-    "./brand/resolve": "./src/brand/resolve.ts",
-    "./brand/registry": "./src/brand/registry.ts",
-    "./brand/metadata": "./src/brand/metadata.ts",
-    "./brand/brand-logo": "./src/brand/brand-logo.tsx",
-    "./brand/brand-footer": "./src/brand/brand-footer.tsx"
+    "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
     "build:theme": "tsx scripts/build-theme.ts",
