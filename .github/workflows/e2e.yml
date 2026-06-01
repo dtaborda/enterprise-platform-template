@@ -101,15 +101,53 @@ jobs:
 
       - name: Wait for Supabase to be ready
         run: |
-          echo "Waiting for Supabase..."
+          echo "Waiting for Supabase Auth..."
           for i in $(seq 1 30); do
             if curl -s http://127.0.0.1:55331/auth/v1/health > /dev/null 2>&1; then
               echo "Supabase Auth is ready!"
               break
             fi
+            if [ "$i" -eq 30 ]; then
+              echo "Supabase Auth not ready after 60s — aborting"
+              exit 1
+            fi
             echo "Attempt $i/30..."
             sleep 2
           done
+
+      - name: Wait for PostgREST to be ready
+        run: |
+          echo "Waiting for PostgREST..."
+          for i in $(seq 1 30); do
+            if curl -sf \
+                 -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+                 "http://127.0.0.1:55331/rest/v1/" > /dev/null 2>&1; then
+              echo "PostgREST is ready!"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "PostgREST not ready after 60s — aborting"
+              exit 1
+            fi
+            echo "Attempt $i/30..."
+            sleep 2
+          done
+
+      - name: Verify seed data
+        run: |
+          echo "Verifying seed data in notifications table..."
+          response=$(curl -sf \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            "http://127.0.0.1:55331/rest/v1/notifications?select=id&limit=1" \
+            2>&1 || true)
+          if echo "$response" | grep -q '"id"'; then
+            echo "Seed data verified — notifications table has rows."
+          else
+            echo "Seed verification FAILED: notifications table is empty or unreachable."
+            echo "Response: $response"
+            exit 1
+          fi
 
       - name: Build app
         run: pnpm build
