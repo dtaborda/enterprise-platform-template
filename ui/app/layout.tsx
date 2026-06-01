@@ -1,6 +1,6 @@
-import { generateBrandMetadata } from "@enterprise/ui/brand/metadata";
-import { BrandProvider } from "@enterprise/ui/brand/provider";
-import { resolveBrand } from "@enterprise/ui/brand/resolve";
+import { generateBrandMetadata } from "@enterprise/brand/metadata";
+import { BrandProvider } from "@enterprise/brand/provider";
+import { resolveBrand } from "@enterprise/brand/resolve";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { Toaster } from "sonner";
