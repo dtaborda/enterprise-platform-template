@@ -32,18 +32,18 @@
   "dependencies": {
     "@enterprise/contracts": "workspace:*",
     "@enterprise/db": "workspace:*",
-    "@supabase/ssr": "^0.10.0",
-    "@supabase/supabase-js": "^2.50.0",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.107.0",
     "stripe": "^17.7.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
-    "next": "^15.5.18",
-    "react": "^19.0.0",
+    "next": "^15.5.19",
+    "react": "^19.2.7",
     "typescript": "^5.7.0"
   },
   "peerDependencies": {
-    "next": "^15.5.18",
-    "react": "^19.0.0"
+    "next": "^15.5.19",
+    "react": "^19.2.7"
   }
 }
