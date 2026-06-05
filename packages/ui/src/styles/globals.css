@@ -44,15 +44,15 @@ body {
 }
 
 :where(
-    a,
-    button,
-    input,
-    textarea,
-    select,
-    [role="button"],
-    [role="tab"],
-    [tabindex]:not([tabindex="-1"])
-  ):focus-visible {
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role="button"],
+  [role="tab"],
+  [tabindex]:not([tabindex="-1"])
+):focus-visible {
   outline: none;
   box-shadow:
     0 0 0 2px var(--color-background),
