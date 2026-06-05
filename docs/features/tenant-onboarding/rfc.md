@@ -23,7 +23,7 @@ Define an implementation-ready technical approach for a guided, resumable, dismi
 Implement onboarding as an owner-scoped, additive module using:
 
 - A Drizzle `tenant_onboarding_progress` table (one row per tenant) with RLS policies in `@enterprise/db`.
-- Zod 4 contracts in `@enterprise/contracts` for progress DTOs, step inputs, and the activation result.
+- Zod contracts in `@enterprise/contracts` for progress DTOs, step inputs, and the activation result.
 - A function-based service `@enterprise/core/src/services/onboarding-service.ts` returning `ServiceResult<T>`.
 - Thin Server Actions in `ui/features/onboarding/actions.ts` returning `ActionResult<T>` with Sentry area `onboarding`.
 - **Reuse, not rebuild**: baseline setup delegates to `workspace-settings-service` (`updateWorkspaceProfile` + `updateWorkspaceRegional`); the first-invite step reuses the existing `tenant-team-management` invite dialog/action and only records its own step completion.
@@ -151,7 +151,7 @@ const ownerRoleClaim = sql`(auth.jwt()->'app_metadata'->>'role' = 'owner')`;
 
 ## Contracts
 
-Location: `packages/contracts/src/dto/tenant-onboarding.ts` (re-exported from `src/index.ts`). Zod 4 API.
+Location: `packages/contracts/src/dto/tenant-onboarding.ts` (re-exported from `src/index.ts`). Zod 3 API (project runs `zod@^3.25.0`).
 
 ### Enums
 
@@ -196,7 +196,7 @@ export type CompleteOnboardingStepDto = z.infer<typeof completeOnboardingStepSch
 
 ```typescript
 export const onboardingProgressOutputSchema = z.object({
-  tenantId: z.uuid(),
+  tenantId: z.string().uuid(),
   state: onboardingStateSchema,
   baselineCompleted: z.boolean(),
   firstInviteCompleted: z.boolean(),
@@ -480,7 +480,7 @@ Ships as **chained PRs** — each phase is an independently reviewable slice (ta
 
 | Phase | Deliverable | Dependencies |
 |-------|-------------|--------------|
-| 1 | Contracts: Zod 4 schemas + types in `@enterprise/contracts` + contract tests | None |
+| 1 | Contracts: Zod 3 schemas + types in `@enterprise/contracts` + contract tests | None |
 | 2 | Data model: `tenant_onboarding_progress` table, `onboarding_state` enum, RLS policies, generated migration | Phase 1 |
 | 3 | Service: `onboarding-service.ts` (init/get/complete/seed/dismiss/resume + `evaluateActivation`) + unit tests (TDD); reuse `workspace-settings-service` | Phases 1–2 |
 | 4 | Server Actions + Sentry area `onboarding` + `ROUTES.onboarding` + e2e route helper | Phase 3 |
