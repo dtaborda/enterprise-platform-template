@@ -34,7 +34,7 @@
     "@enterprise/db": "workspace:*",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
-    "stripe": "^17.7.0",
+    "stripe": "^22.2.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
