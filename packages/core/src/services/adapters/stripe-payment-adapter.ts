@@ -30,7 +30,7 @@ export class StripePaymentAdapter implements PaymentProviderPort {
 
     const { default: Stripe } = await import("stripe");
     this.stripeInstance = new Stripe(this.stripeSecretKey, {
-      apiVersion: "2025-02-24.acacia",
+      apiVersion: "2026-05-27.dahlia",
     });
 
     return this.stripeInstance;
@@ -84,11 +84,18 @@ export class StripePaymentAdapter implements PaymentProviderPort {
         },
       });
 
+      // Stripe API 2026-05-27 moved current_period_start/end from the subscription
+      // object to each subscription item. We create a single item, so read from it.
+      const item = subscription.items.data[0];
+      if (!item) {
+        throw new Error(`No subscription item returned for subscription ${subscription.id}`);
+      }
+
       return {
         subscriptionId: subscription.id,
         status: subscription.status,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        currentPeriodStart: new Date(item.current_period_start * 1000).toISOString(),
+        currentPeriodEnd: new Date(item.current_period_end * 1000).toISOString(),
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Stripe createSubscription failed";
