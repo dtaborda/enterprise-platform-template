@@ -704,3 +704,106 @@ SELECT
 FROM public.profiles p
 WHERE p.id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 ON CONFLICT (id) DO NOTHING;
+
+-- ─── Onboarding: seed progress rows ──────────────────────────────────────────
+--
+-- Three rows representing the three canonical onboarding states, one per tenant.
+-- Row 1 → admin demo tenant (not_started)  — primary E2E scenario starting point.
+-- Row 2 → in_progress   state (baseline done, value step pending, not yet activated).
+-- Row 3 → activated      state (baseline + sample-data done, activated_at set).
+--
+-- Rows 2 and 3 use deterministic seed-only tenant entries (slugs: seed-inprogress,
+-- seed-activated) that exist only for state-representation purposes.
+-- All UUIDs use the e0000001-… prefix to avoid collisions with other seed records.
+-- Idempotent: ON CONFLICT (id) / (tenant_id) DO NOTHING — safe to run repeatedly.
+--
+-- User reference:
+--   demo tenant owner → a1b2c3d4-e5f6-7890-abcd-ef1234567890 (admin@enterprise.dev)
+
+-- Seed-only tenants for the in_progress and activated state reference rows.
+INSERT INTO public.tenants (id, name, slug, status, created_at, updated_at)
+VALUES
+  (
+    'e0000001-0000-0000-0001-000000000001'::uuid,
+    'Seed In-Progress Org',
+    'seed-inprogress',
+    'active',
+    NOW(),
+    NOW()
+  ),
+  (
+    'e0000001-0000-0000-0001-000000000002'::uuid,
+    'Seed Activated Org',
+    'seed-activated',
+    'active',
+    NOW(),
+    NOW()
+  )
+ON CONFLICT (slug) DO NOTHING;
+
+-- Onboarding progress rows (3 states).
+INSERT INTO public.tenant_onboarding_progress (
+  id,
+  tenant_id,
+  state,
+  baseline_completed_at,
+  first_invite_completed_at,
+  sample_data_completed_at,
+  dismissed,
+  dismissed_at,
+  activated_at,
+  created_at,
+  updated_at
+)
+SELECT
+  e.id::uuid,
+  e.tenant_id,
+  e.state::onboarding_state,
+  e.baseline_completed_at,
+  e.first_invite_completed_at,
+  e.sample_data_completed_at,
+  e.dismissed,
+  e.dismissed_at,
+  e.activated_at,
+  NOW(),
+  NOW()
+FROM (
+  VALUES
+    -- Row 1: admin demo tenant — not_started (E2E serial-flow baseline)
+    (
+      'e0000001-0000-0000-0000-000000000001',
+      (SELECT tenant_id FROM public.profiles WHERE id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'),
+      'not_started',
+      NULL::timestamptz,
+      NULL::timestamptz,
+      NULL::timestamptz,
+      FALSE,
+      NULL::timestamptz,
+      NULL::timestamptz
+    ),
+    -- Row 2: seed-inprogress tenant — baseline complete, awaiting value step
+    (
+      'e0000001-0000-0000-0000-000000000002',
+      'e0000001-0000-0000-0001-000000000001'::uuid,
+      'in_progress',
+      NOW() - INTERVAL '10 minutes',
+      NULL::timestamptz,
+      NULL::timestamptz,
+      FALSE,
+      NULL::timestamptz,
+      NULL::timestamptz
+    ),
+    -- Row 3: seed-activated tenant — baseline + sample-data complete, activated
+    (
+      'e0000001-0000-0000-0000-000000000003',
+      'e0000001-0000-0000-0001-000000000002'::uuid,
+      'activated',
+      NOW() - INTERVAL '20 minutes',
+      NULL::timestamptz,
+      NOW() - INTERVAL '15 minutes',
+      FALSE,
+      NULL::timestamptz,
+      NOW() - INTERVAL '15 minutes'
+    )
+) AS e(id, tenant_id, state, baseline_completed_at, first_invite_completed_at, sample_data_completed_at, dismissed, dismissed_at, activated_at)
+ON CONFLICT (id) DO NOTHING;
