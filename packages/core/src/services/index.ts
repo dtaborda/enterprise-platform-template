@@ -13,6 +13,7 @@ export type { BackendAdapters } from "./backend-adapters";
 export { createBackendAdapters } from "./backend-adapters";
 export * from "./billing-service";
 export * from "./notification-service";
+export * from "./onboarding-service";
 // Backend ports — provider-agnostic interfaces
 export type { AuthPort } from "./ports/auth-port";
 export type { InvitationEmailParams, InvitationEmailPort } from "./ports/invitation-email-port";
