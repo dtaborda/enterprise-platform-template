@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  ONBOARDING_STATE,
-  ONBOARDING_STEP,
   activationResultSchema,
   completeBaselineStepSchema,
   completeOnboardingStepSchema,
+  ONBOARDING_STATE,
+  ONBOARDING_STEP,
   onboardingProgressOutputSchema,
   onboardingStateSchema,
   onboardingStepSchema,
@@ -68,28 +68,27 @@ describe("onboardingStepSchema", () => {
 
 describe("completeBaselineStepSchema", () => {
   it("accepts valid name and locale", () => {
-    expect(
-      completeBaselineStepSchema.parse({ name: "Acme Corp", locale: "en-US" }),
-    ).toEqual({ name: "Acme Corp", locale: "en-US" });
+    expect(completeBaselineStepSchema.parse({ name: "Acme Corp", locale: "en-US" })).toEqual({
+      name: "Acme Corp",
+      locale: "en-US",
+    });
   });
 
   it("accepts name at minimum boundary (2 chars)", () => {
-    expect(
-      completeBaselineStepSchema.parse({ name: "AB", locale: "en" }),
-    ).toMatchObject({ name: "AB" });
+    expect(completeBaselineStepSchema.parse({ name: "AB", locale: "en" })).toMatchObject({
+      name: "AB",
+    });
   });
 
   it("accepts name at maximum boundary (100 chars)", () => {
     const longName = "A".repeat(100);
-    expect(
-      completeBaselineStepSchema.parse({ name: longName, locale: "en-US" }),
-    ).toMatchObject({ name: longName });
+    expect(completeBaselineStepSchema.parse({ name: longName, locale: "en-US" })).toMatchObject({
+      name: longName,
+    });
   });
 
   it("rejects name shorter than 2 chars", () => {
-    expect(() =>
-      completeBaselineStepSchema.parse({ name: "A", locale: "en-US" }),
-    ).toThrow();
+    expect(() => completeBaselineStepSchema.parse({ name: "A", locale: "en-US" })).toThrow();
   });
 
   it("rejects name longer than 100 chars", () => {
@@ -99,28 +98,24 @@ describe("completeBaselineStepSchema", () => {
   });
 
   it("rejects empty name", () => {
-    expect(() =>
-      completeBaselineStepSchema.parse({ name: "", locale: "en-US" }),
-    ).toThrow();
+    expect(() => completeBaselineStepSchema.parse({ name: "", locale: "en-US" })).toThrow();
   });
 
   it("accepts locale at minimum boundary (2 chars, e.g. 'en')", () => {
-    expect(
-      completeBaselineStepSchema.parse({ name: "Acme", locale: "en" }),
-    ).toMatchObject({ locale: "en" });
+    expect(completeBaselineStepSchema.parse({ name: "Acme", locale: "en" })).toMatchObject({
+      locale: "en",
+    });
   });
 
   it("accepts locale at maximum boundary (35 chars)", () => {
     const longLocale = "a".repeat(35);
-    expect(
-      completeBaselineStepSchema.parse({ name: "Acme", locale: longLocale }),
-    ).toMatchObject({ locale: longLocale });
+    expect(completeBaselineStepSchema.parse({ name: "Acme", locale: longLocale })).toMatchObject({
+      locale: longLocale,
+    });
   });
 
   it("rejects locale shorter than 2 chars", () => {
-    expect(() =>
-      completeBaselineStepSchema.parse({ name: "Acme", locale: "e" }),
-    ).toThrow();
+    expect(() => completeBaselineStepSchema.parse({ name: "Acme", locale: "e" })).toThrow();
   });
 
   it("rejects locale longer than 35 chars", () => {
@@ -130,41 +125,33 @@ describe("completeBaselineStepSchema", () => {
   });
 
   it("rejects missing name", () => {
-    expect(() =>
-      completeBaselineStepSchema.parse({ locale: "en-US" }),
-    ).toThrow();
+    expect(() => completeBaselineStepSchema.parse({ locale: "en-US" })).toThrow();
   });
 
   it("rejects missing locale", () => {
-    expect(() =>
-      completeBaselineStepSchema.parse({ name: "Acme Corp" }),
-    ).toThrow();
+    expect(() => completeBaselineStepSchema.parse({ name: "Acme Corp" })).toThrow();
   });
 });
 
 describe("completeOnboardingStepSchema", () => {
   it("accepts first-invite step", () => {
-    expect(
-      completeOnboardingStepSchema.parse({ step: "first-invite" }),
-    ).toEqual({ step: "first-invite" });
+    expect(completeOnboardingStepSchema.parse({ step: "first-invite" })).toEqual({
+      step: "first-invite",
+    });
   });
 
   it("accepts sample-data step", () => {
-    expect(
-      completeOnboardingStepSchema.parse({ step: "sample-data" }),
-    ).toEqual({ step: "sample-data" });
+    expect(completeOnboardingStepSchema.parse({ step: "sample-data" })).toEqual({
+      step: "sample-data",
+    });
   });
 
   it("rejects baseline step (baseline is handled by its own schema)", () => {
-    expect(() =>
-      completeOnboardingStepSchema.parse({ step: "baseline" }),
-    ).toThrow();
+    expect(() => completeOnboardingStepSchema.parse({ step: "baseline" })).toThrow();
   });
 
   it("rejects unknown step", () => {
-    expect(() =>
-      completeOnboardingStepSchema.parse({ step: "other" }),
-    ).toThrow();
+    expect(() => completeOnboardingStepSchema.parse({ step: "other" })).toThrow();
   });
 
   it("rejects missing step", () => {
@@ -204,16 +191,16 @@ describe("onboardingProgressOutputSchema", () => {
 
   it("accepts a Date for activatedAt", () => {
     const activatedAt = new Date("2026-06-01T10:00:00.000Z");
-    expect(
-      onboardingProgressOutputSchema.parse({ ...validProgress, activatedAt }),
-    ).toMatchObject({ activatedAt });
+    expect(onboardingProgressOutputSchema.parse({ ...validProgress, activatedAt })).toMatchObject({
+      activatedAt,
+    });
   });
 
   it("accepts all states", () => {
     for (const state of ["not_started", "in_progress", "activated"] as const) {
-      expect(
-        onboardingProgressOutputSchema.parse({ ...validProgress, state }),
-      ).toMatchObject({ state });
+      expect(onboardingProgressOutputSchema.parse({ ...validProgress, state })).toMatchObject({
+        state,
+      });
     }
   });
 
@@ -230,9 +217,9 @@ describe("onboardingProgressOutputSchema", () => {
   });
 
   it("accepts totalSteps at 1 (minimum)", () => {
-    expect(
-      onboardingProgressOutputSchema.parse({ ...validProgress, totalSteps: 1 }),
-    ).toMatchObject({ totalSteps: 1 });
+    expect(onboardingProgressOutputSchema.parse({ ...validProgress, totalSteps: 1 })).toMatchObject(
+      { totalSteps: 1 },
+    );
   });
 
   it("rejects totalSteps below 1", () => {
