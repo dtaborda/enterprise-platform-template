@@ -8,6 +8,7 @@ export * from "./dto/notifications";
 // DTOs
 export * from "./dto/platform";
 export * from "./dto/resources";
+export * from "./dto/tenant-onboarding";
 export * from "./dto/tenant-team";
 export * from "./dto/workspace-admin";
 export type {
