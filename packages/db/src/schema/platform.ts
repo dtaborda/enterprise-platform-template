@@ -35,11 +35,21 @@ export const auditActionEnum = pgEnum("audit_action", [
   "custom",
 ]);
 
+/** Onboarding lifecycle state enum */
+export const onboardingStateEnum = pgEnum("onboarding_state", [
+  "not_started",
+  "in_progress",
+  "activated",
+]);
+
 /** Matches the tenant_id column against the JWT app_metadata tenant_id claim */
 const tenantClaimMatchesColumn = sql`((auth.jwt()->'app_metadata'->>'tenant_id')::uuid = tenant_id)`;
 
 /** Restricts mutations to owner and admin roles via app_metadata */
 const adminRoleClaim = sql`(auth.jwt()->'app_metadata'->>'role' IN ('owner', 'admin'))`;
+
+/** Restricts access to owner role only via app_metadata */
+const ownerRoleClaim = sql`(auth.jwt()->'app_metadata'->>'role' = 'owner')`;
 
 // ============================================================================
 // Tenants Table
@@ -267,6 +277,64 @@ export const tenantInvitations = pgTable(
 ).enableRLS();
 
 // ============================================================================
+// Tenant Onboarding Progress Table
+// ============================================================================
+
+/**
+ * Per-tenant onboarding progress — one row per tenant (1:1).
+ * Step completion is stored as discrete nullable timestamps for queryability.
+ * activated_at is the single source of truth for activation idempotency.
+ */
+export const tenantOnboardingProgress = pgTable(
+  "tenant_onboarding_progress",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .unique()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    state: onboardingStateEnum("state").notNull().default("not_started"),
+    baselineCompletedAt: timestamp("baseline_completed_at", { withTimezone: true }),
+    firstInviteCompletedAt: timestamp("first_invite_completed_at", { withTimezone: true }),
+    sampleDataCompletedAt: timestamp("sample_data_completed_at", { withTimezone: true }),
+    dismissed: boolean("dismissed").notNull().default(false),
+    dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+    activatedAt: timestamp("activated_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("onboarding_tenant_idx").on(table.tenantId),
+    index("onboarding_state_idx").on(table.state),
+    pgPolicy("onboarding_select", {
+      as: "permissive",
+      for: "select",
+      to: authenticatedRole,
+      using: sql`(${tenantClaimMatchesColumn} AND ${ownerRoleClaim})`,
+    }),
+    pgPolicy("onboarding_insert", {
+      as: "permissive",
+      for: "insert",
+      to: authenticatedRole,
+      withCheck: sql`(${tenantClaimMatchesColumn} AND ${ownerRoleClaim})`,
+    }),
+    pgPolicy("onboarding_update", {
+      as: "permissive",
+      for: "update",
+      to: authenticatedRole,
+      using: sql`(${tenantClaimMatchesColumn} AND ${ownerRoleClaim})`,
+      withCheck: sql`(${tenantClaimMatchesColumn} AND ${ownerRoleClaim})`,
+    }),
+    pgPolicy("onboarding_delete", {
+      as: "permissive",
+      for: "delete",
+      to: serviceRole,
+      using: sql`true`,
+    }),
+  ],
+).enableRLS();
+
+// ============================================================================
 // Type Exports (for use in services)
 // ============================================================================
 
@@ -280,3 +348,5 @@ export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type NewAuditLogEntry = typeof auditLog.$inferInsert;
 export type TenantInvitation = typeof tenantInvitations.$inferSelect;
 export type NewTenantInvitation = typeof tenantInvitations.$inferInsert;
+export type TenantOnboardingProgress = typeof tenantOnboardingProgress.$inferSelect;
+export type NewTenantOnboardingProgress = typeof tenantOnboardingProgress.$inferInsert;

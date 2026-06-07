@@ -8,6 +8,7 @@ export type SentryArea =
   | "billing"
   | "dashboard"
   | "notifications"
+  | "onboarding"
   | "resources"
   | "settings"
   | "team"

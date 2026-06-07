@@ -3,7 +3,7 @@
 import type { UserRole } from "@enterprise/contracts";
 import { BottomTabBar } from "./bottom-tab-bar";
 import { Header } from "./header";
-import { Sidebar } from "./sidebar";
+import { type OnboardingChipData, Sidebar } from "./sidebar";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -12,6 +12,7 @@ interface DashboardShellProps {
   userId: string;
   tenantId: string;
   initialUnreadCount: number;
+  onboardingChip?: OnboardingChipData | null;
 }
 
 export function DashboardShell({
@@ -21,10 +22,11 @@ export function DashboardShell({
   userId,
   tenantId,
   initialUnreadCount,
+  onboardingChip,
 }: DashboardShellProps) {
   return (
     <div className="min-h-screen lg:h-screen">
-      <Sidebar userRole={userRole} userLabel={userLabel} />
+      <Sidebar userRole={userRole} userLabel={userLabel} onboardingChip={onboardingChip} />
       <div className="flex min-h-screen flex-1 flex-col lg:ml-[var(--sidebar-width)] lg:h-screen lg:overflow-hidden">
         <Header
           userRole={userRole}

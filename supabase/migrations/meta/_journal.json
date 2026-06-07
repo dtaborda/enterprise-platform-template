@@ -22,6 +22,13 @@
       "when": 1780099326005,
       "tag": "0002_rapid_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780692766928,
+      "tag": "0003_mighty_cardiac",
+      "breakpoints": true
     }
   ]
 }
