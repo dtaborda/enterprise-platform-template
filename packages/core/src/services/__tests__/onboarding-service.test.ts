@@ -366,7 +366,10 @@ describe("seedSampleData", () => {
     const auditInsert = vi.fn().mockResolvedValue({ data: null, error: null });
 
     // Row already has sample_data_completed_at set → idempotent path
-    const alreadySeededRow = { ...IN_PROGRESS_ROW, sample_data_completed_at: new Date().toISOString() };
+    const alreadySeededRow = {
+      ...IN_PROGRESS_ROW,
+      sample_data_completed_at: new Date().toISOString(),
+    };
 
     const client = buildClient({
       tenant_onboarding_progress: {
@@ -489,7 +492,10 @@ describe("evaluateActivation", () => {
     // NO additional tenant.activated event (step_completed may still fire)
     const activationCalls = auditInsert.mock.calls.filter((call) => {
       const row = call[0] as Record<string, unknown>;
-      return typeof row["metadata"] === "string" && (row["metadata"] as string).includes("tenant.activated");
+      return (
+        typeof row["metadata"] === "string" &&
+        (row["metadata"] as string).includes("tenant.activated")
+      );
     });
     expect(activationCalls).toHaveLength(0);
   });
@@ -555,7 +561,10 @@ describe("evaluateActivation", () => {
     // No tenant.activated emitted by this call (the other concurrent call did it)
     const activationCalls = auditInsert.mock.calls.filter((call) => {
       const row = call[0] as Record<string, unknown>;
-      return typeof row["metadata"] === "string" && (row["metadata"] as string).includes("tenant.activated");
+      return (
+        typeof row["metadata"] === "string" &&
+        (row["metadata"] as string).includes("tenant.activated")
+      );
     });
     expect(activationCalls).toHaveLength(0);
   });
