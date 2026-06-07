@@ -5,14 +5,8 @@ import type {
   ActivationResult,
   OnboardingProgressOutput,
 } from "@enterprise/contracts";
-import {
-  completeBaselineStepSchema,
-  inviteMemberSchema,
-} from "@enterprise/contracts";
-import {
-  ConsoleInvitationEmailAdapter,
-  inviteTenantMember,
-} from "@enterprise/core/services";
+import { completeBaselineStepSchema, inviteMemberSchema } from "@enterprise/contracts";
+import { ConsoleInvitationEmailAdapter, inviteTenantMember } from "@enterprise/core/services";
 import {
   completeBaselineStep,
   completeOnboardingStep,
