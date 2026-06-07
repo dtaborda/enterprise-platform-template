@@ -12,10 +12,7 @@ import type {
 } from "@enterprise/contracts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ServiceResult } from "./auth-service";
-import {
-  updateWorkspaceProfile,
-  updateWorkspaceRegional,
-} from "./workspace-settings-service";
+import { updateWorkspaceProfile, updateWorkspaceRegional } from "./workspace-settings-service";
 
 // ─── Internal row type ────────────────────────────────────────────────────────
 
@@ -43,11 +40,12 @@ async function writeAuditLog(
   resourceId?: string,
   metadata?: Record<string, unknown>,
 ): Promise<void> {
-  const action = event.includes("activated") || event.includes("started")
-    ? "create"
-    : event.includes("dismissed")
-    ? "update"
-    : "update";
+  const action =
+    event.includes("activated") || event.includes("started")
+      ? "create"
+      : event.includes("dismissed")
+        ? "update"
+        : "update";
 
   const { error } = await client.from("audit_log").insert({
     tenant_id: tenantId,
@@ -251,7 +249,10 @@ export async function initOnboardingProgress(
   // ON CONFLICT (tenant_id) DO NOTHING — ignoreDuplicates skips on conflict
   const { data: inserted, error: upsertError } = await client
     .from("tenant_onboarding_progress")
-    .upsert({ tenant_id: tenantId, state: "not_started" }, { onConflict: "tenant_id", ignoreDuplicates: true })
+    .upsert(
+      { tenant_id: tenantId, state: "not_started" },
+      { onConflict: "tenant_id", ignoreDuplicates: true },
+    )
     .select()
     .maybeSingle();
 
@@ -504,7 +505,7 @@ export async function dismissChecklist(
 export async function resumeChecklist(
   client: SupabaseClient,
   tenantId: string,
-  userId: string,
+  _userId: string,
 ): Promise<ServiceResult<OnboardingProgressOutput>> {
   const now = new Date();
   const { data, error } = await client
