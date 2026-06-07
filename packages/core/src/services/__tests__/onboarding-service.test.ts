@@ -362,6 +362,120 @@ describe("completeOnboardingStep", () => {
 // ─── seedSampleData ────────────────────────────────────────────────────────────
 
 describe("seedSampleData", () => {
+  it("fresh seed — inserts 3 demo resources, marks step, emits sample_data_seeded event", async () => {
+    const auditInsert = vi.fn().mockResolvedValue({ data: null, error: null });
+    const resourcesUpsert = vi.fn().mockResolvedValue({ data: null, error: null });
+
+    // IN_PROGRESS_ROW has baseline_completed_at set but sample_data_completed_at null
+    // → enters the !alreadySeeded block; evaluateActivation will see no value step → no activation
+    const client = buildClient({
+      tenant_onboarding_progress: {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi
+              .fn()
+              .mockResolvedValueOnce({ data: IN_PROGRESS_ROW, error: null }) // idempotency check
+              .mockResolvedValueOnce({ data: IN_PROGRESS_ROW, error: null }), // evaluateActivation SELECT
+          })),
+        })),
+        update: vi.fn(() => ({
+          eq: vi.fn().mockResolvedValue({ data: null, error: null }), // progress mark
+        })),
+      },
+      resources: {
+        upsert: resourcesUpsert,
+      },
+      audit_log: { insert: auditInsert },
+    });
+
+    const result = await seedSampleData(client, TENANT_ID, USER_ID);
+
+    expect(result.success).toBe(true);
+
+    // 3 demo resources were upserted
+    expect(resourcesUpsert).toHaveBeenCalledOnce();
+    const [rows, opts] = resourcesUpsert.mock.calls[0] as [
+      Array<Record<string, unknown>>,
+      Record<string, unknown>,
+    ];
+    expect(rows).toHaveLength(3);
+    const titles = rows.map((r) => r["title"]);
+    expect(titles).toContain("[Demo] Starter Product");
+    expect(titles).toContain("[Demo] Onboarding Guide");
+    expect(titles).toContain("[Demo] Sample Service Plan");
+    // Verify each row has tenant_id and created_by set
+    for (const row of rows) {
+      expect(row["tenant_id"]).toBe(TENANT_ID);
+      expect(row["created_by"]).toBe(USER_ID);
+      expect(typeof row["id"]).toBe("string"); // deterministic id present
+    }
+    // Idempotent upsert options — same IDs on retry will be ignored
+    expect(opts).toMatchObject({ onConflict: "id", ignoreDuplicates: true });
+
+    // Audit event was fired for sample_data_seeded
+    expect(auditInsert).toHaveBeenCalled();
+  });
+
+  it("retry safety — deterministic IDs produce identical rows on repeated calls", async () => {
+    // Both calls share the same resources.upsert mock to capture both batches
+    const resourcesUpsert = vi.fn().mockResolvedValue({ data: null, error: null });
+
+    function makeClient() {
+      return buildClient({
+        tenant_onboarding_progress: {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              single: vi
+                .fn()
+                .mockResolvedValueOnce({ data: IN_PROGRESS_ROW, error: null })
+                .mockResolvedValueOnce({ data: IN_PROGRESS_ROW, error: null }),
+            })),
+          })),
+          update: vi.fn(() => ({
+            eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+          })),
+        },
+        resources: { upsert: resourcesUpsert },
+        audit_log: { insert: vi.fn().mockResolvedValue({ data: null, error: null }) },
+      });
+    }
+
+    await seedSampleData(makeClient(), TENANT_ID, USER_ID);
+    await seedSampleData(makeClient(), TENANT_ID, USER_ID);
+
+    const call1 = resourcesUpsert.mock.calls[0] as [Array<Record<string, unknown>>];
+    const call2 = resourcesUpsert.mock.calls[1] as [Array<Record<string, unknown>>];
+    const ids1 = call1[0].map((r) => r["id"]);
+    const ids2 = call2[0].map((r) => r["id"]);
+
+    // Same deterministic IDs for the same tenantId → upsert ignoreDuplicates is safe on retry
+    expect(ids1).toEqual(ids2);
+  });
+
+  it("insert failure — returns SEED_INSERT_FAILED, step is NOT marked complete", async () => {
+    const resourcesUpsert = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: "DB constraint violation" } });
+
+    const client = buildClient({
+      tenant_onboarding_progress: {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: IN_PROGRESS_ROW, error: null }),
+          })),
+        })),
+      },
+      resources: { upsert: resourcesUpsert },
+    });
+
+    const result = await seedSampleData(client, TENANT_ID, USER_ID);
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe("SEED_INSERT_FAILED");
+    }
+  });
+
   it("idempotent — re-run does not duplicate step_completed; marks step once", async () => {
     const auditInsert = vi.fn().mockResolvedValue({ data: null, error: null });
 

@@ -5,6 +5,7 @@
 //
 // Activation override point: evaluateActivation() — see internal docs below.
 
+import { createHash } from "node:crypto";
 import type {
   ActivationResult,
   CompleteBaselineStepDto,
@@ -28,6 +29,51 @@ interface OnboardingProgressRow {
   activated_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// ─── Demo seed resources ─────────────────────────────────────────────────────
+
+/** Starter demo resources inserted during the sample-data onboarding step. */
+const DEMO_RESOURCES = [
+  {
+    title: "[Demo] Starter Product",
+    type: "product" as const,
+    status: "active" as const,
+    description: "Example resource so you can see how your workspace looks.",
+  },
+  {
+    title: "[Demo] Onboarding Guide",
+    type: "document" as const,
+    status: "active" as const,
+    description: "A sample document. Safe to edit or delete.",
+  },
+  {
+    title: "[Demo] Sample Service Plan",
+    type: "service" as const,
+    status: "draft" as const,
+    description: "A draft service example to show status badges.",
+  },
+] as const;
+
+/**
+ * Derives a deterministic UUID from a tenant ID and resource title.
+ * Uses SHA-256 and formats the hash as a UUID v4-compatible string
+ * (version nibble = 4, variant = RFC 4122 10xx).
+ *
+ * Combined with `upsert({ onConflict: "id", ignoreDuplicates: true })`,
+ * this makes demo-resource insertion safe to retry after a partial failure.
+ */
+function deriveDemoResourceId(tenantId: string, title: string): string {
+  const hash = createHash("sha256").update(`demo-resource:${tenantId}:${title}`).digest("hex");
+  const b16 = hash[16] ?? "0";
+  const variantHex = ((parseInt(b16, 16) & 0x3) | 0x8).toString(16);
+  return [
+    hash.slice(0, 8),
+    hash.slice(8, 12),
+    `4${hash.slice(13, 16)}`,
+    `${variantHex}${hash.slice(17, 20)}`,
+    hash.slice(20, 32),
+  ].join("-");
 }
 
 // ─── Audit Logging ────────────────────────────────────────────────────────────
@@ -437,8 +483,25 @@ export async function seedSampleData(
   const alreadySeeded = row.sample_data_completed_at !== null;
 
   if (!alreadySeeded) {
-    // TODO Phase 6: insert idempotent starter resource rows tagged as demo data
-    // For now, mark the step and emit the event
+    // Build demo resource rows with deterministic IDs so a retry after a partial
+    // failure (insert ok, progress update fails) won't create duplicates.
+    const demoRows = DEMO_RESOURCES.map((r) => ({
+      id: deriveDemoResourceId(tenantId, r.title),
+      tenant_id: tenantId,
+      created_by: userId,
+      title: r.title,
+      type: r.type,
+      status: r.status,
+      description: r.description,
+    }));
+
+    const { error: insertError } = await client
+      .from("resources")
+      .upsert(demoRows, { onConflict: "id", ignoreDuplicates: true });
+
+    if (insertError) {
+      return { success: false, error: insertError.message, code: "SEED_INSERT_FAILED" };
+    }
 
     const now = new Date();
     const { error: updateError } = await client
