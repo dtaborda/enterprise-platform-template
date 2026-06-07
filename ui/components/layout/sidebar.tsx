@@ -5,6 +5,7 @@ import { cn } from "@enterprise/ui/lib/utils";
 import { CreditCard, LayoutDashboard, Package, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { OnboardingLauncherChip } from "@/features/onboarding/components/onboarding-launcher-chip";
 import { ROUTES } from "@/lib/routes";
 import type { NavItem } from "./nav-utils";
 import { filterNavItemsByRole, isNavItemActive } from "./nav-utils";
@@ -17,12 +18,18 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Settings", href: ROUTES.settings, icon: Settings, roles: ["owner", "admin"] },
 ];
 
+export interface OnboardingChipData {
+  completedCount: number;
+  totalSteps: number;
+}
+
 interface SidebarProps {
   userRole: UserRole;
   userLabel: string;
+  onboardingChip?: OnboardingChipData | null;
 }
 
-export function Sidebar({ userRole, userLabel }: SidebarProps) {
+export function Sidebar({ userRole, userLabel, onboardingChip }: SidebarProps) {
   const items = filterNavItemsByRole(NAV_ITEMS, userRole);
   const pathname = usePathname();
 
@@ -53,6 +60,16 @@ export function Sidebar({ userRole, userLabel }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Onboarding launcher chip — owner-only, hidden once fully activated */}
+      {userRole === "owner" && onboardingChip && (
+        <div className="px-2 pb-2">
+          <OnboardingLauncherChip
+            completedCount={onboardingChip.completedCount}
+            totalSteps={onboardingChip.totalSteps}
+          />
+        </div>
+      )}
 
       <div className="mt-auto border-t p-4 text-xs text-muted-foreground">{userLabel}</div>
     </aside>

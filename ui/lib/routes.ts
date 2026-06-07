@@ -4,6 +4,7 @@ export const ROUTES = {
   billing: "/billing",
   notifications: "/notifications",
   notificationPreferences: "/settings/notifications",
+  onboarding: "/onboarding",
   settings: "/settings",
   team: "/team",
   resources: {

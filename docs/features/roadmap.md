@@ -39,7 +39,7 @@ Define the canonical implementation priority for planned features in this templa
 | 15 | P1 | Brand isolation package | Done | Enforces brand code boundaries and prevents brand logic leaks into shared packages. |
 | 16 | P1 | Backend provider decoupling | Done | Introduces port/adapter interfaces to decouple @enterprise/core from Supabase. |
 | 17 | P1 | Test and CI stability hardening | Done | Removes flaky E2E (notifications timing/delay), closes test-coverage gaps, and enforces lockfile/build checks so future feature PRDs don't break the pipeline. |
-| 18 | P2 | Tenant onboarding | Planned | Improves activation and first-run time-to-value. |
+| 18 | P2 | Tenant onboarding | In progress | Improves activation and first-run time-to-value. |
 | 19 | P2 | File storage module | Planned | Covers a common SaaS need for tenant-scoped file handling. |
 | 20 | P2 | i18n and regional settings | Planned | Expands reuse across regions and teams. |
 | 21 | P2 | Deployment provider decoupling | Planned | Adds Docker support and deployment-target abstraction for non-Vercel hosting. |
@@ -89,4 +89,4 @@ Define the canonical implementation priority for planned features in this templa
 
 ---
 
-*Last updated: 2026-05-31*
+*Last updated: 2026-06-07*
