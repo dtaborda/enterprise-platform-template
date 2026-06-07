@@ -36,10 +36,15 @@ export class OnboardingPage {
   }
 
   async submitBaselineForm(): Promise<void> {
-    const submitBtn = this.page.getByTestId("baseline-submit-button");
-    await submitBtn.click();
-    // Wait for form to leave pending state (either success or error).
-    await expect(submitBtn).not.toContainText("Saving", { timeout: 30_000 });
+    await this.page.getByTestId("baseline-submit-button").click();
+    // While pending the button reads "Saving…". On success the baseline form is
+    // removed from the DOM; on error it returns to its idle label. Wait until the
+    // pending button is gone in either case (a plain not.toContainText assertion
+    // fails when the element is detached on success).
+    await this.page
+      .getByTestId("baseline-submit-button")
+      .filter({ hasText: "Saving" })
+      .waitFor({ state: "detached", timeout: 30_000 });
   }
 
   /**
@@ -70,9 +75,12 @@ export class OnboardingPage {
   }
 
   async submitInviteForm(): Promise<void> {
-    const submitBtn = this.page.getByTestId("invite-submit-button");
-    await submitBtn.click();
-    await expect(submitBtn).not.toContainText("Sending", { timeout: 30_000 });
+    await this.page.getByTestId("invite-submit-button").click();
+    // Pending label is "Sending…". On success the dialog/button is removed.
+    await this.page
+      .getByTestId("invite-submit-button")
+      .filter({ hasText: "Sending" })
+      .waitFor({ state: "detached", timeout: 30_000 });
   }
 
   /**
@@ -88,9 +96,12 @@ export class OnboardingPage {
   // ─── Sample data step ────────────────────────────────────────────────────────
 
   async loadSampleData(): Promise<void> {
-    const btn = this.page.getByTestId("load-sample-data-button");
-    await btn.click();
-    await expect(btn).not.toContainText("Loading", { timeout: 30_000 });
+    await this.page.getByTestId("load-sample-data-button").click();
+    // Pending label is "Loading…". On success the button is removed.
+    await this.page
+      .getByTestId("load-sample-data-button")
+      .filter({ hasText: "Loading" })
+      .waitFor({ state: "detached", timeout: 30_000 });
   }
 
   /**
