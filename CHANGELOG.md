@@ -1,5 +1,43 @@
 # Changelog
 
+## [1.4.0](https://github.com/dtaborda/enterprise-platform-template/compare/v1.3.0...v1.4.0) (2026-06-08)
+
+
+### ✨ Features
+
+* add billing and plans module — subscription lifecycle, payment adapters, and billing UI ([#90](https://github.com/dtaborda/enterprise-platform-template/issues/90)) ([045fb43](https://github.com/dtaborda/enterprise-platform-template/commit/045fb433fa428364711e0a222ed7f2260432344b))
+* **auth:** initialize Free plan subscription on signup ([#92](https://github.com/dtaborda/enterprise-platform-template/issues/92)) ([059f71e](https://github.com/dtaborda/enterprise-platform-template/commit/059f71ec3bde1e801f151343d6d1d07eb4d343ce))
+* **brand:** add brand config schema, provider, and layout integration ([#114](https://github.com/dtaborda/enterprise-platform-template/issues/114)) ([007bf0b](https://github.com/dtaborda/enterprise-platform-template/commit/007bf0bf3166a232721c7ddf3b7267106d0a0eab))
+* **brand:** add BrandLogo, BrandFooter components and E2E tests ([#121](https://github.com/dtaborda/enterprise-platform-template/issues/121)) ([97d62e6](https://github.com/dtaborda/enterprise-platform-template/commit/97d62e6db08e9bbedc09aedb33bd3f8cbd0f8899))
+* **brand:** migrate brand source + tests to @enterprise/brand [PR 2/3] ([#126](https://github.com/dtaborda/enterprise-platform-template/issues/126)) ([ba2ba2a](https://github.com/dtaborda/enterprise-platform-template/commit/ba2ba2ad3e784281ec1ebf4fe27db66cb02b634c))
+* **brand:** scaffold @enterprise/brand package [PR 1/3] ([#125](https://github.com/dtaborda/enterprise-platform-template/issues/125)) ([3b67b75](https://github.com/dtaborda/enterprise-platform-template/commit/3b67b757a8376815dbb6b3180fd57ba0d4881de7))
+* **contracts:** add workspace-admin foundation ([#77](https://github.com/dtaborda/enterprise-platform-template/issues/77)) ([e1fcd79](https://github.com/dtaborda/enterprise-platform-template/commit/e1fcd79c5e080dcaed2922513ff1182d3cfaa0ab))
+* **contracts:** tenant-onboarding DTOs + planning docs [1/6] ([#135](https://github.com/dtaborda/enterprise-platform-template/issues/135)) ([4028efb](https://github.com/dtaborda/enterprise-platform-template/commit/4028efb2d1f4b8625f0349bea6e257e86107ebec))
+* **core:** add AuthPort, StoragePort, SessionPort interfaces and Supabase adapters ([#116](https://github.com/dtaborda/enterprise-platform-template/issues/116)) ([31d1493](https://github.com/dtaborda/enterprise-platform-template/commit/31d1493db9817208573307bdb6366e7a7cfbb482))
+* **core:** wire notification dispatch into billing and team services ([#109](https://github.com/dtaborda/enterprise-platform-template/issues/109)) ([fa82029](https://github.com/dtaborda/enterprise-platform-template/commit/fa8202906c132b086754c06007fc0e86ac89c194))
+* **core:** workspace-admin service layer + allow_admin_invites guard [2/4] ([#78](https://github.com/dtaborda/enterprise-platform-template/issues/78)) ([ed82950](https://github.com/dtaborda/enterprise-platform-template/commit/ed829505221518c875ad44f1d256dae40567f090))
+* **notifications:** add contracts, schema, adapters, and service layer ([#108](https://github.com/dtaborda/enterprise-platform-template/issues/108)) ([9645273](https://github.com/dtaborda/enterprise-platform-template/commit/9645273818c7196349a7b27386c951867c52d811))
+* tenant onboarding flow (db, service, actions, UI, E2E) ([#141](https://github.com/dtaborda/enterprise-platform-template/issues/141)) ([40fdb5b](https://github.com/dtaborda/enterprise-platform-template/commit/40fdb5b35d993a97d565721c1d3cd6e03c0e0aae))
+* **ui:** add notification center, preferences page, bell, and Realtime badge ([#111](https://github.com/dtaborda/enterprise-platform-template/issues/111)) ([9a07956](https://github.com/dtaborda/enterprise-platform-template/commit/9a079562faea0df5f6d102e5b66f0fca51c26844))
+* **ui:** add notification Server Actions, queries, and route registration ([#110](https://github.com/dtaborda/enterprise-platform-template/issues/110)) ([87133ea](https://github.com/dtaborda/enterprise-platform-template/commit/87133eac3d1b126a84b9fe4d73193ecbfc3212e7))
+* **ui:** complete design system consistency ([#103](https://github.com/dtaborda/enterprise-platform-template/issues/103)) ([e33bfd8](https://github.com/dtaborda/enterprise-platform-template/commit/e33bfd884765572a6f66b71a99c3ddf8e2acc85f))
+* **ui:** complete platform UX foundations ([#98](https://github.com/dtaborda/enterprise-platform-template/issues/98)) ([556fe23](https://github.com/dtaborda/enterprise-platform-template/commit/556fe23e52877bf1dc43b543e1051257a9e31b98))
+* **web:** workspace-admin UI — server actions, components, settings page [3/4] ([#79](https://github.com/dtaborda/enterprise-platform-template/issues/79)) ([e3a6f41](https://github.com/dtaborda/enterprise-platform-template/commit/e3a6f418feb34d3f1d214d51fba93b668846e984))
+
+
+### 🐛 Bug Fixes
+
+* **e2e:** stabilize team-management specs + resend/cancel UX + CI readiness [e2e-stability 3/3] ([#131](https://github.com/dtaborda/enterprise-platform-template/issues/131)) ([e933a80](https://github.com/dtaborda/enterprise-platform-template/commit/e933a8053a9da7332fc2a7c0d8539478ba6e57bd))
+* harden GitHub release automation ([#143](https://github.com/dtaborda/enterprise-platform-template/issues/143)) ([1b2e26c](https://github.com/dtaborda/enterprise-platform-template/commit/1b2e26c25d60d6470325cea885ca76447c57448e))
+* **theme:** derive SSR data-theme from brand, fix theme E2E [e2e-stability 1/3] ([#129](https://github.com/dtaborda/enterprise-platform-template/issues/129)) ([0081d06](https://github.com/dtaborda/enterprise-platform-template/commit/0081d06090eab32a1a24e5a2a553385dbf6b9006))
+
+
+### ♻️ Refactoring
+
+* **brand:** strip brand code from @enterprise/ui [PR 3/3] ([#127](https://github.com/dtaborda/enterprise-platform-template/issues/127)) ([92fcf6b](https://github.com/dtaborda/enterprise-platform-template/commit/92fcf6b0bea972c137675659b2ceac4d68d06f24))
+* **core:** migrate auth-service to AuthPort and update middleware/actions ([#122](https://github.com/dtaborda/enterprise-platform-template/issues/122)) ([fe48e50](https://github.com/dtaborda/enterprise-platform-template/commit/fe48e502d2d1b265885d885c5817ead301f3869d))
+* restructure routes from /dashboard/* to feature-first top-level segments ([#75](https://github.com/dtaborda/enterprise-platform-template/issues/75)) ([b932728](https://github.com/dtaborda/enterprise-platform-template/commit/b932728485212de7aef46ceef0a9bbd0d5aae9fd))
+
 ## [1.3.0](https://github.com/dtaborda/enterprise-platform-template/compare/v1.2.0...v1.3.0) (2026-05-09)
 
 
