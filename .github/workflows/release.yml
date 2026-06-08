@@ -18,6 +18,8 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      RELEASE_TOKEN_SOURCE: ${{ secrets.RELEASE_PLEASE_TOKEN != '' && 'RELEASE_PLEASE_TOKEN' || 'GITHUB_TOKEN' }}
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -29,6 +31,19 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Release token summary
+        run: |
+          echo "## Release token" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Source: \`$RELEASE_TOKEN_SOURCE\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Note: a configured PAT does NOT fall back automatically if it is expired or under-scoped." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Create or update release PR
         uses: googleapis/release-please-action@a37ac6e4f6449ce8b3f7607e4d97d0146028dc0b # v4.1.0
         id: release
@@ -37,22 +52,37 @@ jobs:
           # GITHUB_TOKEN-created PRs cannot trigger other workflows (GitHub security rule).
           # Create a fine-grained PAT with: contents:write + pull-requests:write
           # Then add it as a repository secret named RELEASE_PLEASE_TOKEN.
-          # Falls back to GITHUB_TOKEN if the secret is not set (CI won't trigger on the PR).
+          # Falls back to GITHUB_TOKEN only when the PAT secret is EMPTY/UNSET.
+          # An expired or under-scoped PAT is still a non-empty string and will NOT auto-fallback.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
       - name: Release summary
-        if: steps.release.outputs.release_created == 'true'
         run: |
-          echo "## 🚀 Release Published" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Tag** | \`$TAG_NAME\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Version** | \`$VERSION\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Commit** | \`$SHA\` |" >> $GITHUB_STEP_SUMMARY
+          if [ "$RELEASE_CREATED" = "true" ]; then
+            echo "## 🚀 Release Published" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+            echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+            echo "| **Tag** | \`$TAG_NAME\` |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| **Version** | \`$VERSION\` |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| **Commit** | \`$SHA\` |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## ℹ️ No release published in this run" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "release-please did not publish a tag/release in this execution." >> "$GITHUB_STEP_SUMMARY"
+            echo "The consistency guard below will decide whether that outcome is expected or broken." >> "$GITHUB_STEP_SUMMARY"
+          fi
         env:
+          RELEASE_CREATED: ${{ steps.release.outputs.release_created }}
           TAG_NAME: ${{ steps.release.outputs.tag_name }}
           VERSION: ${{ steps.release.outputs.version }}
           SHA: ${{ steps.release.outputs.sha }}
+
+      - name: Check release consistency
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          RELEASE_PENDING_GRACE_HOURS: "2"
+        run: pnpm release:check-consistency

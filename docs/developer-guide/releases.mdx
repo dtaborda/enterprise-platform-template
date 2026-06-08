@@ -1,0 +1,124 @@
+---
+title: "Release Automation"
+description: "How GitHub Releases are published in this repository, how release-please is configured, and how to recover from manifest/tag desync incidents."
+owner: "Engineering"
+lastUpdated: "2026-06-08"
+---
+
+# Release Automation
+
+## Purpose
+
+This guide explains how GitHub Releases are produced in the Enterprise Platform repository, which token/scopes are required, and how to recover when `release-please` version files drift away from the actual published tags.
+
+## Scope
+
+- **Included**: normal release flow, token requirements, consistency guard, desync recovery runbook
+- **Excluded**: package registry publishing, monorepo independent versioning, application deployment
+
+---
+
+## Normal Release Flow
+
+This repository uses `googleapis/release-please-action` in **manifest mode**.
+
+### Phase 1 — release PR
+
+On pushes to `main`, release-please reads conventional commits since the last release and opens or updates a release PR:
+
+- title: `chore: release vX.Y.Z`
+- label: `autorelease: pending`
+- files updated:
+  - `package.json`
+  - `.release-please-manifest.json`
+  - `CHANGELOG.md`
+
+### Phase 2 — tag and GitHub Release
+
+When that release PR is merged, the next Release workflow run creates:
+
+- the git tag `vX.Y.Z`
+- the GitHub Release `vX.Y.Z`
+
+The PR label then moves from `autorelease: pending` to `autorelease: tagged`.
+
+## Required Token Configuration
+
+Preferred token: `RELEASE_PLEASE_TOKEN`
+
+- Type: fine-grained PAT (or GitHub App token in a future hardening step)
+- Required permissions:
+  - `contents: write`
+  - `pull-requests: write`
+
+### Important gotcha
+
+The workflow uses:
+
+```yaml
+token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+```
+
+This only falls back when `RELEASE_PLEASE_TOKEN` is **empty or unset**.
+
+If the PAT exists but is expired, revoked, or under-scoped, GitHub Actions still passes a non-empty string to the action, so there is **no automatic fallback**. That is how the repository can end up with:
+
+- release PR created successfully
+- tag/release never created
+- workflow still green unless extra guards exist
+
+## Consistency Guard
+
+The repository includes `pnpm release:check-consistency`, backed by `scripts/release/check-consistency.mjs`.
+
+It verifies:
+
+1. `.release-please-manifest.json` version
+2. latest `v*` git tag
+3. whether a legitimate `autorelease: pending` release PR exists inside a short grace window
+
+### Expected states
+
+- **Good**: manifest version equals latest tag
+- **Temporarily acceptable**: manifest is ahead of latest tag **and** a release PR is still in a fresh pending window
+- **Broken**: manifest is ahead of latest tag and there is no valid fresh pending release PR
+
+---
+
+## Recovery Runbook
+
+Use this when version files were bumped but the actual tag/release was never published.
+
+### Symptoms
+
+- `package.json` and `.release-please-manifest.json` show a version newer than the latest git tag
+- `CHANGELOG.md` already contains the new version entry
+- a merged PR still has `autorelease: pending`
+- the Release workflow shows green but no GitHub Release exists
+
+### Recovery strategy used for the `1.3.0` incident
+
+For this repository, the chosen default recovery strategy is:
+
+1. verify the intended merge commit for the missing version
+2. create the missing remote tag on that commit
+3. create the GitHub Release for that tag
+4. remove `autorelease: pending` and add `autorelease: tagged`
+5. rerun consistency verification
+
+### Example commands
+
+```bash
+gh release create v1.3.0 --target efd81fe --title v1.3.0
+gh pr edit 70 --remove-label "autorelease: pending" --add-label "autorelease: tagged"
+pnpm release:check-consistency
+```
+
+Always verify the target SHA against `CHANGELOG.md` before creating the missing tag.
+
+## Rotation Checklist
+
+- Record the token owner and expiration date in the maintainer notes.
+- Rotate the token before expiration.
+- After rotation, run a low-risk release workflow verification.
+- Never assume a configured PAT will fall back automatically to `GITHUB_TOKEN`.

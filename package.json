@@ -21,6 +21,7 @@
     "clean": "turbo run clean",
     "db:generate": "pnpm --filter @enterprise/db db:generate",
     "instantiate": "node scripts/instantiate.mjs",
+    "release:check-consistency": "node scripts/release/check-consistency.mjs",
     "skills:setup": "bash ./skills/setup.sh --opencode",
     "skills:setup:all": "bash ./skills/setup.sh --all",
     "skills:check": "bash ./skills/check.sh",
