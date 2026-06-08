@@ -85,4 +85,4 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           RELEASE_PENDING_GRACE_HOURS: "2"
-        run: pnpm release:check-consistency
+        run: node scripts/release/check-consistency.mjs
