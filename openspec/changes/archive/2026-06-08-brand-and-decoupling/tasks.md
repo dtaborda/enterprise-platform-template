@@ -45,11 +45,11 @@ B-track (B1→B2) and C-track (C1→C2→C3) run in parallel after PR-A merges.
 | **PR-A** Roadmap fix | ✅ Done | `docs/features/roadmap.md` shows Notifications (#10) = "Done" |
 | **PR-C1** Ports + adapters + factory | ✅ Done (merged PR #116) | `packages/core/src/services/ports/*`, `adapters/*`, `backend-adapters.ts`, barrel exports in `services/index.ts` |
 | **PR-C2** Service + actions + middleware migration | ✅ Done | `auth-service.ts` uses `AuthPort` (7 fns); `ui/features/auth/actions.ts` + `ui/middleware.ts` use `createBackendAdapters()` |
-| **PR-C3** Test rewrite + env docs + migration guide | 🟡 Partial | Tests rewritten to `createMockAuthPort()` ✅. **Pending:** `.env.example` docs (verify), `docs/migrations/brand-and-decoupling-migration-guide.md` (missing) |
+| **PR-C3** Test rewrite + env docs + migration guide | ✅ Done | Tests on `createMockAuthPort()`; `.env.example` documents `BRAND_SLUG`/`BACKEND_AUTH_PROVIDER`/`BACKEND_STORAGE_PROVIDER`; `packages/core/AGENTS.md` documents the Port/Adapter pattern; `docs/migrations/brand-and-decoupling-migration-guide.md` added |
 | **PR-B1** Brand contracts + module + provider + layout | ✅ Done (shipped PR #125+) | `packages/contracts/.../brand.ts`; `packages/brand/src/brand/{registry,resolve,context,provider,metadata,theme-mode}.ts`; `packages/brand/src/brands/enterprise.brand.ts`; `ui/app/layout.tsx` uses `generateMetadata`+`resolveBrand`+`BrandProvider` |
 | **PR-B2** BrandLogo + BrandFooter + E2E | ✅ Done (shipped PR #125+) | `packages/brand/src/brand/{brand-logo,brand-footer}.tsx` (+ tests); `ui/e2e/brand/brand.spec.ts` |
 
-**Remaining work in this change: only the C3 documentation tail — the migration guide (`docs/migrations/brand-and-decoupling-migration-guide.md`) and verifying `.env.example` docs. All code (Tracks A, B, C) is shipped on `main`.**
+**Status: COMPLETE.** All tracks (A, B, C) are shipped on `main` and the C3 documentation tail is closed (migration guide added; env + AGENTS.md docs already present). This change is ready to archive.
 
 ---
 
@@ -211,16 +211,16 @@ B-track (B1→B2) and C-track (C1→C2→C3) run in parallel after PR-A merges.
 
 ### Phase 3: Env Docs
 
-- [ ] C3.3.1 Add to `.env.example`: `BRAND_SLUG=` (optional, with comment), `BACKEND_AUTH_PROVIDER=supabase` (with comment), `BACKEND_STORAGE_PROVIDER=supabase` (with comment)
-- [ ] C3.3.2 Update `AGENTS.md` or `packages/core/AGENTS.md` to document the port pattern for new services
+- [x] C3.3.1 Add to `.env.example`: `BRAND_SLUG=` (optional, with comment), `BACKEND_AUTH_PROVIDER=supabase` (with comment), `BACKEND_STORAGE_PROVIDER=supabase` (with comment)
+- [x] C3.3.2 Update `AGENTS.md` or `packages/core/AGENTS.md` to document the port pattern for new services
 
 ### Phase 4: Migration Guide
 
-- [ ] C3.4.1 Create `docs/migrations/brand-and-decoupling-migration-guide.md` — covers: auth-service signature breaking change (SupabaseClient → AuthPort), adapter injection pattern for Server Actions, implementing a custom AuthPort, implementing a custom StoragePort, test setup with `createMockAuthPort()`
+- [x] C3.4.1 Create `docs/migrations/brand-and-decoupling-migration-guide.md` — covers: auth-service signature breaking change (SupabaseClient → AuthPort), adapter injection pattern for Server Actions, implementing a custom AuthPort, implementing a custom StoragePort, test setup with `createMockAuthPort()`
 
 ### Phase 5: Final Verification
 
-- [ ] C3.5.1 Run `pnpm typecheck` from root — zero errors
-- [ ] C3.5.2 Run `pnpm lint` from root — zero errors  
-- [ ] C3.5.3 Run `pnpm test` — all unit tests GREEN (auth-service + adapters + factory + brand schema + registry + resolve)
-- [ ] C3.5.4 Run `pnpm e2e` — brand suite + auth suite GREEN
+- [x] C3.5.1 Run `pnpm typecheck` from root — zero errors
+- [x] C3.5.2 Run `pnpm lint` from root — zero errors  
+- [x] C3.5.3 Run `pnpm test` — all unit tests GREEN (auth-service + adapters + factory + brand schema + registry + resolve)
+- [x] C3.5.4 Run `pnpm e2e` — brand suite + auth suite GREEN
