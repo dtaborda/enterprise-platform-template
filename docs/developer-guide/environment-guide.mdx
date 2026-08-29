@@ -2,7 +2,7 @@
 title: "Environment Variables Guide"
 description: "All environment variables for the Enterprise Platform, organized by category with configuration instructions."
 owner: "Engineering"
-lastUpdated: "2026-04-24"
+lastUpdated: "2026-08-28"
 ---
 
 # Environment Variables Guide
@@ -36,17 +36,35 @@ This guide documents every environment variable used by the Enterprise Platform,
 | Variable | Public | Required | Description |
 |----------|--------|----------|-------------|
 | `NEXT_PUBLIC_APP_URL` | ✅ | ✅ (prod) | Canonical application URL. Used by auth redirects and email links. Required in production. |
-| `NEXT_PUBLIC_APP_NAME` | ✅ | ❌ | Human-readable application name shown in the UI. |
 | `NEXT_PUBLIC_APP_ENV` | ✅ | ❌ | Runtime environment label: `development`, `staging`, or `production`. |
+| `ALLOW_LOCALHOST_APP_URL_IN_PRODUCTION` | ❌ | ❌ | Set to `"true"` to allow a localhost-style canonical URL when `NODE_ENV=production`. Test tooling only. |
 
 > **⚠️ Production URL requirement:** In production mode, at least one of `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, or `APP_URL` must be set to a non-localhost URL. Localhost-like values are rejected at startup. Always use `getAppUrl()` from `@enterprise/core/utils/env` — never access `process.env.NEXT_PUBLIC_APP_URL` directly.
+
+> **🚨 `ALLOW_LOCALHOST_APP_URL_IN_PRODUCTION` is a test-only escape hatch.** It relaxes only the localhost hostname check (`localhost`, `127.0.0.1`, `0.0.0.0`, `::1`, `*.localhost`). It does **not** relax the separate requirement that a canonical URL be set at all — that check throws first, regardless of this flag. `playwright.config.ts` sets it to run a production build against a local server. Never set it on a real deployment: it lets auth redirects and email links point at localhost.
+
+### Billing
+
+| Variable | Public | Required | Description |
+|----------|--------|----------|-------------|
+| `BILLING_PROVIDER` | ❌ | ✅ (prod) | `stripe` (default when unset) or `local`. Any other value throws. |
+| `STRIPE_SECRET_KEY` | ❌ | Conditional | Stripe API key. Required when `BILLING_PROVIDER=stripe` and `NODE_ENV=production`. |
+| `STRIPE_WEBHOOK_SECRET` | ❌ | Conditional | Webhook signing secret. Signature verification fails closed without it. |
+
+> **🚨 Deployments without billing must set `BILLING_PROVIDER=local` explicitly.** In production, `createPaymentAdapter()` throws when the provider resolves to `stripe` and `STRIPE_SECRET_KEY` is absent. Billing Server Actions then fail, and new tenants silently get no subscription row — sign-up still succeeds because onboarding catches and logs the failure.
+>
+> The throw replaces a silent fallback on purpose: `LocalPaymentAdapter.verifyWebhookSignature()` performs no verification and accepts every payload, and the billing webhook route is public and unauthenticated.
+
+> **⚠️ `STRIPE_WEBHOOK_SECRET` fails closed.** When it is empty, `StripePaymentAdapter.verifyWebhookSignature()` returns `false` and the webhook route returns HTTP 400 for every request. Stripe billing is not functional without it.
 
 ### Email (Resend)
 
 | Variable | Public | Required | Description |
 |----------|--------|----------|-------------|
-| `RESEND_API_KEY` | ❌ | Conditional | Resend API key for transactional email. Required if email features are enabled. |
-| `EMAIL_FROM` | ❌ | ❌ | Sender address for outbound emails (e.g., `noreply@yourdomain.com`). |
+| `RESEND_API_KEY` | ❌ | Conditional | Resend API key for transactional email. Absent → both email factories fall back to the console adapters. |
+| `EMAIL_FROM` | ❌ | Conditional | Sender address for outbound emails (e.g., `noreply@yourdomain.com`). **Required whenever `RESEND_API_KEY` is set.** |
+
+> **⚠️ `EMAIL_FROM` has no default.** `createInvitationEmailAdapter()` and `createNotificationEmailAdapter()` both call `getEmailFrom()`, which throws when `RESEND_API_KEY` is set and `EMAIL_FROM` is not. Sending from an unverified domain is silently dropped or spam-filtered by the provider, so this fails loudly at adapter construction instead. Leave both unset to use the console adapters.
 
 ### Sentry
 
@@ -56,6 +74,7 @@ This guide documents every environment variable used by the Enterprise Platform,
 | `SENTRY_AUTH_TOKEN` | ❌ | ❌ | Sentry auth token for source map upload during build. Keep secret. |
 | `SENTRY_ORG` | ❌ | ❌ | Sentry organization slug. Required if `SENTRY_AUTH_TOKEN` is set. |
 | `SENTRY_PROJECT` | ❌ | ❌ | Sentry project slug. Required if `SENTRY_AUTH_TOKEN` is set. |
+| `SENTRY_DEBUG` | ❌ | ❌ | Set to `"true"` to enable verbose Sentry SDK logging in the client, server, and edge runtimes. Leave unset in production. |
 
 ### E2E Testing
 
@@ -84,15 +103,17 @@ Full `.env.local` example for local development:
 
 ```bash
 # ── Supabase (local) ──────────────────────────────────────────────────────────
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55331
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55332/postgres
 
 # ── Application ───────────────────────────────────────────────────────────────
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=Enterprise Platform
 NEXT_PUBLIC_APP_ENV=development
+
+# ── Billing ───────────────────────────────────────────────────────────────────
+BILLING_PROVIDER=local
 
 # ── Email (optional locally — Inbucket captures all emails) ──────────────────
 # RESEND_API_KEY=re_...
@@ -171,4 +192,4 @@ Follow this checklist whenever you introduce a new environment variable:
 
 ---
 
-*Last updated: 2026-04-24*
+*Last updated: 2026-08-28*

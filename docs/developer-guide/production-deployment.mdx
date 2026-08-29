@@ -2,7 +2,7 @@
 title: "Production Deployment"
 description: "End-to-end guide for deploying the Enterprise Platform to production on Vercel + Supabase Cloud."
 owner: "Engineering"
-lastUpdated: "2026-04-27"
+lastUpdated: "2026-08-28"
 ---
 
 # Production Deployment
@@ -152,7 +152,6 @@ GitHub Secrets and Variables are configured in **Settings → Secrets and variab
 | `NEXT_PUBLIC_SUPABASE_URL` | CI build | Supabase Dashboard → Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | CI build | Supabase Dashboard → Settings → API |
 | `NEXT_PUBLIC_APP_URL` | CI build | Your production URL (e.g. `https://myapp.vercel.app`) |
-| `NEXT_PUBLIC_APP_NAME` | CI build | Your app name |
 | `NEXT_PUBLIC_APP_ENV` | CI build | Set to `production` |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional — Sentry | Sentry → Project → Settings → Client Keys |
 | `SENTRY_AUTH_TOKEN` | Optional — source maps | sentry.io → Settings → Auth Tokens |
@@ -205,7 +204,6 @@ If you want CI build + automated migration deploy, the minimum set is:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_APP_URL`
-- `NEXT_PUBLIC_APP_NAME`
 - `NEXT_PUBLIC_APP_ENV`
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_PROJECT_ID`
@@ -231,9 +229,14 @@ Add the Sentry secrets only if you want observability and source maps.
 | **Build Command** | `pnpm build` |
 | **Install Command** | `pnpm install` |
 | **Output Directory** | `.next` (default) |
-| **Root Directory** | `ui/` (if deploying only the web app from a monorepo root) |
+| **Root Directory** | Repository root — leave blank. Do **not** set it to `ui/`. |
 
-> **ℹ️ Monorepo root directory:** If Vercel auto-detects the monorepo root and runs `pnpm build` from there, it will build all packages. Setting the Root Directory to `ui/` scopes the deployment to the Next.js app only. Check your Turborepo `build` pipeline before deciding.
+> **🚨 Root Directory must stay at the repository root.** Setting it to `ui/` breaks the deployment in two ways:
+>
+> 1. Vercel ignores the root `vercel.json`, so `framework`, `buildCommand`, `installCommand`, and `regions` are silently dropped.
+> 2. `pnpm install` runs inside `ui/` without the workspace layout, so the five `workspace:*` dependencies (`@enterprise/contracts`, `@enterprise/core`, `@enterprise/db`, `@enterprise/ui`, `@enterprise/brand`) fail to resolve. `stripe` is a dependency of `packages/core` loaded through a dynamic `import()`, so billing breaks at runtime rather than at build time — the failure surfaces late and looks unrelated.
+>
+> Build from the repository root and let Turborepo resolve the workspace graph. Do not "simplify" this setting.
 
 ### 3.3 Vercel Environment Variables
 
@@ -252,16 +255,24 @@ Add every variable in **Project → Settings → Environment Variables**, select
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production, Preview | From Supabase API settings |
 | `SUPABASE_SERVICE_ROLE_KEY` | Production, Preview | From Supabase API settings **(SECRET)** |
 | `NEXT_PUBLIC_APP_URL` | Production | Your production URL |
-| `NEXT_PUBLIC_APP_NAME` | All | Your app display name |
 | `NEXT_PUBLIC_APP_ENV` | Production: `production` / Preview: `preview` | Per environment |
+| `BILLING_PROVIDER` | Production, Preview | `stripe` to enable billing, `local` to disable it — **required either way** |
+| `STRIPE_SECRET_KEY` | Production, Preview | From Stripe → Developers → API keys **(SECRET)** — required when `BILLING_PROVIDER=stripe` |
+| `STRIPE_WEBHOOK_SECRET` | Production, Preview | From Stripe → Developers → Webhooks **(SECRET)** — required when `BILLING_PROVIDER=stripe` |
 | `NEXT_PUBLIC_SENTRY_DSN` | All | From Sentry client keys |
 | `SENTRY_AUTH_TOKEN` | All | From Sentry auth tokens **(SECRET)** |
 | `SENTRY_ORG` | All | Your Sentry org slug |
 | `SENTRY_PROJECT` | All | Your Sentry project slug |
 | `RESEND_API_KEY` | Production | From resend.com API keys **(SECRET)** |
-| `EMAIL_FROM` | Production | Your verified sender email |
+| `EMAIL_FROM` | Production | Your verified sender email — **required whenever `RESEND_API_KEY` is set** |
 
-> **🚨 Sensitive variables:** Mark `SUPABASE_SERVICE_ROLE_KEY`, `SENTRY_AUTH_TOKEN`, and `RESEND_API_KEY` as **Sensitive** in Vercel. Sensitive variables are write-only — they cannot be viewed after saving.
+> **🚨 Sensitive variables:** Mark `SUPABASE_SERVICE_ROLE_KEY`, `SENTRY_AUTH_TOKEN`, `RESEND_API_KEY`, `STRIPE_SECRET_KEY`, and `STRIPE_WEBHOOK_SECRET` as **Sensitive** in Vercel. Sensitive variables are write-only — they cannot be viewed after saving.
+
+> **🚨 Not using billing? Set `BILLING_PROVIDER=local` explicitly.** In production, `createPaymentAdapter()` defaults to `stripe` and **throws** when `STRIPE_SECRET_KEY` is absent. Every billing Server Action then fails, and new tenants silently get no subscription row — sign-up itself still succeeds because onboarding catches and logs the failure, so the breakage is easy to miss.
+>
+> The throw is deliberate. `LocalPaymentAdapter.verifyWebhookSignature()` performs no signature verification and accepts every payload, and the billing webhook route is public and unauthenticated. Falling back to it silently would leave that route open to forged requests, so opting out of billing has to be an explicit decision.
+
+> **⚠️ `EMAIL_FROM` is required whenever `RESEND_API_KEY` is set.** Both email adapter factories call `getEmailFrom()`, which throws when the sender address is missing. There is no default — sending from an unverified domain is silently dropped by the provider, which is worse than a loud failure. Leave both unset to fall back to the console adapters.
 
 ### Minimum Vercel Variables for a Production MVP
 
@@ -271,8 +282,8 @@ If you only want a working production deployment without optional integrations, 
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_APP_URL`
-- `NEXT_PUBLIC_APP_NAME`
 - `NEXT_PUBLIC_APP_ENV`
+- `BILLING_PROVIDER` — set to `local` if you are not wiring Stripe yet
 
 Everything else in the table is optional or recommended for production hardening.
 
@@ -422,7 +433,9 @@ git push origin main
 
 Vercel auto-deploys every push to `main`. Monitor the build in the Vercel dashboard.
 
-The CI pipeline will also run: typecheck → lint → test → build → deploy migrations.
+The `ci.yml` pipeline also runs, but it is a **pure quality gate** and deploys nothing: skills check → package boundaries → typecheck → lint → test → build.
+
+Migrations are **not** part of it. They run in the separate `deploy-migrations.yml` workflow, which stays skipped unless the repository variable `ENABLE_SUPABASE_MIGRATIONS` is set to `true` (see [Step 2.3](#23-repository-variable-for-migration-deployment)).
 
 ### 7.2 Verify Production URL
 
@@ -467,4 +480,4 @@ Run through this list after every first-time production deployment:
 
 ---
 
-*Last updated: 2026-04-24*
+*Last updated: 2026-08-28*

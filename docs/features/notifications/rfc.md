@@ -425,15 +425,21 @@ export interface NotificationEmailPort {
 // packages/core/src/services/adapters/notification-email-adapter-factory.ts
 
 export function createNotificationEmailAdapter(): NotificationEmailPort {
+  if (cachedAdapter) return cachedAdapter;
+
   const resendKey = process.env["RESEND_API_KEY"];
-  if (resendKey) {
-    return new ResendNotificationEmailAdapter(resendKey);
-  }
-  return new ConsoleNotificationEmailAdapter();
+
+  cachedAdapter = resendKey
+    ? new ResendNotificationEmailAdapter(resendKey, getEmailFrom())
+    : new ConsoleNotificationEmailAdapter();
+
+  return cachedAdapter;
 }
 ```
 
-Selection is based on env var presence, NOT `NODE_ENV`.
+Selection is based on env var presence, NOT `NODE_ENV`. The adapter is cached per process, so each serverless cold start re-evaluates the selection.
+
+Credentials are read in the factory, not in the adapters: `ResendNotificationEmailAdapter` receives both the API key and the sender address through its constructor. `getEmailFrom()` throws when `RESEND_API_KEY` is set but `EMAIL_FROM` is missing — there is no default sender.
 
 ---
 
