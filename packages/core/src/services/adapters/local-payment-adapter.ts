@@ -81,8 +81,19 @@ export class LocalPaymentAdapter implements PaymentProviderPort {
     return { url };
   }
 
+  /**
+   * NOT a signature check. This is a no-op stub that accepts every payload so
+   * local development works without Stripe credentials.
+   *
+   * It must never run in production behind a reachable webhook route:
+   * createPaymentAdapter() throws in production unless BILLING_PROVIDER=local is
+   * set explicitly, which is the only supported way to reach this method there.
+   */
   async verifyWebhookSignature(_payload: string, _signature: string): Promise<boolean> {
-    console.log("[LocalPaymentAdapter] verifyWebhookSignature: always returns true in local mode");
+    console.warn(
+      "[LocalPaymentAdapter] verifyWebhookSignature: NO signature verification performed. " +
+        "The payload is accepted unconditionally. This is a local-development stub only.",
+    );
     return true;
   }
 }
