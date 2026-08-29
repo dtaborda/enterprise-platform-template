@@ -19,8 +19,14 @@ const envSchema = z.object({
   // Optional: Sentry
   NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
 
-  // Optional: Resend (email)
+  // Optional: Email delivery
+  // Deliberately no .min(1): a blank EMAIL_FROM= must not fail this shared
+  // schema, which would break getEnv() — and therefore getSupabaseUrl(),
+  // getAppUrl(), and every other consumer — over an unrelated variable.
+  // getEmailFrom() treats blank and missing identically and raises the
+  // specific error instead. Matches the sibling RESEND_API_KEY.
   RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().optional(),
 });
 
 /** Parsed environment variables */
@@ -43,6 +49,7 @@ export function getEnv(): Env {
     APP_URL,
     NEXT_PUBLIC_SENTRY_DSN,
     RESEND_API_KEY,
+    EMAIL_FROM,
   } = process.env;
 
   // For Next.js, import.meta.env gives us access to env vars
@@ -56,6 +63,7 @@ export function getEnv(): Env {
     APP_URL,
     NEXT_PUBLIC_SENTRY_DSN,
     RESEND_API_KEY,
+    EMAIL_FROM,
   };
 
   const result = envSchema.safeParse(rawEnv);
@@ -101,6 +109,28 @@ export function getSupabaseAnonKey(): string {
 /** Get service role key (only in server-side) */
 export function getServiceRoleKey(): string | undefined {
   return getEnv().SUPABASE_SERVICE_ROLE_KEY;
+}
+
+/**
+ * Get the verified sender address used for outbound email.
+ *
+ * There is deliberately NO fallback value: sending from an unverified domain is
+ * silently dropped or spam-filtered by every provider, which is worse than a
+ * loud failure. Callers must only invoke this once a real email provider has
+ * been selected — the console adapter needs no sender address.
+ */
+export function getEmailFrom(): string {
+  const emailFrom = getEnv().EMAIL_FROM;
+
+  if (!emailFrom) {
+    throw new Error(
+      "Missing outbound email sender address. Set EMAIL_FROM to an address on a domain " +
+        "verified with your email provider, or unset RESEND_API_KEY to fall back to the " +
+        "console email adapter.",
+    );
+  }
+
+  return emailFrom;
 }
 
 /**

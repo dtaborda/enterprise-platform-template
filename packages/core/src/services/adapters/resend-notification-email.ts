@@ -1,5 +1,6 @@
 // Resend adapter for notification emails (production use)
-// Requires RESEND_API_KEY and RESEND_FROM_EMAIL env vars
+// Credentials are injected by createNotificationEmailAdapter() — this adapter
+// reads no environment variables so it stays pure and testable.
 
 import type {
   NotificationEmailParams,
@@ -10,9 +11,9 @@ export class ResendNotificationEmailAdapter implements NotificationEmailPort {
   private readonly apiKey: string;
   private readonly fromEmail: string;
 
-  constructor(apiKey?: string, fromEmail?: string) {
-    this.apiKey = apiKey ?? process.env["RESEND_API_KEY"] ?? "";
-    this.fromEmail = fromEmail ?? process.env["RESEND_FROM_EMAIL"] ?? "noreply@example.com";
+  constructor(apiKey: string, fromEmail: string) {
+    this.apiKey = apiKey;
+    this.fromEmail = fromEmail;
   }
 
   async sendNotificationEmail(
