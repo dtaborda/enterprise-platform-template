@@ -17,10 +17,10 @@ const nextConfig: NextConfig = {
         pathname: "/storage/v1/object/public/**",
       },
       {
-        // Local Supabase dev
+        // Local Supabase dev — port must match supabase/config.toml → [api].port
         protocol: "http",
         hostname: "127.0.0.1",
-        port: "54321",
+        port: "55331",
         pathname: "/storage/v1/object/public/**",
       },
     ],

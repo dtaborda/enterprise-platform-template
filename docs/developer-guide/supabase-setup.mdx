@@ -2,7 +2,7 @@
 title: "Supabase Setup"
 description: "Configure Supabase for local development and cloud dev environments."
 owner: "Engineering"
-lastUpdated: "2026-04-24"
+lastUpdated: "2026-08-28"
 ---
 
 # Supabase Setup
@@ -50,13 +50,13 @@ Copy the output values into your `.env.local`:
 
 ```bash
 # .env.local — local Supabase values from `supabase status`
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55331
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from supabase status>
 SUPABASE_SERVICE_ROLE_KEY=<service_role key from supabase status>
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55332/postgres
 ```
 
-> **ℹ️ Port note:** Default local ports: API at `54321`, DB at `54322`, Studio at `54323`, Inbucket at `55334`. Check `supabase/config.toml` if your ports differ.
+> **ℹ️ Port note:** This template does **not** use the Supabase CLI defaults. `supabase/config.toml` is the source of truth: API at `55331`, DB at `55332`, Studio at `55333`, Inbucket at `55334`. The offset avoids clashing with any other local Supabase project already running on the `5432x` defaults.
 
 ### Apply Migrations
 
@@ -70,7 +70,7 @@ supabase db reset
 
 ### Verify RLS
 
-Run the following SQL in the Supabase Studio (`http://localhost:54323`) or the CLI to confirm RLS is enabled on all public tables:
+Run the following SQL in the Supabase Studio (`http://localhost:55333`) or the CLI to confirm RLS is enabled on all public tables:
 
 ```sql
 SELECT schemaname, tablename, rowsecurity
@@ -246,4 +246,4 @@ INBUCKET_URL=http://localhost:55334
 
 ---
 
-*Last updated: 2026-04-24*
+*Last updated: 2026-08-28*

@@ -7,7 +7,8 @@ export default defineConfig({
   out: "../../supabase/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    // Fallback must match supabase/config.toml → [db].port
+    url: DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:55332/postgres",
   },
   strict: true,
   verbose: true,

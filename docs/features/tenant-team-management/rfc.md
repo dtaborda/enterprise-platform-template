@@ -297,22 +297,30 @@ export interface InvitationEmailPort {
 
 | Adapter | Location | Behavior | Selection |
 |---------|----------|----------|-----------|
-| `ConsoleInvitationEmailAdapter` | `packages/core/src/services/adapters/console-invitation-email.ts` | Logs invite URL to `console.info` | Default when `RESEND_API_KEY` is not set |
-| `ResendInvitationEmailAdapter` | `packages/core/src/services/adapters/resend-invitation-email.ts` | Sends via Resend API | When `RESEND_API_KEY` is set |
+| `ConsoleInvitationEmailAdapter` | `packages/core/src/services/adapters/console-invitation-email-adapter.ts` | Logs invite URL to `console.info` | Default when `RESEND_API_KEY` is not set |
+| `ResendInvitationEmailAdapter` | `packages/core/src/services/adapters/resend-invitation-email-adapter.ts` | Sends via Resend API | When `RESEND_API_KEY` is set |
 
 ### Adapter factory
 
+Implemented in `packages/core/src/services/adapters/invitation-email-adapter-factory.ts`:
+
 ```typescript
 export function createInvitationEmailAdapter(): InvitationEmailPort {
+  if (cachedAdapter) return cachedAdapter;
+
   const resendKey = process.env["RESEND_API_KEY"];
-  if (resendKey) {
-    return new ResendInvitationEmailAdapter(resendKey);
-  }
-  return new ConsoleInvitationEmailAdapter();
+
+  cachedAdapter = resendKey
+    ? new ResendInvitationEmailAdapter(resendKey, getEmailFrom())
+    : new ConsoleInvitationEmailAdapter();
+
+  return cachedAdapter;
 }
 ```
 
-Selection is based on env var presence, NOT `NODE_ENV`.
+Selection is based on env var presence, NOT `NODE_ENV`. The adapter is cached per process, so each serverless cold start re-evaluates the selection.
+
+Credentials are read in the factory, not in the adapters: `ResendInvitationEmailAdapter` receives both the API key and the sender address through its constructor, so it stays pure and testable. `getEmailFrom()` throws when `RESEND_API_KEY` is set but `EMAIL_FROM` is missing — there is no default sender.
 
 ---
 

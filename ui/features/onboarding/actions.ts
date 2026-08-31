@@ -6,7 +6,7 @@ import type {
   OnboardingProgressOutput,
 } from "@enterprise/contracts";
 import { completeBaselineStepSchema, inviteMemberSchema } from "@enterprise/contracts";
-import { ConsoleInvitationEmailAdapter, inviteTenantMember } from "@enterprise/core/services";
+import { createInvitationEmailAdapter, inviteTenantMember } from "@enterprise/core/services";
 import {
   completeBaselineStep,
   completeOnboardingStep,
@@ -160,7 +160,7 @@ export async function completeInviteStepAction(
   }
 
   try {
-    const emailAdapter = new ConsoleInvitationEmailAdapter();
+    const emailAdapter = createInvitationEmailAdapter();
     const inviteResult = await inviteTenantMember(
       supabase,
       auth.tenantId,

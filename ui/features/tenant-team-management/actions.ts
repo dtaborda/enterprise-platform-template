@@ -13,8 +13,8 @@ import {
   resendInvitationSchema,
 } from "@enterprise/contracts";
 import {
-  ConsoleInvitationEmailAdapter,
   changeTenantMemberRole,
+  createInvitationEmailAdapter,
   inviteTenantMember,
   removeTenantMember,
   resendTenantInvitation,
@@ -76,7 +76,7 @@ export async function inviteMemberAction(
   }
 
   try {
-    const emailAdapter = new ConsoleInvitationEmailAdapter();
+    const emailAdapter = createInvitationEmailAdapter();
     const result = await inviteTenantMember(
       supabase,
       auth.tenantId,
@@ -343,7 +343,7 @@ export async function resendInvitationAction(
   }
 
   try {
-    const emailAdapter = new ConsoleInvitationEmailAdapter();
+    const emailAdapter = createInvitationEmailAdapter();
     const result = await resendTenantInvitation(
       supabase,
       auth.tenantId,

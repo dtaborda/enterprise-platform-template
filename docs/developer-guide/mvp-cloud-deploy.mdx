@@ -2,7 +2,7 @@
 title: "MVP Cloud Deploy"
 description: "The shortest path from cloned template to a working cloud MVP using Supabase Cloud and Vercel."
 owner: "Engineering"
-lastUpdated: "2026-04-24"
+lastUpdated: "2026-08-28"
 ---
 
 # MVP Cloud Deploy
@@ -88,12 +88,18 @@ These are the only variables required for an MVP deploy:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | From Supabase API settings |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | From Supabase API settings |
 | `NEXT_PUBLIC_APP_URL` | Yes | Your Vercel production URL |
-| `NEXT_PUBLIC_APP_NAME` | Yes | Your app name |
 | `NEXT_PUBLIC_APP_ENV` | Yes | `production` |
+| `BILLING_PROVIDER` | Yes | `local` — an MVP deploy has no Stripe credentials |
 
 Add them in **Vercel → Project → Settings → Environment Variables**.
 
-> **ℹ️ Not required yet:** `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `RESEND_API_KEY`, `EMAIL_FROM`, and GitHub Secrets are optional for this MVP path.
+> **🚨 `BILLING_PROVIDER=local` is required on this path.** It defaults to `stripe`, and in production `createPaymentAdapter()` **throws** when `STRIPE_SECRET_KEY` is absent. Every billing Server Action then fails, and new tenants silently get no subscription row — sign-up itself still succeeds because onboarding catches and logs the failure, so you will not notice until billing is exercised.
+>
+> The throw is deliberate: the local adapter performs no webhook signature verification and the billing webhook route is public, so silently falling back to it in production would leave that route open to forged payloads.
+>
+> When you are ready to enable billing, switch to `BILLING_PROVIDER=stripe` and add `STRIPE_SECRET_KEY` plus `STRIPE_WEBHOOK_SECRET`. Without the webhook secret, signature verification fails closed and the webhook route returns HTTP 400 for every request.
+
+> **ℹ️ Not required yet:** `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `RESEND_API_KEY`, `EMAIL_FROM`, and GitHub Secrets are optional for this MVP path. If you do set `RESEND_API_KEY`, you must also set `EMAIL_FROM` — the email adapter factories throw without it.
 
 ## Step 6 — Configure Supabase Auth URLs
 
@@ -119,14 +125,19 @@ After deploy, verify these routes manually:
 - `/sign-in`
 - `/sign-up`
 - `/dashboard`
-- `/dashboard/resources`
-- `/dashboard/settings`
+- `/resources`
+- `/settings`
+- `/team`
+- `/notifications`
+- `/billing`
+
+> **ℹ️ Feature routes are top-level, not nested under `/dashboard`.** `/dashboard` is the home page only. Every path above comes from `ui/lib/routes.ts`, the single source of truth — see the Route Grouping Policy in the root `AGENTS.md`.
 
 ## MVP Checklist
 
 - [ ] Supabase cloud project created
 - [ ] `supabase db push` completed successfully
-- [ ] 6 minimum Vercel env vars configured
+- [ ] 6 minimum Vercel env vars configured (including `BILLING_PROVIDER=local`)
 - [ ] Supabase Site URL configured
 - [ ] App deployed in Vercel
 - [ ] Sign-in and dashboard routes work
@@ -143,4 +154,4 @@ Once the MVP is live, the next recommended upgrades are:
 
 ---
 
-*Last updated: 2026-04-24*
+*Last updated: 2026-08-28*

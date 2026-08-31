@@ -2,6 +2,8 @@
 // These are meant to be extended by domain-specific services
 
 export { ConsoleInvitationEmailAdapter } from "./adapters/console-invitation-email-adapter";
+// Invitation email adapter factory — RESEND_API_KEY-driven adapter selection
+export { createInvitationEmailAdapter } from "./adapters/invitation-email-adapter-factory";
 export { ResendInvitationEmailAdapter } from "./adapters/resend-invitation-email-adapter";
 // Backend adapters — Supabase reference implementations
 export { SupabaseAuthAdapter } from "./adapters/supabase-auth-adapter";

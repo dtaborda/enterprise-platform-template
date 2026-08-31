@@ -1,5 +1,6 @@
 // Resend adapter for invitation emails (production use)
-// Requires RESEND_API_KEY env var and RESEND_FROM_EMAIL env var
+// Credentials are injected by createInvitationEmailAdapter() — this adapter
+// reads no environment variables so it stays pure and testable.
 
 import type { InvitationEmailParams, InvitationEmailPort } from "../ports/invitation-email-port";
 
@@ -7,9 +8,9 @@ export class ResendInvitationEmailAdapter implements InvitationEmailPort {
   private readonly apiKey: string;
   private readonly fromEmail: string;
 
-  constructor(apiKey?: string, fromEmail?: string) {
-    this.apiKey = apiKey ?? process.env["RESEND_API_KEY"] ?? "";
-    this.fromEmail = fromEmail ?? process.env["RESEND_FROM_EMAIL"] ?? "noreply@example.com";
+  constructor(apiKey: string, fromEmail: string) {
+    this.apiKey = apiKey;
+    this.fromEmail = fromEmail;
   }
 
   async send(params: InvitationEmailParams): Promise<{ success: boolean; error?: string }> {

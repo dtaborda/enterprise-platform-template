@@ -199,7 +199,8 @@ export class StripePaymentAdapter implements PaymentProviderPort {
     try {
       if (!this.webhookSecret) {
         console.warn(
-          "[StripePaymentAdapter] verifyWebhookSignature: no webhookSecret configured — skipping verification",
+          "[StripePaymentAdapter] verifyWebhookSignature: STRIPE_WEBHOOK_SECRET is not set. " +
+            "The payload is REJECTED — webhooks cannot be verified without it.",
         );
         return false;
       }

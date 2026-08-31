@@ -2,7 +2,7 @@
 title: "Onboarding Checklist"
 description: "Step-by-step guide for new developers joining the Enterprise Platform — from prerequisites to a running dev environment."
 owner: "Engineering"
-lastUpdated: "2026-04-24"
+lastUpdated: "2026-08-28"
 ---
 
 # Onboarding Checklist
@@ -94,10 +94,10 @@ supabase status
 Copy the `API URL` and `anon key` (and `service_role key`) into your `.env.local`:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55331
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from supabase status>
 SUPABASE_SERVICE_ROLE_KEY=<service_role key from supabase status>
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55332/postgres
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_APP_ENV=development
 ```
@@ -201,4 +201,4 @@ The `resources` feature module is the canonical example of a complete vertical s
 
 ---
 
-*Last updated: 2026-04-24*
+*Last updated: 2026-08-28*
