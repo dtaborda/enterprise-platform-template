@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.1](https://github.com/dtaborda/enterprise-platform-template/compare/v1.4.0...v1.4.1) (2026-08-31)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** setup pnpm in release workflow ([#145](https://github.com/dtaborda/enterprise-platform-template/issues/145)) ([8bbbca8](https://github.com/dtaborda/enterprise-platform-template/commit/8bbbca8d2309f2ecd788b876f53aaf748e078c46))
+* close billing webhook fallback and fix deployment config drift ([#151](https://github.com/dtaborda/enterprise-platform-template/issues/151)) ([f002848](https://github.com/dtaborda/enterprise-platform-template/commit/f002848d48e4bde7e27f0e90012b4819c27ced9f))
+* **core:** drop hardcoded Stripe apiVersion literal ([#154](https://github.com/dtaborda/enterprise-platform-template/issues/154)) ([5e9f2d7](https://github.com/dtaborda/enterprise-platform-template/commit/5e9f2d74deb3bc90996e2a10938b0898fcf6f19e))
+
 ## [1.4.0](https://github.com/dtaborda/enterprise-platform-template/compare/v1.3.0...v1.4.0) (2026-06-08)
 
 
