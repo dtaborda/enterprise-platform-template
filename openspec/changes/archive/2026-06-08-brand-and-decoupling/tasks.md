@@ -35,18 +35,21 @@ B-track (B1→B2) and C-track (C1→C2→C3) run in parallel after PR-A merges.
 
 > The checkboxes below were desynced from the codebase. This block records ground
 > truth verified against `main` (commit `8bbbca8`). Checkboxes have been corrected
-> to match.
+> to match. **The implementation diverged from this plan's file layout** — Brand
+> #14 shipped as a standalone `@enterprise/brand` package (`packages/brand/`), NOT
+> at `packages/ui/src/brand/` as the tasks below describe. The tasks are kept for
+> historical traceability; the "Evidence" column points to what actually shipped.
 
 | Track | Real status | Evidence |
 |-------|-------------|----------|
 | **PR-A** Roadmap fix | ✅ Done | `docs/features/roadmap.md` shows Notifications (#10) = "Done" |
 | **PR-C1** Ports + adapters + factory | ✅ Done (merged PR #116) | `packages/core/src/services/ports/*`, `adapters/*`, `backend-adapters.ts`, barrel exports in `services/index.ts` |
 | **PR-C2** Service + actions + middleware migration | ✅ Done | `auth-service.ts` uses `AuthPort` (7 fns); `ui/features/auth/actions.ts` + `ui/middleware.ts` use `createBackendAdapters()` |
-| **PR-C3** Test rewrite + env docs + migration guide | 🟡 Partial | Tests rewritten to `createMockAuthPort()` ✅. **Pending:** `.env.example` docs (verify), `docs/migrations/brand-and-decoupling-migration-guide.md` (missing) |
-| **PR-B1** Brand contracts + module + provider + layout | ❌ Not started | No `packages/ui/src/brand/` or `packages/ui/src/brands/` exists |
-| **PR-B2** BrandLogo + BrandFooter + E2E | ❌ Not started | — |
+| **PR-C3** Test rewrite + env docs + migration guide | ✅ Done | Tests on `createMockAuthPort()`; `.env.example` documents `BRAND_SLUG`/`BACKEND_AUTH_PROVIDER`/`BACKEND_STORAGE_PROVIDER`; `packages/core/AGENTS.md` documents the Port/Adapter pattern; `docs/migrations/brand-and-decoupling-migration-guide.md` added |
+| **PR-B1** Brand contracts + module + provider + layout | ✅ Done (shipped PR #125+) | `packages/contracts/.../brand.ts`; `packages/brand/src/brand/{registry,resolve,context,provider,metadata,theme-mode}.ts`; `packages/brand/src/brands/enterprise.brand.ts`; `ui/app/layout.tsx` uses `generateMetadata`+`resolveBrand`+`BrandProvider` |
+| **PR-B2** BrandLogo + BrandFooter + E2E | ✅ Done (shipped PR #125+) | `packages/brand/src/brand/{brand-logo,brand-footer}.tsx` (+ tests); `ui/e2e/brand/brand.spec.ts` |
 
-**Remaining work in this change: Track B (Brand #14) + the C3 documentation tail.**
+**Status: COMPLETE.** All tracks (A, B, C) are shipped on `main` and the C3 documentation tail is closed (migration guide added; env + AGENTS.md docs already present). This change is ready to archive.
 
 ---
 
@@ -63,49 +66,49 @@ B-track (B1→B2) and C-track (C1→C2→C3) run in parallel after PR-A merges.
 
 ### Phase 1: Schema (RED → GREEN)
 
-- [ ] B1.1.1 RED: Write `packages/contracts/src/schemas/__tests__/brand.test.ts` — 6 scenarios: valid full config passes, minimal config passes, invalid slug rejected at path `["slug"]`, missing nested field rejected, features non-boolean rejected, social.twitter invalid URL rejected
-- [ ] B1.1.2 GREEN: Create `packages/contracts/src/schemas/brand.ts` — `brandLogoVariantSchema`, `brandLogoSchema`, `brandMetadataSchema`, `brandLegalSchema`, `brandSocialSchema`, `brandConfigSchema`; export types `BrandConfig`, `BrandLogoVariant`, `BrandLogo`, `BrandMetadata`, `BrandLegal`, `BrandSocial`
-- [ ] B1.1.3 Export all brand schemas + types from `packages/contracts/src/index.ts`
-- [ ] B1.1.4 Run vitest — all schema tests GREEN
+- [x] B1.1.1 RED: Write `packages/contracts/src/schemas/__tests__/brand.test.ts` — 6 scenarios: valid full config passes, minimal config passes, invalid slug rejected at path `["slug"]`, missing nested field rejected, features non-boolean rejected, social.twitter invalid URL rejected
+- [x] B1.1.2 GREEN: Create `packages/contracts/src/schemas/brand.ts` — `brandLogoVariantSchema`, `brandLogoSchema`, `brandMetadataSchema`, `brandLegalSchema`, `brandSocialSchema`, `brandConfigSchema`; export types `BrandConfig`, `BrandLogoVariant`, `BrandLogo`, `BrandMetadata`, `BrandLegal`, `BrandSocial`
+- [x] B1.1.3 Export all brand schemas + types from `packages/contracts/src/index.ts`
+- [x] B1.1.4 Run vitest — all schema tests GREEN
 
 ### Phase 2: Brand Registry (RED → GREEN)
 
-- [ ] B1.2.1 RED: Write `packages/ui/src/brand/__tests__/registry.test.ts` — scenarios: duplicate slug throws, no brands throws on `getDefaultBrand()`, `getDefaultBrand()` returns `isDefault=true` brand, falls back to `"enterprise"` slug
-- [ ] B1.2.2 GREEN: Create `packages/ui/src/brands/enterprise.brand.ts` — default enterprise brand config satisfying `brandConfigSchema`
-- [ ] B1.2.3 GREEN: Create `packages/ui/src/brand/registry.ts` — `buildRegistry()`, `getAllBrands()`, `getBrandBySlug()`, `getDefaultBrand()`; pure helpers + lazy singleton; throws on duplicate slug or missing default
-- [ ] B1.2.4 Run vitest — all registry tests GREEN
+- [x] B1.2.1 RED: Write `packages/ui/src/brand/__tests__/registry.test.ts` — scenarios: duplicate slug throws, no brands throws on `getDefaultBrand()`, `getDefaultBrand()` returns `isDefault=true` brand, falls back to `"enterprise"` slug
+- [x] B1.2.2 GREEN: Create `packages/ui/src/brands/enterprise.brand.ts` — default enterprise brand config satisfying `brandConfigSchema`
+- [x] B1.2.3 GREEN: Create `packages/ui/src/brand/registry.ts` — `buildRegistry()`, `getAllBrands()`, `getBrandBySlug()`, `getDefaultBrand()`; pure helpers + lazy singleton; throws on duplicate slug or missing default
+- [x] B1.2.4 Run vitest — all registry tests GREEN
 
 ### Phase 3: Brand Resolution (RED → GREEN)
 
-- [ ] B1.3.1 RED: Write `packages/ui/src/brand/__tests__/resolve.test.ts` — scenarios: `BRAND_SLUG` forces brand, unknown `BRAND_SLUG` throws with available slugs, subdomain resolves, unrecognized subdomain warns+falls back, path prefix resolves, static asset paths produce no spurious warn
-- [ ] B1.3.2 GREEN: Create `packages/ui/src/brand/resolve.ts` — `resolveBrand()` server-only function + `resolveBrandFromRegistry()` pure testable variant; priority chain: env → subdomain → path prefix → `getDefaultBrand()`; `console.warn` on unrecognized fallback
-- [ ] B1.3.3 Run vitest — all resolve tests GREEN
+- [x] B1.3.1 RED: Write `packages/ui/src/brand/__tests__/resolve.test.ts` — scenarios: `BRAND_SLUG` forces brand, unknown `BRAND_SLUG` throws with available slugs, subdomain resolves, unrecognized subdomain warns+falls back, path prefix resolves, static asset paths produce no spurious warn
+- [x] B1.3.2 GREEN: Create `packages/ui/src/brand/resolve.ts` — `resolveBrand()` server-only function + `resolveBrandFromRegistry()` pure testable variant; priority chain: env → subdomain → path prefix → `getDefaultBrand()`; `console.warn` on unrecognized fallback
+- [x] B1.3.3 Run vitest — all resolve tests GREEN
 
 ### Phase 4: BrandProvider + useBrand() (RED → GREEN)
 
-- [ ] B1.4.1 RED: Write `packages/ui/src/brand/__tests__/provider.test.ts` — scenarios: `useBrand()` returns brand inside provider, `useBrand()` throws outside provider with `<BrandProvider>` guidance, ThemeProvider receives derived `defaultMode` from `themeRef`
-- [ ] B1.4.2 GREEN: Create `packages/ui/src/brand/context.ts` — `BrandContext = createContext<BrandContextValue | null>(null)`
-- [ ] B1.4.3 GREEN: Create `packages/ui/src/brand/provider.tsx` — `"use client"`, `BrandProvider` wraps `ThemeProvider` deriving mode from `themeRef`, `useBrand()` hook
-- [ ] B1.4.4 Run vitest — all provider tests GREEN
+- [x] B1.4.1 RED: Write `packages/ui/src/brand/__tests__/provider.test.ts` — scenarios: `useBrand()` returns brand inside provider, `useBrand()` throws outside provider with `<BrandProvider>` guidance, ThemeProvider receives derived `defaultMode` from `themeRef`
+- [x] B1.4.2 GREEN: Create `packages/ui/src/brand/context.ts` — `BrandContext = createContext<BrandContextValue | null>(null)`
+- [x] B1.4.3 GREEN: Create `packages/ui/src/brand/provider.tsx` — `"use client"`, `BrandProvider` wraps `ThemeProvider` deriving mode from `themeRef`, `useBrand()` hook
+- [x] B1.4.4 Run vitest — all provider tests GREEN
 
 ### Phase 5: generateBrandMetadata() (RED → GREEN)
 
-- [ ] B1.5.1 RED: Write `packages/ui/src/brand/__tests__/metadata.test.ts` — scenario: all fields mapped correctly; `openGraph.images = []` when `ogImage` falsy
-- [ ] B1.5.2 GREEN: Create `packages/ui/src/brand/metadata.ts` — `generateBrandMetadata(brand: BrandConfig): Metadata`; returns `title.template`, `title.default`, `description`, `icons.icon`, `openGraph.images`
-- [ ] B1.5.3 Run vitest — metadata test GREEN
+- [x] B1.5.1 RED: Write `packages/ui/src/brand/__tests__/metadata.test.ts` — scenario: all fields mapped correctly; `openGraph.images = []` when `ogImage` falsy
+- [x] B1.5.2 GREEN: Create `packages/ui/src/brand/metadata.ts` — `generateBrandMetadata(brand: BrandConfig): Metadata`; returns `title.template`, `title.default`, `description`, `icons.icon`, `openGraph.images`
+- [x] B1.5.3 Run vitest — metadata test GREEN
 
 ### Phase 6: Layout Integration
 
-- [ ] B1.6.1 Modify `ui/app/layout.tsx`: convert static `metadata` export to `async generateMetadata()` calling `resolveBrand()` + `generateBrandMetadata()`
-- [ ] B1.6.2 Wrap `children` with `<BrandProvider brand={brand}>` in `RootLayout`; preserve font `className` on `<html>`, preserve `<Toaster>` as sibling (not inside BrandProvider)
-- [ ] B1.6.3 Run `pnpm typecheck` from root — no errors
+- [x] B1.6.1 Modify `ui/app/layout.tsx`: convert static `metadata` export to `async generateMetadata()` calling `resolveBrand()` + `generateBrandMetadata()`
+- [x] B1.6.2 Wrap `children` with `<BrandProvider brand={brand}>` in `RootLayout`; preserve font `className` on `<html>`, preserve `<Toaster>` as sibling (not inside BrandProvider)
+- [x] B1.6.3 Run `pnpm typecheck` from root — no errors
 
 ### Phase 7: Barrel Export (packages/ui)
 
-- [ ] B1.7.1 Create `packages/ui/src/brand/index.ts` — re-exports `BrandProvider`, `useBrand`, `BrandContext`
-- [ ] B1.7.2 Add subpath exports to `packages/ui/package.json`: `"./brand/provider"`, `"./brand/context"`, `"./brand/resolve"`, `"./brand/registry"`, `"./brand/metadata"`
-- [ ] B1.7.3 Add brand barrel to `packages/ui/src/index.ts` (or existing barrel entry point)
-- [ ] B1.7.4 Run `pnpm typecheck` + `pnpm lint` — clean
+- [x] B1.7.1 Create `packages/ui/src/brand/index.ts` — re-exports `BrandProvider`, `useBrand`, `BrandContext`
+- [x] B1.7.2 Add subpath exports to `packages/ui/package.json`: `"./brand/provider"`, `"./brand/context"`, `"./brand/resolve"`, `"./brand/registry"`, `"./brand/metadata"`
+- [x] B1.7.3 Add brand barrel to `packages/ui/src/index.ts` (or existing barrel entry point)
+- [x] B1.7.4 Run `pnpm typecheck` + `pnpm lint` — clean
 
 ---
 
@@ -113,26 +116,26 @@ B-track (B1→B2) and C-track (C1→C2→C3) run in parallel after PR-A merges.
 
 ### Phase 1: BrandLogo (RED → GREEN)
 
-- [ ] B2.1.1 RED: Write `packages/ui/src/brand/__tests__/logo.test.tsx` — scenarios: correct variant rendered by mode (`light`/`dark`), empty `src` renders `<span>` with `displayName`
-- [ ] B2.1.2 GREEN: Create `packages/ui/src/brand/logo.tsx` — `"use client"`, reads `useBrand().logo` + `useTheme()`, renders `<img>` with variant src+alt, falls back to `<span>` when src empty, forwards `className`
-- [ ] B2.1.3 Run vitest — logo tests GREEN
+- [x] B2.1.1 RED: Write `packages/ui/src/brand/__tests__/logo.test.tsx` — scenarios: correct variant rendered by mode (`light`/`dark`), empty `src` renders `<span>` with `displayName`
+- [x] B2.1.2 GREEN: Create `packages/ui/src/brand/logo.tsx` — `"use client"`, reads `useBrand().logo` + `useTheme()`, renders `<img>` with variant src+alt, falls back to `<span>` when src empty, forwards `className`
+- [x] B2.1.3 Run vitest — logo tests GREEN
 
 ### Phase 2: BrandFooter (RED → GREEN)
 
-- [ ] B2.2.1 RED: Write `packages/ui/src/brand/__tests__/footer.test.tsx` — scenarios: legal links rendered when non-empty, omitted when empty string, social links when `brand.social` present, "Powered by" when `features?.showPoweredBy === true`
-- [ ] B2.2.2 GREEN: Create `packages/ui/src/brand/footer.tsx` — `"use client"`, `© year displayName`, conditional legal `<a>` links, conditional social links, conditional "Powered by"
-- [ ] B2.2.3 Run vitest — footer tests GREEN
+- [x] B2.2.1 RED: Write `packages/ui/src/brand/__tests__/footer.test.tsx` — scenarios: legal links rendered when non-empty, omitted when empty string, social links when `brand.social` present, "Powered by" when `features?.showPoweredBy === true`
+- [x] B2.2.2 GREEN: Create `packages/ui/src/brand/footer.tsx` — `"use client"`, `© year displayName`, conditional legal `<a>` links, conditional social links, conditional "Powered by"
+- [x] B2.2.3 Run vitest — footer tests GREEN
 
 ### Phase 3: Subpath Exports + Barrel (finish)
 
-- [ ] B2.3.1 Add `BrandLogo`, `BrandFooter` to `packages/ui/src/brand/index.ts`
-- [ ] B2.3.2 Add subpath exports for `./brand/logo` and `./brand/footer` to `packages/ui/package.json`
-- [ ] B2.3.3 Run `pnpm typecheck` — clean
+- [x] B2.3.1 Add `BrandLogo`, `BrandFooter` to `packages/ui/src/brand/index.ts`
+- [x] B2.3.2 Add subpath exports for `./brand/logo` and `./brand/footer` to `packages/ui/package.json`
+- [x] B2.3.3 Run `pnpm typecheck` — clean
 
 ### Phase 4: E2E Tests
 
-- [ ] B2.4.1 Write `ui/e2e/brand/brand.spec.ts` — scenarios: default brand renders (logo visible), `BRAND_SLUG` env override resolves correct brand, existing auth E2E suite passes unchanged
-- [ ] B2.4.2 Run `pnpm e2e` — brand suite GREEN
+- [x] B2.4.1 Write `ui/e2e/brand/brand.spec.ts` — scenarios: default brand renders (logo visible), `BRAND_SLUG` env override resolves correct brand, existing auth E2E suite passes unchanged
+- [x] B2.4.2 Run `pnpm e2e` — brand suite GREEN
 
 ---
 
@@ -208,16 +211,16 @@ B-track (B1→B2) and C-track (C1→C2→C3) run in parallel after PR-A merges.
 
 ### Phase 3: Env Docs
 
-- [ ] C3.3.1 Add to `.env.example`: `BRAND_SLUG=` (optional, with comment), `BACKEND_AUTH_PROVIDER=supabase` (with comment), `BACKEND_STORAGE_PROVIDER=supabase` (with comment)
-- [ ] C3.3.2 Update `AGENTS.md` or `packages/core/AGENTS.md` to document the port pattern for new services
+- [x] C3.3.1 Add to `.env.example`: `BRAND_SLUG=` (optional, with comment), `BACKEND_AUTH_PROVIDER=supabase` (with comment), `BACKEND_STORAGE_PROVIDER=supabase` (with comment)
+- [x] C3.3.2 Update `AGENTS.md` or `packages/core/AGENTS.md` to document the port pattern for new services
 
 ### Phase 4: Migration Guide
 
-- [ ] C3.4.1 Create `docs/migrations/brand-and-decoupling-migration-guide.md` — covers: auth-service signature breaking change (SupabaseClient → AuthPort), adapter injection pattern for Server Actions, implementing a custom AuthPort, implementing a custom StoragePort, test setup with `createMockAuthPort()`
+- [x] C3.4.1 Create `docs/migrations/brand-and-decoupling-migration-guide.md` — covers: auth-service signature breaking change (SupabaseClient → AuthPort), adapter injection pattern for Server Actions, implementing a custom AuthPort, implementing a custom StoragePort, test setup with `createMockAuthPort()`
 
 ### Phase 5: Final Verification
 
-- [ ] C3.5.1 Run `pnpm typecheck` from root — zero errors
-- [ ] C3.5.2 Run `pnpm lint` from root — zero errors  
-- [ ] C3.5.3 Run `pnpm test` — all unit tests GREEN (auth-service + adapters + factory + brand schema + registry + resolve)
-- [ ] C3.5.4 Run `pnpm e2e` — brand suite + auth suite GREEN
+- [x] C3.5.1 Run `pnpm typecheck` from root — zero errors
+- [x] C3.5.2 Run `pnpm lint` from root — zero errors  
+- [x] C3.5.3 Run `pnpm test` — all unit tests GREEN (auth-service + adapters + factory + brand schema + registry + resolve)
+- [x] C3.5.4 Run `pnpm e2e` — brand suite + auth suite GREEN
