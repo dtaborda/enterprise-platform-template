@@ -2,7 +2,7 @@
 title: "Release Automation"
 description: "How GitHub Releases are published in this repository, how release-please is configured, and how to recover from manifest/tag desync incidents."
 owner: "Engineering"
-lastUpdated: "2026-06-08"
+lastUpdated: "2026-08-30"
 ---
 
 # Release Automation
@@ -13,7 +13,7 @@ This guide explains how GitHub Releases are produced in the Enterprise Platform 
 
 ## Scope
 
-- **Included**: normal release flow, token requirements, consistency guard, desync recovery runbook
+- **Included**: normal release flow, token requirements, consistency guard, deadlock detection, automated reconciliation, manual recovery runbook
 - **Excluded**: package registry publishing, monorepo independent versioning, application deployment
 
 ---
@@ -82,6 +82,112 @@ It verifies:
 - **Good**: manifest version equals latest tag
 - **Temporarily acceptable**: manifest is ahead of latest tag **and** a release PR is still in a fresh pending window
 - **Broken**: manifest is ahead of latest tag and there is no valid fresh pending release PR
+
+---
+
+## Release-please Deadlock
+
+This section documents a self-perpetuating failure mode that has occurred twice (v1.3.0 and v1.4.0) and can leave `main` red for months if undetected.
+
+### What it looks like
+
+The CI logs contain one or more of these greppable error strings:
+
+```
+There are untagged, merged release PRs outstanding - aborting
+```
+
+```
+Expected 1 releases, only found 0
+```
+
+```
+[release-consistency] ERROR: manifest X is ahead of latest tag Y
+```
+
+### Why it happens
+
+The deadlock is a five-step self-perpetuating cycle:
+
+1. The `chore: release main` PR merges, bumping `.release-please-manifest.json` to version X.
+2. The Release workflow run for **that specific merge** fails (token expired, transient API error, etc.), so tag `vX` and the GitHub Release are never created.
+3. The PR keeps the label `autorelease: pending`.
+4. From this point on, **every** push to `main` fails: release-please aborts with `There are untagged, merged release PRs outstanding - aborting`, and the consistency guard (`check-consistency.mjs`) exits 1.
+5. The failure is self-perpetuating. No conventional commit, re-push, or workflow retry can break the cycle. `main` stays red until a human (or the reconcile tool) creates the missing release.
+
+> **Warning**: This deadlock is invisible unless the failure alerting job is active. Without it, `main` can stay broken indefinitely — the v1.4.0 incident went unnoticed from 2026-06-08 to 2026-08-30.
+
+### Safety gate
+
+The reconcile tool (`scripts/release/reconcile.mjs`) refuses to act unless **exactly one** merged release PR's manifest-at-merge-commit matches the current manifest version. It reads `.release-please-manifest.json` at the PR's merge commit SHA via `git show` and compares it to the current value. This prevents publishing a bogus release from an unrelated PR that happens to share the `autorelease: pending` label.
+
+---
+
+## One-click Repair (Automated Reconciliation)
+
+The Release workflow supports a `workflow_dispatch` trigger with an `apply` input that runs the reconcile script.
+
+### Step 1 — preview (dry-run)
+
+1. Go to **Actions > Release > Run workflow**.
+2. Leave `apply` as `false` (the default).
+3. Run the workflow.
+4. Check the step summary — it shows what the tool WOULD do without mutating anything.
+
+### Step 2 — apply
+
+1. Verify the dry-run output is correct (correct PR, correct merge commit, correct version).
+2. Rerun with `apply` = `true`.
+3. The tool creates the missing GitHub Release, tags the correct commit, and updates the PR labels.
+
+### What happens after reconciliation
+
+- The consistency guard (`check-consistency.mjs`) passes again.
+- release-please resumes normal operation on the next push to `main`.
+- If a tracking issue with the label `release-pipeline-broken` is open, close it manually after confirming the fix.
+
+---
+
+## Manual Recovery Fallback
+
+If the automated reconciliation cannot resolve the issue (ambiguous PRs, corrupted manifest, etc.), use these manual commands:
+
+### Prerequisites
+
+Identify:
+- the manifest version (`M`) from `.release-please-manifest.json`
+- the merge commit SHA of the release PR that produced that version
+- the PR number
+
+### Commands
+
+```bash
+# 1. Extract release notes from CHANGELOG.md at the merge commit
+git show <merge-commit-sha>:CHANGELOG.md > /tmp/changelog.md
+# Manually extract the section for version M
+
+# 2. Create the missing GitHub Release
+gh release create vM --target <merge-commit-sha> --title vM --notes-file /tmp/release-notes.md --latest
+
+# 3. Fix the PR labels
+gh pr edit <N> --remove-label "autorelease: pending" --add-label "autorelease: tagged"
+
+# 4. Verify
+pnpm release:check-consistency
+```
+
+Always verify the target SHA against `CHANGELOG.md` before creating the missing tag.
+
+---
+
+## Failure Alerting
+
+The Release workflow includes an `alert-on-failure` job that runs when the `release-please` job fails on a push to `main`.
+
+- It opens (or updates) a GitHub issue with the label `release-pipeline-broken`.
+- The issue includes the failing run URL, commit SHA, and a pointer to this runbook.
+- It is idempotent: repeated failures add comments to the existing issue instead of opening new ones.
+- The label is created automatically if it does not exist.
 
 ---
 
