@@ -29,9 +29,12 @@ export class StripePaymentAdapter implements PaymentProviderPort {
     if (this.stripeInstance) return this.stripeInstance;
 
     const { default: Stripe } = await import("stripe");
-    this.stripeInstance = new Stripe(this.stripeSecretKey, {
-      apiVersion: "2026-05-27.dahlia",
-    });
+    // `apiVersion` is intentionally omitted. The SDK types it as the literal version
+    // it was built against, so any hardcoded value only restates `Stripe.API_VERSION`
+    // and breaks typecheck on every SDK bump. Omitting it resolves to that same
+    // pinned version at runtime, so behavior is unchanged and bumps stay green.
+    // Pin the `stripe` dependency to control which API version ships.
+    this.stripeInstance = new Stripe(this.stripeSecretKey);
 
     return this.stripeInstance;
   }
