@@ -105,17 +105,39 @@ Expected 1 releases, only found 0
 [release-consistency] ERROR: manifest X is ahead of latest tag Y
 ```
 
-### Why it happens
+### Root cause: release PR title pattern mismatch
 
-The deadlock is a five-step self-perpetuating cycle:
+The deadlock was **not** caused by expired tokens or transient API errors. It was a configuration bug in `release-please-config.json`, which is why it recurred on every release rather than occasionally.
 
-1. The `chore: release main` PR merges, bumping `.release-please-manifest.json` to version X.
-2. The Release workflow run for **that specific merge** fails (token expired, transient API error, etc.), so tag `vX` and the GitHub Release are never created.
+Two different options control the two halves of the round trip:
+
+| Option | Controls |
+|--------|----------|
+| `group-pull-request-title-pattern` | The title release-please **writes** when `separate-pull-requests` is `false` (a grouped manifest PR) |
+| `pull-request-title-pattern` | The pattern release-please **reads** to recover the version from a merged release PR |
+
+`group-pull-request-title-pattern` was never set, so release-please fell back to its default (`chore: release ${branch}`) and produced PRs titled `chore: release main`. Meanwhile it tried to parse them back with `chore: release v${version}`. The title carries no version, so the parse failed and release-please refused to tag.
+
+The upstream docs are explicit that these patterns "must allow the system to parse the component name and version from the title or body".
+
+The historical record matches exactly:
+
+| Release PR | Title | Parseable | Outcome |
+|------------|-------|-----------|---------|
+| #5 | `chore: release v1.1.0` | Yes | Published automatically |
+| #10, #13, #64, #70, #144, #155 | `chore: release main` | No | Required manual recovery |
+
+### The self-perpetuating cycle
+
+1. The release PR merges, bumping `.release-please-manifest.json` to version X.
+2. release-please cannot parse the version from that PR's title, so tag `vX` and the GitHub Release are never created.
 3. The PR keeps the label `autorelease: pending`.
 4. From this point on, **every** push to `main` fails: release-please aborts with `There are untagged, merged release PRs outstanding - aborting`, and the consistency guard (`check-consistency.mjs`) exits 1.
 5. The failure is self-perpetuating. No conventional commit, re-push, or workflow retry can break the cycle. `main` stays red until a human (or the reconcile tool) creates the missing release.
 
-> **Warning**: This deadlock is invisible unless the failure alerting job is active. Without it, `main` can stay broken indefinitely — the v1.4.0 incident went unnoticed from 2026-06-08 to 2026-08-30.
+> **Warning**: The consistency guard's 2-hour grace window (`RELEASE_PENDING_GRACE_HOURS`) **masks a freshly formed deadlock**. The run immediately after the release merge reports success and the guard reports OK; `main` only turns red once the window expires. Do not read a green run immediately after merging a release PR as proof that the release published — verify the tag exists.
+
+> **Warning**: This deadlock is otherwise invisible unless the failure alerting job is active. Without it, `main` can stay broken indefinitely — the v1.4.0 incident went unnoticed from 2026-06-08 to 2026-08-30.
 
 ### Safety gate
 
