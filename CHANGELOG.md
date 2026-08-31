@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/dtaborda/enterprise-platform-template/compare/v1.4.1...v1.4.2) (2026-08-31)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** set group-pull-request-title-pattern to unblock release tagging ([#157](https://github.com/dtaborda/enterprise-platform-template/issues/157)) ([b924054](https://github.com/dtaborda/enterprise-platform-template/commit/b924054df6bfb087385120a636d1192f915d39fb))
+
 ## [1.4.1](https://github.com/dtaborda/enterprise-platform-template/compare/v1.4.0...v1.4.1) (2026-08-31)
 
 
