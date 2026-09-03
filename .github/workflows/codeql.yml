@@ -56,7 +56,11 @@ jobs:
           languages: ${{ matrix.language }}
           config-file: .github/codeql/codeql-config.yml
 
+      # This repository is private on a personal GitHub account, so Code Scanning
+      # (GitHub Advanced Security) is not available and SARIF uploads are rejected.
+      # Analysis still runs and the step fails on findings; only the upload is skipped.
       - name: Analyze
         uses: github/codeql-action/analyze@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
         with:
           category: "/language:${{ matrix.language }}"
+          upload: never

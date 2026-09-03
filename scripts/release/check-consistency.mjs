@@ -31,12 +31,16 @@ function compareVersions(left, right) {
   return 0;
 }
 
+/**
+ * Returns the latest `v*` tag version without the `v` prefix, or `null` when the
+ * repository has no release tags yet (fresh repository before the first release).
+ */
 function getLatestTagVersion() {
   const raw = run("git", ["tag", "--list", "v*", "--sort=-version:refname"]);
   const [latestTag] = raw.split("\n").filter(Boolean);
 
   if (!latestTag) {
-    throw new Error("No release tags matching v* were found.");
+    return null;
   }
 
   return latestTag.replace(/^v/, "");
@@ -93,10 +97,20 @@ function isWithinGraceWindow(pullRequest, graceHours) {
   return ageMs <= graceHours * 60 * 60 * 1000;
 }
 
+// Manifest validation is tag-independent and must always run (invalid manifest
+// entries fail regardless of tag state).
 const manifestVersion = getManifestVersion();
 const latestTagVersion = getLatestTagVersion();
 
 console.log(`[release-consistency] manifest=${manifestVersion}`);
+
+if (latestTagVersion === null) {
+  console.warn(
+    "[release-consistency] WARN: No release tags matching v* found; skipping consistency check (first release).",
+  );
+  process.exit(0);
+}
+
 console.log(`[release-consistency] latestTag=${latestTagVersion}`);
 
 if (manifestVersion === latestTagVersion) {

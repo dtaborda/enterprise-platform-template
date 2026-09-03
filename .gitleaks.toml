@@ -1,0 +1,30 @@
+# gitleaks configuration (v8.x)
+#
+# Extends the built-in default ruleset and adds a narrow allowlist for the
+# well-known Supabase LOCAL demo JWTs. These are the public anon/service_role
+# tokens emitted by `supabase start` (issuer "supabase-demo"); they are the same
+# on every developer machine, only work against a local stack, and are not
+# secrets. Without this allowlist gitleaks reports them as leaks in
+# .env.example, .github/workflows/e2e.yml and the environment guide docs.
+
+title = "gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Supabase local demo JWTs and example/docs files"
+
+# Match the shared prefix of the demo tokens: JWT header + `{"iss":"supabase-demo"`.
+# Keyed on the token value, so it applies wherever the demo tokens appear
+# (including .github/workflows/e2e.yml) without allowlisting whole directories.
+regexes = [
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZS1kZW1v''',
+]
+
+# Example env file and the environment guide document intentionally contain
+# placeholder / truncated demo values (the docs use "eyJ...").
+paths = [
+  '''^\.env\.example$''',
+  '''^docs/developer-guide/environment-guide\.mdx$''',
+]
