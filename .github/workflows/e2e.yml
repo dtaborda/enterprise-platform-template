@@ -3,6 +3,8 @@ name: E2E Tests
 on:
   pull_request:
     branches: [main]
+  # Manual runs (e.g. against main) to establish a baseline outside of PRs.
+  workflow_dispatch:
 
 concurrency:
   group: e2e-${{ github.ref }}
@@ -13,6 +15,8 @@ permissions: {}
 jobs:
   detect-changes:
     name: Detect Changes
+    # paths-filter needs a PR base to diff against; manual runs always execute E2E.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,7 +48,7 @@ jobs:
   e2e:
     name: Playwright E2E
     needs: detect-changes
-    if: needs.detect-changes.outputs.code == 'true'
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
