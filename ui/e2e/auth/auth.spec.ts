@@ -63,7 +63,7 @@ test.describe("Auth flows", () => {
     await authPage.expectOnSignIn();
   });
 
-  test("sign-up success with unique email redirects to /sign-in?registered=1 and shows success notice", async ({
+  test("sign-up success with unique email signs the user in and lands on the dashboard", async ({
     page,
   }) => {
     const authPage = new AuthPage(page);
@@ -72,8 +72,7 @@ test.describe("Auth flows", () => {
     await authPage.gotoSignUp();
     await authPage.signUp("New User", email, OWNER_PASSWORD);
 
-    await authPage.expectOnSignIn();
-    await authPage.expectRegistrationSuccessNotice();
+    await authPage.expectOnDashboard();
   });
 
   test("sign-up validation failure (password < 8) stays on /sign-up and shows inline field error", async ({
