@@ -1,7 +1,4 @@
-import {
-  getUserRoleService,
-  resolveRoleRedirectPath,
-} from "@enterprise/core/services/auth-service";
+import { resolveRoleRedirectPath } from "@enterprise/core/services/auth-service";
 import { createBackendAdapters } from "@enterprise/core/services/backend-adapters";
 import { createMiddlewareClient } from "@enterprise/core/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
@@ -30,8 +27,7 @@ const middlewareSupabaseConfig = {
 };
 
 // Session refresh is provider-agnostic via SessionPort.
-// auth factory is request-scoped: call authFactory(supabase) per request.
-const { session: sessionPort, auth: authFactory } = createBackendAdapters();
+const { session: sessionPort } = createBackendAdapters();
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -47,10 +43,7 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
 
-  // Role resolution uses SupabaseClient for the DB query via AuthPort.
-  // TODO: Replace with DatabasePort when available (P1 follow-up).
   const supabase = createMiddlewareClient(request, middlewareSupabaseConfig);
-  const auth = authFactory(supabase);
 
   const {
     data: { user },
@@ -66,10 +59,16 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const roleResult = await getUserRoleService(auth, user.id);
-  const roleHome = roleResult.success
-    ? resolveRoleRedirectPath(roleResult.data.role)
-    : resolveRoleRedirectPath("guest");
+  // Every role (owner, admin, member, guest) currently resolves to the same home
+  // path, so looking up this user's role cannot change the outcome. Resolving from
+  // null skips a guaranteed-constant database round trip on the slowest leg of the
+  // request — Edge middleware to the database region — for every authenticated
+  // navigation.
+  //
+  // The invariant is guarded by a unit test in
+  // packages/core/src/services/__tests__/auth-service.test.ts. If role home paths
+  // ever diverge, that test fails and this must go back to a per-user role lookup.
+  const roleHome = resolveRoleRedirectPath(null);
 
   if (isServerActionRequest) {
     return response;

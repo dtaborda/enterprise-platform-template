@@ -2,27 +2,20 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const {
-  mockGetUser,
-  mockUpdateSession,
-  mockCreateMiddlewareClient,
-  mockGetUserRoleService,
-  mockResolveRoleRedirectPath,
-} = vi.hoisted(() => {
-  return {
-    mockGetUser: vi.fn(),
-    mockUpdateSession: vi.fn(),
-    mockCreateMiddlewareClient: vi.fn(() => ({
-      auth: {
-        getUser: vi.fn(),
-      },
-    })),
-    mockGetUserRoleService: vi.fn(),
-    mockResolveRoleRedirectPath: vi.fn((role: string | null | undefined) =>
-      role === "guest" ? "/" : "/dashboard",
-    ),
-  };
-});
+const { mockGetUser, mockUpdateSession, mockCreateMiddlewareClient, mockResolveRoleRedirectPath } =
+  vi.hoisted(() => {
+    return {
+      mockGetUser: vi.fn(),
+      mockUpdateSession: vi.fn(),
+      mockCreateMiddlewareClient: vi.fn(() => ({
+        auth: {
+          getUser: vi.fn(),
+        },
+      })),
+      // Mirrors the real resolveRoleRedirectPath: every role shares one home path.
+      mockResolveRoleRedirectPath: vi.fn(() => "/dashboard"),
+    };
+  });
 
 vi.mock("@enterprise/core/supabase/middleware", () => ({
   createMiddlewareClient: mockCreateMiddlewareClient,
@@ -30,7 +23,6 @@ vi.mock("@enterprise/core/supabase/middleware", () => ({
 }));
 
 vi.mock("@enterprise/core/services/auth-service", () => ({
-  getUserRoleService: mockGetUserRoleService,
   resolveRoleRedirectPath: mockResolveRoleRedirectPath,
 }));
 
@@ -74,7 +66,7 @@ function expectRedirectPath(response: NextResponse, expectedPath: string): void 
 describe("middleware auth flow", () => {
   beforeEach(() => {
     mockUpdateSession.mockResolvedValue(NextResponse.next());
-    mockGetUserRoleService.mockResolvedValue({ success: true, data: { role: "member" } });
+    mockResolveRoleRedirectPath.mockClear();
   });
 
   it("unauthenticated request to a public route (e.g., /sign-in) returns pass-through response", async () => {
@@ -110,37 +102,47 @@ describe("middleware auth flow", () => {
     expect(result.headers.get("location")).toBeNull();
   });
 
-  it("authenticated request to / redirects to role home except guest already on /", async () => {
+  it("authenticated request to / redirects to the shared role home", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
 
     const { middleware } = await loadMiddleware();
+    const result = await middleware(createRequest("/"));
 
-    mockGetUserRoleService.mockResolvedValueOnce({ success: true, data: { role: "owner" } });
-    const ownerResult = await middleware(createRequest("/"));
-    expectRedirectPath(ownerResult, "/dashboard");
-
-    mockGetUserRoleService.mockResolvedValueOnce({ success: true, data: { role: "guest" } });
-    const guestResult = await middleware(createRequest("/"));
-    expect(guestResult.headers.get("location")).toBeNull();
+    expectRedirectPath(result, "/dashboard");
   });
 
-  it("authenticated request with missing profile defaults to guest and redirects to / for public-entry routes", async () => {
+  it("resolves the role home without a per-user role lookup", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-    mockGetUserRoleService.mockResolvedValue({
-      success: false,
-      error: "Could not load user role",
-      code: "ROLE_LOOKUP_FAILED",
-    });
+
+    const { middleware } = await loadMiddleware();
+    await middleware(createRequest("/"));
+
+    // All roles share one home path, so the middleware resolves from null instead
+    // of querying the database. Guarded by the resolveRoleRedirectPath unit test in
+    // packages/core/src/services/__tests__/auth-service.test.ts.
+    expect(mockResolveRoleRedirectPath).toHaveBeenCalledWith(null);
+  });
+
+  it("authenticated request already on the role home returns pass-through response", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+
+    const { middleware } = await loadMiddleware();
+    const result = await middleware(createRequest("/dashboard"));
+
+    expect(result.headers.get("location")).toBeNull();
+  });
+
+  it("authenticated request to a public entry route redirects to the role home", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
 
     const { middleware } = await loadMiddleware();
     const result = await middleware(createRequest("/sign-in"));
 
-    expectRedirectPath(result, "/");
+    expectRedirectPath(result, "/dashboard");
   });
 
   it("authenticated server action POST to a public route does not redirect", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-    mockGetUserRoleService.mockResolvedValue({ success: true, data: { role: "member" } });
 
     const { middleware } = await loadMiddleware();
     const result = await middleware(
