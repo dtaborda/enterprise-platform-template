@@ -398,45 +398,42 @@ export async function myNewService(auth: AuthPort, input: MyInput) {
 }
 ```
 
-### Request-scoped adapter creation in middleware
+### Middleware depends on `SessionPort` only
 
-Do not call `authFactory(client)` outside of a request handler in middleware. The
-`SupabaseClient` created by `createMiddlewareClient()` is scoped to the current request's
-cookies. Capturing it at module level would reuse stale cookies across requests.
+`middleware.ts` has a single backend dependency: `SessionPort`. One `refreshSession()` call
+returns the refreshed response AND the authenticated subject, so the middleware performs
+exactly one token validation per request and never constructs a Supabase client itself.
 
 ```typescript
-// ❌ Wrong — adapter captured at module level
-const supabase = createMiddlewareClient(request, config);
-const auth = authFactory(supabase);  // stale after first request
+// ✅ Correct — one port call, one validation
+const { session: sessionPort } = createBackendAdapters();
 
-// ✅ Correct — adapter created fresh per request inside the handler
 export async function middleware(request: NextRequest) {
-  const supabase = createMiddlewareClient(request, middlewareConfig);
-  const auth = authFactory(supabase);
-  // ...
+  const { response, userId } = await sessionPort.refreshSession(request);
+
+  if (!userId) {
+    // ...route as unauthenticated
+  }
+
+  return response;
 }
 ```
 
-### Split dependency: auth port vs. database client
-
-`middleware.ts` currently uses `SessionPort` for session refresh but retains a direct
-`SupabaseClient` for the role lookup DB query. This is a documented, temporary state until
-`DatabasePort` ships. Do not remove the `createMiddlewareClient()` call — it is needed for
-the DB query.
-
 ```typescript
-// ✅ Correct — documented split dependency in middleware
-const { session: sessionPort, auth: authFactory } = createBackendAdapters();
-
-export async function middleware(request: NextRequest) {
-  // Session refresh via SessionPort (provider-agnostic)
-  const response = await sessionPort.refreshSession(request);
-
-  // Role lookup via Supabase middleware client (DB query — until DatabasePort lands)
-  const supabase = createMiddlewareClient(request, middlewareSupabaseConfig);
-  // ...
-}
+// ❌ Wrong — a second validation after refreshSession()
+const { response } = await sessionPort.refreshSession(request);
+const supabase = createServerClient(url, key, { cookies });
+const { data: { user } } = await supabase.auth.getUser();  // redundant remote round trip
 ```
+
+Middleware runs at the edge, far from the database region, so each remote auth call costs
+roughly 290ms. `refreshSession()` verifies the JWT locally against a module-cached JWKS
+instead. A custom `SessionPort` implementation must report `userId` the same way — returning
+only a response would force callers back into a second round trip.
+
+> `createMiddlewareClient()` was removed once middleware stopped needing its own client.
+> If a future middleware-level DB query appears, add a `DatabasePort` rather than
+> reintroducing a raw client.
 
 ---
 

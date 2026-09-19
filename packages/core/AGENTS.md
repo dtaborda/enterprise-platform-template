@@ -89,11 +89,24 @@ Each factory returns a fresh, fully-typed `vi.fn()` stub per call — no Supabas
 
 ### Supabase Clients
 
-- ALWAYS: Use `getUser()` for auth checks (validates token server-side)
-- NEVER: Use `getSession()` for auth checks (trusts JWT without validation)
+- ALWAYS: In **Edge middleware**, use `getClaims()`. It cryptographically verifies the JWT's signature and expiry **locally**, against the project's asymmetric signing key fetched from `/auth/v1/.well-known/jwks.json`. This is real validation — it is NOT the unvalidated `getSession()`. Middleware runs at the edge (far from the database region), so a remote validation call there costs ~290ms per request.
+- ALWAYS: Use `getUser()` wherever you need **authoritative, server-checked** state — fresh profile data, or detecting a revoked/banned session. Local verification cannot observe revocation until the token expires, so `getUser()` remains required for that. It is cheap in the function region (`pdx1`, co-located with the database).
+- NEVER: Use `getSession()` alone for auth checks (trusts the JWT without verifying it). This is still forbidden — `getClaims()` is the verified alternative, `getSession()` is not.
+- NEVER: Replace a middleware `getClaims()` call with `getUser()` "to be safe". That reintroduces the per-navigation edge→origin round trip this design exists to remove.
 - NEVER: Expose `SUPABASE_SERVICE_ROLE_KEY` in any client-accessible code
 - NEVER: Use the admin client in code paths reachable from the browser
 - NEVER: Assume `auth.admin.signOut(userId)` revokes ANOTHER user's sessions — verify the admin API contract first. Cross-user session revocation needs a dedicated, documented admin flow.
+
+#### Where each auth check lives
+
+| Layer | Call | Why |
+|-------|------|-----|
+| `ui/middleware.ts` → `SessionPort.refreshSession()` | `getClaims()` | Coarse routing gate. Verifies signature + expiry locally; no network call on the hot path. |
+| `ui/features/auth/queries.ts` → `getCurrentUser()` | `getUser()` | Authoritative check during page render. Catches revoked/banned sessions and loads fresh profile data. |
+
+The middleware is deliberately **not** the authoritative auth boundary — it only decides where to route. Every protected page still resolves the user through `getCurrentUser()`, so a session revoked mid-token-lifetime is caught at render time.
+
+`getClaims()` requires the project's current JWT signing key to be **asymmetric (ECC or RSA)**. If the key is ever rotated back to a shared secret (`HS*`), the SDK silently falls back to a remote `getUser()` call. `updateSession()` detects this and emits a one-time `console.warn` — do not suppress it.
 
 ### Service Layer
 
