@@ -11,7 +11,11 @@ import type { SessionPort } from "../../ports/session-port";
  * import { createMockSessionPort } from "./__tests__/mocks/session-port.mock";
  *
  * const session = createMockSessionPort();
- * vi.mocked(session.refreshSession).mockResolvedValue(NextResponse.next());
+ * vi.mocked(session.refreshSession).mockResolvedValue({
+ *   response: NextResponse.next(),
+ *   userId: "user-1",
+ *   verifiedLocally: true,
+ * });
  * ```
  *
  * All methods conform to the SessionPort interface, so TypeScript will catch

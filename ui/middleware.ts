@@ -1,6 +1,5 @@
 import { resolveRoleRedirectPath } from "@enterprise/core/services/auth-service";
 import { createBackendAdapters } from "@enterprise/core/services/backend-adapters";
-import { createMiddlewareClient } from "@enterprise/core/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_ROUTES = [
@@ -14,17 +13,9 @@ const PUBLIC_ROUTES = [
 ];
 const AUTH_COMPLETION_ROUTES = ["/auth/callback", "/reset-password"];
 
-const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
-const supabaseAnonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
-
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!process.env["NEXT_PUBLIC_SUPABASE_URL"] || !process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]) {
   throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
 }
-
-const middlewareSupabaseConfig = {
-  supabaseUrl,
-  supabaseAnonKey,
-};
 
 // Session refresh is provider-agnostic via SessionPort.
 const { session: sessionPort } = createBackendAdapters();
@@ -33,8 +24,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isServerActionRequest = request.method === "POST" && request.headers.has("next-action");
 
-  // Session refresh is handled by SessionPort — no direct @supabase/ssr import needed.
-  const response = await sessionPort.refreshSession(request);
+  // Session refresh AND identity come from one SessionPort call. The port verifies
+  // the token and reports the subject, so this middleware performs exactly ONE
+  // token validation per request — no direct @supabase/ssr import, no second
+  // round trip to the auth server.
+  const { response, userId } = await sessionPort.refreshSession(request);
 
   const isPublicRoute = PUBLIC_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -43,19 +37,13 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
 
-  const supabase = createMiddlewareClient(request, middlewareSupabaseConfig);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user && !isPublicRoute && !isAuthCompletionRoute) {
+  if (!userId && !isPublicRoute && !isAuthCompletionRoute) {
     const signInUrl = new URL("/sign-in", request.url);
     signInUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(signInUrl);
   }
 
-  if (!user) {
+  if (!userId) {
     return response;
   }
 
