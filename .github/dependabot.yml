@@ -106,7 +106,6 @@ updates:
       # routine updates. lucide-react and class-variance-authority stay in the
       # production group on purpose: their minors are additive, and a removal
       # fails typecheck immediately.
-
     # Wait for new releases to settle before proposing them (supply-chain hardening).
     cooldown:
       default-days: 7
