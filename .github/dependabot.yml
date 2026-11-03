@@ -23,10 +23,41 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     groups:
-      # Group minor/patch updates to reduce PR noise
+      # Group minor/patch updates to reduce PR noise.
+      #
+      # 0.x libraries are deliberately excluded. Dependabot reads every version
+      # strictly as major.minor.patch, so for a 0.x package a BREAKING release
+      # arrives labelled "minor" and rides into this group. That is how the
+      # @supabase/ssr 0.10 -> 0.12 jump reached a 17-package PR and broke the
+      # team-invite flow, while the "@supabase/*" semver-major entry under
+      # `ignore` never fired. Isolating them stops one breaking library from
+      # blocking every routine update sharing its PR.
       production:
         patterns:
           - "*"
+        exclude-patterns:
+          - "@supabase/*"
+          - "drizzle-orm"
+          - "drizzle-kit"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Auth/DB client (0.x, so minors are breaking). Both packages move
+      # together because @supabase/ssr tracks @supabase/supabase-js compatibility.
+      supabase:
+        patterns:
+          - "@supabase/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # ORM and its migration tool (0.x, so minors are breaking). These must stay
+      # on matching versions, so they travel in a single PR.
+      drizzle:
+        patterns:
+          - "drizzle-orm"
+          - "drizzle-kit"
         update-types:
           - "minor"
           - "patch"
@@ -48,6 +79,12 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "lucide-react"
         update-types: ["version-update:semver-major"]
+      # Both spellings on purpose: this repo depends on the UNSCOPED `radix-ui`
+      # package, so "@radix-ui/*" alone matched nothing and never blocked a
+      # major. The scoped pattern stays for forks still on the individual
+      # @radix-ui/* packages.
+      - dependency-name: "radix-ui"
+        update-types: ["version-update:semver-major"]
       - dependency-name: "@radix-ui/*"
         update-types: ["version-update:semver-major"]
       # ORM — major bumps change schema/query APIs
@@ -58,6 +95,17 @@ updates:
       # Auth/DB — major bumps change client APIs
       - dependency-name: "@supabase/*"
         update-types: ["version-update:semver-major"]
+      #
+      # WARNING: a "semver-major" entry above does NOTHING for a 0.x dependency.
+      # Dependabot reads every version strictly as major.minor.patch, so 0.10 ->
+      # 0.12 is classified "minor" even though 0.x convention makes it breaking.
+      # The 0.x dependencies in this repo are @supabase/ssr, drizzle-orm,
+      # drizzle-kit, lucide-react and class-variance-authority. For the first
+      # three, the real protection is
+      # the dedicated groups above, which isolate their breaking minors into
+      # their own PR instead of bundling them with routine updates.
+      # lucide-react stays in the production group on purpose: its minors are
+      # additive icon releases, and a removed icon fails typecheck immediately.
 
   # ── GitHub Actions ───────────────────────────────────────────
   # DISABLED: We SHA-pin all actions manually as part of our supply chain
