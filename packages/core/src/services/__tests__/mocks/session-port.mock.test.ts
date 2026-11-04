@@ -12,11 +12,18 @@ describe("createMockSessionPort", () => {
     const session = createMockSessionPort();
 
     const fakeResponse = { status: 200 } as unknown as import("next/server").NextResponse;
-    vi.mocked(session.refreshSession).mockResolvedValue(fakeResponse);
+    vi.mocked(session.refreshSession).mockResolvedValue({
+      response: fakeResponse,
+      userId: "user-1",
+      verifiedLocally: true,
+    });
 
     const fakeRequest = {} as import("next/server").NextRequest;
     const result = await session.refreshSession(fakeRequest);
-    expect(result).toBe(fakeResponse);
+
+    expect(result.response).toBe(fakeResponse);
+    expect(result.userId).toBe("user-1");
+    expect(result.verifiedLocally).toBe(true);
   });
 
   it("returns a fresh instance each call (no shared state)", () => {

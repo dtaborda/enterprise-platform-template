@@ -109,17 +109,17 @@ The middleware no longer imports `@supabase/ssr` directly. Session refresh is de
 // ✅ Correct — ui/middleware.ts
 import { createBackendAdapters } from "@enterprise/core/services/backend-adapters";
 
-const { session: sessionPort, auth: authFactory } = createBackendAdapters();
+const { session: sessionPort } = createBackendAdapters();
 
 export async function middleware(request: NextRequest) {
-  // SessionPort handles cookie read/validate/refresh — no direct @supabase/ssr needed.
-  const response = await sessionPort.refreshSession(request);
+  // SessionPort handles cookie read/verify/refresh AND reports the subject —
+  // no direct @supabase/ssr import, and no second auth round trip.
+  const { response, userId } = await sessionPort.refreshSession(request);
 
-  // Role resolution still uses SupabaseClient for the DB query.
-  // DatabasePort is a P1 follow-up; until then, createMiddlewareClient is kept here.
-  const supabase = createMiddlewareClient(request, middlewareSupabaseConfig);
-  const auth = authFactory(supabase);
-  // ...
+  if (!userId) {
+    // ...route as unauthenticated
+  }
+
   return response;
 }
 ```

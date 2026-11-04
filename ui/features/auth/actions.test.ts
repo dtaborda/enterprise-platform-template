@@ -14,9 +14,21 @@ const {
   mockNormalizeSafeRedirectPath,
   mockGetAppUrl,
   mockAuthFactory,
+  mockGetAdminClient,
+  mockInitializeSubscription,
+  mockProfilesEq,
 } = vi.hoisted(() => {
   const mockAuthFactory = vi.fn((client: unknown) => client);
+  // Chainable stub for adminClient.from("profiles").select(...).eq(...).maybeSingle()
+  const mockProfilesEq = vi.fn(() => ({
+    maybeSingle: vi.fn().mockResolvedValue({ data: { tenant_id: "tenant-123" } }),
+  }));
   return {
+    mockGetAdminClient: vi.fn(() => ({
+      from: vi.fn(() => ({ select: vi.fn(() => ({ eq: mockProfilesEq })) })),
+    })),
+    mockInitializeSubscription: vi.fn().mockResolvedValue({ success: true, data: {} }),
+    mockProfilesEq,
     mockGetServerClient: vi.fn(),
     mockSignInWithPasswordService: vi.fn(),
     mockSignUpService: vi.fn(),
@@ -60,6 +72,18 @@ vi.mock("@enterprise/core/services/auth-service", () => ({
 
 vi.mock("./redirects", () => ({
   normalizeSafeRedirectPath: mockNormalizeSafeRedirectPath,
+}));
+
+vi.mock("@enterprise/core/supabase/admin", () => ({
+  getAdminClient: mockGetAdminClient,
+}));
+
+vi.mock("@enterprise/core/services/billing-service", () => ({
+  initializeSubscription: mockInitializeSubscription,
+}));
+
+vi.mock("@enterprise/core/services/adapters/payment-adapter-factory", () => ({
+  createPaymentAdapter: vi.fn(() => ({})),
 }));
 
 vi.mock("@enterprise/core/services/backend-adapters", () => ({
@@ -279,8 +303,31 @@ describe("actions", () => {
       });
     });
 
-    it("success redirects to /sign-in?registered=1", async () => {
+    it("needsEmailConfirmation redirects to /sign-in?checkEmail=1 without signing out", async () => {
       const { signUpAction } = await loadActions();
+      mockSignOutService.mockClear();
+
+      mockSignUpService.mockResolvedValue({
+        success: true,
+        data: { userId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", needsEmailConfirmation: true },
+      });
+
+      const formData = buildFormData({
+        name: "Member User",
+        email: "member@enterprise.dev",
+        password: "password123",
+      });
+
+      await expect(signUpAction(null, formData)).rejects.toSatisfy((error: unknown) => {
+        expect(mockSignOutService).not.toHaveBeenCalled();
+        expectRedirectDigest(error, "/sign-in?checkEmail=1");
+        return true;
+      });
+    });
+
+    it("live session redirects to the dashboard without signing out", async () => {
+      const { signUpAction } = await loadActions();
+      mockSignOutService.mockClear();
 
       mockSignUpService.mockResolvedValue({
         success: true,
@@ -294,8 +341,40 @@ describe("actions", () => {
       });
 
       await expect(signUpAction(null, formData)).rejects.toSatisfy((error: unknown) => {
-        expect(mockSignOutService).toHaveBeenCalledWith(mockClient);
-        expectRedirectDigest(error, "/sign-in?registered=1");
+        expect(mockSignOutService).not.toHaveBeenCalled();
+        expectRedirectDigest(error, ROUTES.dashboard);
+        return true;
+      });
+    });
+
+    // Regression guard: public.profiles is keyed by `id` (FK to auth.users.id).
+    // There is no `user_id` column — filtering on one makes PostgREST error, the
+    // surrounding best-effort try/catch swallows it, and the new tenant silently
+    // never gets a subscription.
+    it("looks up the new tenant profile by id, not user_id", async () => {
+      const { signUpAction } = await loadActions();
+      const userId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+      mockProfilesEq.mockClear();
+      mockInitializeSubscription.mockClear();
+
+      mockSignUpService.mockResolvedValue({
+        success: true,
+        data: { userId, needsEmailConfirmation: true },
+      });
+
+      const formData = buildFormData({
+        name: "Member User",
+        email: "member@enterprise.dev",
+        password: "password123",
+      });
+
+      await expect(signUpAction(null, formData)).rejects.toSatisfy(() => {
+        expect(mockProfilesEq).toHaveBeenCalledWith("id", userId);
+        expect(mockInitializeSubscription).toHaveBeenCalledWith(
+          expect.anything(),
+          "tenant-123",
+          expect.anything(),
+        );
         return true;
       });
     });

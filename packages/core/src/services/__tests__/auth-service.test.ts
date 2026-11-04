@@ -1,7 +1,9 @@
+import { USER_ROLE } from "@enterprise/contracts";
 import { describe, expect, it, vi } from "vitest";
 import {
   type PasswordResetServiceInput,
   requestPasswordResetService,
+  resolveRoleRedirectPath,
   type SignUpServiceInput,
   signInWithPasswordService,
   signOutService,
@@ -299,6 +301,48 @@ describe("auth-service", () => {
       if (!result.success) {
         expect(result.code).toBe("PASSWORD_UPDATE_FAILED");
       }
+    });
+  });
+
+  describe("resolveRoleRedirectPath", () => {
+    /**
+     * GUARD TEST — protects a performance optimization in ui/middleware.ts.
+     *
+     * The middleware no longer looks up the authenticated user's role before
+     * computing their home path. That is only correct while EVERY role resolves
+     * to the SAME path, which makes the lookup a guaranteed-constant database
+     * round trip.
+     *
+     * If this test fails, role home paths have diverged and the optimization is
+     * no longer safe: ui/middleware.ts MUST go back to a per-user role lookup
+     * (getUserRoleService) before the differing role can ship.
+     *
+     * Roles are read from USER_ROLE so a newly added role is covered automatically.
+     */
+    const ALL_ROLES = Object.values(USER_ROLE);
+
+    it("returns an identical home path for every role, null, and undefined", () => {
+      const expectedHome = resolveRoleRedirectPath(null);
+      const resolvedPaths = ALL_ROLES.map((role) => resolveRoleRedirectPath(role));
+      const distinctPaths = new Set([
+        ...resolvedPaths,
+        resolveRoleRedirectPath(null),
+        resolveRoleRedirectPath(undefined),
+      ]);
+
+      expect(
+        distinctPaths.size,
+        `Role home paths diverged: ${JSON.stringify(
+          Object.fromEntries(ALL_ROLES.map((role, i) => [role, resolvedPaths[i]])),
+        )}. ui/middleware.ts skips the per-user role lookup because all roles share one home. Restore getUserRoleService in ui/middleware.ts before shipping a role with a different home path.`,
+      ).toBe(1);
+
+      expect(distinctPaths.has(expectedHome)).toBe(true);
+    });
+
+    it("covers every role declared in USER_ROLE", () => {
+      expect(ALL_ROLES).toEqual(expect.arrayContaining(["owner", "admin", "member", "guest"]));
+      expect(ALL_ROLES.length).toBeGreaterThanOrEqual(4);
     });
   });
 });

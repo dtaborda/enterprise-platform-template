@@ -14,6 +14,7 @@ interface SignInPageProps {
   searchParams?: Promise<{
     redirectTo?: string;
     registered?: string;
+    checkEmail?: string;
     passwordUpdated?: string;
     error?: string;
   }>;
@@ -32,6 +33,11 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         {params.registered ? (
           <p className="mb-4 rounded-md bg-surface-container-high px-3 py-2 text-sm text-foreground">
             Your account was created. You can sign in now.
+          </p>
+        ) : null}
+        {params.checkEmail ? (
+          <p className="mb-4 rounded-md bg-surface-container-high px-3 py-2 text-sm text-foreground">
+            We sent you a confirmation link. Check your email to activate your account.
           </p>
         ) : null}
         {params.passwordUpdated ? (

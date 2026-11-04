@@ -24,6 +24,9 @@ import { getAdminClient } from "@enterprise/core/supabase/admin";
 import { getServerClient } from "@enterprise/core/supabase/server";
 import { getAppUrl } from "@enterprise/core/utils/env";
 import { redirect } from "next/navigation";
+// Relative import: the "@/" alias is not resolved by the vitest "web" project.
+// Matches ui/features/auth/redirects.ts and ui/app/auth/callback/route.ts.
+import { ROUTES } from "../../lib/routes";
 import { normalizeSafeRedirectPath } from "./redirects";
 
 // Auth factory is request-scoped: call authFactory(client) per request.
@@ -142,7 +145,7 @@ export async function signUpAction(
     const { data: profile } = await adminClient
       .from("profiles")
       .select("tenant_id")
-      .eq("user_id", result.data.userId)
+      .eq("id", result.data.userId)
       .maybeSingle<{ tenant_id: string }>();
 
     if (profile?.tenant_id) {
@@ -153,9 +156,15 @@ export async function signUpAction(
     console.error("[auth] billing init failed for user:", result.data.userId);
   }
 
-  await signOutService(auth);
+  if (result.data.needsEmailConfirmation) {
+    // No session was created, so there is nothing to sign out. Calling signOut here
+    // would clear the PKCE code verifier cookie that the email callback needs.
+    redirect("/sign-in?checkEmail=1");
+  }
 
-  redirect("/sign-in?registered=1");
+  // Email confirmation is disabled: the provider already returned a live session,
+  // so send the user straight into the app instead of signing them back out.
+  redirect(ROUTES.dashboard);
 }
 
 export async function forgotPasswordAction(

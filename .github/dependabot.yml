@@ -101,11 +101,16 @@ updates:
       # 0.12 is classified "minor" even though 0.x convention makes it breaking.
       # The 0.x dependencies in this repo are @supabase/ssr, drizzle-orm,
       # drizzle-kit, lucide-react and class-variance-authority. For the first
-      # three, the real protection is
-      # the dedicated groups above, which isolate their breaking minors into
-      # their own PR instead of bundling them with routine updates.
-      # lucide-react stays in the production group on purpose: its minors are
-      # additive icon releases, and a removed icon fails typecheck immediately.
+      # three, the real protection is the dedicated groups above, which isolate
+      # their breaking minors into their own PR instead of bundling them with
+      # routine updates. lucide-react and class-variance-authority stay in the
+      # production group on purpose: their minors are additive, and a removal
+      # fails typecheck immediately.
+
+    # Wait for new releases to settle before proposing them (supply-chain hardening).
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
 
   # ── GitHub Actions ───────────────────────────────────────────
   # DISABLED: We SHA-pin all actions manually as part of our supply chain

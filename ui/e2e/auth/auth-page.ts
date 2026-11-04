@@ -169,12 +169,6 @@ export class AuthPage {
     await expect(this.page).toHaveURL(new RegExp(`${ROUTES.settings}(?:\\?.*)?$`));
   }
 
-  async expectRegistrationSuccessNotice(): Promise<void> {
-    await expect(
-      this.page.getByText("Your account was created. You can sign in now."),
-    ).toBeVisible();
-  }
-
   async expectResetRequestSentNotice(): Promise<void> {
     await expect(
       this.page.getByText(

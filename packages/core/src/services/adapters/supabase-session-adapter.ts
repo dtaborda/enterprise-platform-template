@@ -1,14 +1,15 @@
-import type { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { type MiddlewareSupabaseConfig, updateSession } from "../../supabase/middleware";
-import type { SessionPort } from "../ports/session-port";
+import type { SessionPort, SessionRefreshResult } from "../ports/session-port";
 
 /**
  * SupabaseSessionAdapter — implements SessionPort using @supabase/ssr.
  *
  * This adapter wraps the existing updateSession() function from
  * packages/core/src/supabase/middleware.ts. The function reads the session
- * token from request cookies, validates it with the Supabase Auth server
- * (via getUser()), and returns a NextResponse with refreshed Set-Cookie headers.
+ * token from request cookies, verifies it locally against the project's cached
+ * JWKS (via getClaims()), and returns a NextResponse with refreshed Set-Cookie
+ * headers plus the authenticated subject.
  *
  * The Supabase project URL and anon key may be passed explicitly OR resolved
  * lazily from env (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY) on
@@ -27,7 +28,7 @@ export class SupabaseSessionAdapter implements SessionPort {
     this.supabaseAnonKey = supabaseAnonKey;
   }
 
-  async refreshSession(request: NextRequest): Promise<NextResponse> {
+  async refreshSession(request: NextRequest): Promise<SessionRefreshResult> {
     // Resolve credentials lazily so construction never throws at build time.
     const supabaseUrl = this.supabaseUrl ?? process.env["NEXT_PUBLIC_SUPABASE_URL"];
     const supabaseAnonKey = this.supabaseAnonKey ?? process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
@@ -40,9 +41,10 @@ export class SupabaseSessionAdapter implements SessionPort {
     }
 
     const config: MiddlewareSupabaseConfig = { supabaseUrl, supabaseAnonKey };
-    // Delegates directly to updateSession() — same behavior as pre-refactor middleware.
-    // The function creates a server client, calls getUser() to validate and refresh
-    // the session, then returns a response with updated cookies.
+    // Delegates directly to updateSession(). The function creates a server client,
+    // verifies and refreshes the session, then returns the response with updated
+    // cookies plus the authenticated subject. The SessionRefreshResult return type
+    // is what pins updateSession()'s own result shape to the port contract.
     return updateSession(request, config);
   }
 }
