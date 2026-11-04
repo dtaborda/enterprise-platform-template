@@ -82,8 +82,8 @@ jobs:
         if: always()
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: '<!-- conflict-checker -->'
+          comment-author: "github-actions[bot]"
+          body-includes: "<!-- conflict-checker -->"
 
       - name: Create or update comment
         if: steps.conflict-check.outputs.has_conflicts == 'true'
