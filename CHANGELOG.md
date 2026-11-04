@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.3](https://github.com/dtaborda/enterprise-platform-template/compare/v1.4.2...v1.4.3) (2026-11-04)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** include ${component} in release PR title patterns ([#159](https://github.com/dtaborda/enterprise-platform-template/issues/159)) ([c10682c](https://github.com/dtaborda/enterprise-platform-template/commit/c10682cf1b0f65460ad1b4484267044d6f550b2c))
+* port platform fixes and perf work from downstream fork ([#163](https://github.com/dtaborda/enterprise-platform-template/issues/163)) ([e37c9ec](https://github.com/dtaborda/enterprise-platform-template/commit/e37c9ec83bdef994c94ecfebd350d27fedc8378d))
+* unblock lint under Biome 2.6 and stop schema version drift ([#164](https://github.com/dtaborda/enterprise-platform-template/issues/164)) ([0b2fe98](https://github.com/dtaborda/enterprise-platform-template/commit/0b2fe9884c5d74330a4b5355ad4d9ecf8ab43bdd))
+
 ## [1.4.2](https://github.com/dtaborda/enterprise-platform-template/compare/v1.4.1...v1.4.2) (2026-08-31)
 
 
