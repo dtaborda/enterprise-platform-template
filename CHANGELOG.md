@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.4](https://github.com/dtaborda/enterprise-platform-template/compare/v1.4.3...v1.4.4) (2026-11-06)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** add ${scope} to release-please title patterns ([#171](https://github.com/dtaborda/enterprise-platform-template/issues/171)) ([9c92bef](https://github.com/dtaborda/enterprise-platform-template/commit/9c92bef22d6d7c4a2c741944be79678bcb97790c))
+
 ## [1.4.3](https://github.com/dtaborda/enterprise-platform-template/compare/v1.4.2...v1.4.3) (2026-11-04)
 
 
